@@ -16,16 +16,22 @@ const contextPath = env.contextPath === ''
 
 const app: express.Application = express();
 
+/**
+ * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.
+ * Denne reglen vil også treffe applikasjoner som bruker create-react-app siden den lager et inline script for å bootstrape appen.
+ * Dette kan fikses med å sette "INLINE_RUNTIME_CHUNK=false" i en .env fil.
+ */
 app.use(helmet({
 	contentSecurityPolicy: {
 		directives: {
 			defaultSrc: ["'self'"],
+			connectSrc: ["'self'"].concat(ALLOWED_DOMAINS),
 			baseUri: ["'self'"],
 			blockAllMixedContent: [],
 			fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
 			frameAncestors: ["'self'"],
 			objectSrc: ["'none'"],
-			scriptSrc: ["'self'"].concat(ALLOWED_DOMAINS),
+			scriptSrc: ["'self'", "'unsafe-inline'"].concat(ALLOWED_DOMAINS).concat(["*.google-analytics.com"]),
 			scriptSrcAttr: ["'none'"],
 			styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
 			imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS),
