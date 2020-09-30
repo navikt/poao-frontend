@@ -11,11 +11,9 @@ const hasContextPath = env.contextPath !== '';
 
 const app: express.Application = express();
 
-if (hasContextPath) {
-	app.use(env.contextPath, express.static(publicPath));
-} else {
-	app.use(express.static(publicPath));
-}
+app.use(hasContextPath ? env.contextPath : '/', express.static(publicPath, {
+	cacheControl: false
+}));
 
 app.get(resolve(env.contextPath, '/internal/isReady'), function (req, res) {
 	res.send('');
