@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import { isAbsolute, join } from 'path';
 import { resolve } from 'url';
 import env from './environment';
@@ -10,6 +11,8 @@ const publicPath = isAbsolute(env.publicPath)
 const hasContextPath = env.contextPath !== '';
 
 const app: express.Application = express();
+
+app.use(helmet());
 
 app.use(hasContextPath ? env.contextPath : '/', express.static(publicPath, {
 	cacheControl: false
