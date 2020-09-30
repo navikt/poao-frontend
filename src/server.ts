@@ -4,6 +4,8 @@ import { isAbsolute, join } from 'path';
 import { resolve } from 'url';
 import env from './environment';
 
+const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
+
 const publicPath = isAbsolute(env.publicPath)
 	? env.publicPath
 	: join(__dirname, env.publicPath);
@@ -14,7 +16,23 @@ const contextPath = env.contextPath === ''
 
 const app: express.Application = express();
 
-app.use(helmet());
+app.use(helmet({
+	contentSecurityPolicy: {
+		directives: {
+			defaultSrc: ["'self'"],
+			baseUri: ["'self'"],
+			blockAllMixedContent: [],
+			fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
+			frameAncestors: ["'self'"],
+			objectSrc: ["'none'"],
+			scriptSrc: ["'self'"].concat(ALLOWED_DOMAINS),
+			scriptSrcAttr: ["'none'"],
+			styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
+			imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS),
+			upgradeInsecureRequests: []
+		}
+	}
+}));
 
 app.use(contextPath, express.static(publicPath, {
 	cacheControl: false
