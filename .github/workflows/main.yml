@@ -1,0 +1,21 @@
+name: Build and push to registry
+on: push
+env:
+  IMAGE_TAG: ${{ github.sha }}
+  IMAGE: docker.pkg.github.com/${{ github.repository }}/pto-frontend
+
+jobs:
+  build-and-push:
+    name: Build and push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Build and push Docker image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
+          docker build -t ${IMAGE}:${IMAGE_TAG} .
+          docker push ${IMAGE}:${IMAGE_TAG}
