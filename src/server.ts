@@ -5,6 +5,7 @@ import { resolve } from 'url';
 import env from './environment';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
+const NAV_DEKORATOR_PROXY_PATH = '/dekorator';
 
 const publicPath = isAbsolute(env.publicPath)
 	? env.publicPath
@@ -44,11 +45,18 @@ app.use(contextPath, express.static(publicPath, {
 	cacheControl: false
 }));
 
-app.get(resolve(contextPath, '/internal/isReady'), function (req, res) {
+if (env.navDekoratorUrl || true) {
+	app.get(`${NAV_DEKORATOR_PROXY_PATH}/*`, (req, res) => {
+		const redirectUrl = req.originalUrl.slice(NAV_DEKORATOR_PROXY_PATH.length);
+		res.redirect(resolve(env.navDekoratorUrl as string, redirectUrl));
+	});
+}
+
+app.get(resolve(contextPath, '/internal/isReady'), (req, res) => {
 	res.send('');
 });
 
-app.get(resolve(contextPath, '/internal/isAlive'), function (req, res) {
+app.get(resolve(contextPath, '/internal/isAlive'), (req, res) => {
 	res.send('');
 });
 
@@ -60,10 +68,16 @@ app.get(resolve(contextPath, '/*'), (req, res) => {
 	}
 });
 
-app.listen(env.port, function () {
-	console.log('Starting server with following parameters');
+app.listen(env.port, () => {
+	console.log('Starting server with config');
 	console.log(`Public path: ${publicPath}`);
 	console.log(`Context path: ${contextPath}`);
 	console.log(`Redirect to index.html for 404: ${env.redirectOnNotFound}`);
 	console.log(`Port: ${env.port}`);
+
+	if (env.navDekoratorUrl) {
+		console.log(`Proxying requests to NAV dekorator on path ${NAV_DEKORATOR_PROXY_PATH} to: ${env.navDekoratorUrl}`);
+	} else {
+		console.log('Proxy to NAV dekorator is disabled');
+	}
 });

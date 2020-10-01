@@ -24,6 +24,10 @@ class Environment {
 		return redirectOnNotFound === 'true';
 	}
 
+	get navDekoratorUrl(): string | undefined {
+		return process.env.NAV_DEKORATOR_URL;
+	}
+
 }
 
 const environment = new Environment();
