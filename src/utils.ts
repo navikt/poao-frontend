@@ -3,7 +3,7 @@ import { format } from 'url';
 
 export function getFullUrl(req: Request): string {
 	return format({
-		protocol: req.protocol,
+		protocol: 'https', // SSL is terminated before reaching the server, so we cannot use req.protocol
 		host: req.get('host'),
 		pathname: req.originalUrl
 	});
