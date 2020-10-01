@@ -1,12 +1,12 @@
 import express from 'express';
 import helmet from 'helmet';
 import { isAbsolute, join } from 'path';
-import { resolve } from 'url';
 import cookieParser from 'cookie-parser';
 import env from './environment';
 import { createEnvJsFile } from './frontend-env-creator';
 import { authenticationWithLoginRedirect } from './auth-middleware';
 import { createAuthConfig } from './auth-utils';
+import { joinUrlSegments } from './utils';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const NAV_DEKORATOR_PROXY_PATH = '/dekorator';
@@ -46,11 +46,11 @@ async function startServer() {
 		}
 	}));
 
-	app.get(resolve(contextPath, '/internal/isReady'), (req, res) => {
+	app.get(joinUrlSegments(contextPath, '/internal/isReady'), (req, res) => {
 		res.send('');
 	});
 
-	app.get(resolve(contextPath, '/internal/isAlive'), (req, res) => {
+	app.get(joinUrlSegments(contextPath, '/internal/isAlive'), (req, res) => {
 		res.send('');
 	});
 
@@ -64,13 +64,14 @@ async function startServer() {
 	}));
 
 	if (env.navDekoratorUrl) {
-		app.get(`${NAV_DEKORATOR_PROXY_PATH}/*`, (req, res) => {
-			const redirectUrl = req.originalUrl.slice(NAV_DEKORATOR_PROXY_PATH.length);
-			res.redirect(resolve(env.navDekoratorUrl as string, redirectUrl));
+		const dekoratorProxyPath = joinUrlSegments(contextPath, NAV_DEKORATOR_PROXY_PATH);
+		app.get(joinUrlSegments(dekoratorProxyPath, '*'), (req, res) => {
+			const redirectUrl = req.originalUrl.slice(dekoratorProxyPath.length);
+			res.redirect(joinUrlSegments(env.navDekoratorUrl as string, redirectUrl));
 		});
 	}
 
-	app.get(resolve(contextPath, '/*'), (req, res) => {
+	app.get(joinUrlSegments(contextPath, '/*'), (req, res) => {
 		if (env.redirectOnNotFound) {
 			res.redirect(contextPath);
 		} else {
