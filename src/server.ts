@@ -46,6 +46,14 @@ async function startServer() {
 		}
 	}));
 
+	app.get(resolve(contextPath, '/internal/isReady'), (req, res) => {
+		res.send('');
+	});
+
+	app.get(resolve(contextPath, '/internal/isAlive'), (req, res) => {
+		res.send('');
+	});
+
 	if (env.enforceLogin) {
 		app.use(cookieParser());
 		app.use(await authenticationWithLoginRedirect(createAuthConfig(env)));
@@ -61,14 +69,6 @@ async function startServer() {
 			res.redirect(resolve(env.navDekoratorUrl as string, redirectUrl));
 		});
 	}
-
-	app.get(resolve(contextPath, '/internal/isReady'), (req, res) => {
-		res.send('');
-	});
-
-	app.get(resolve(contextPath, '/internal/isAlive'), (req, res) => {
-		res.send('');
-	});
 
 	app.get(resolve(contextPath, '/*'), (req, res) => {
 		if (env.redirectOnNotFound) {
