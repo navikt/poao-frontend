@@ -27,15 +27,19 @@ export const authenticationWithLoginRedirect = async (config: AuthMiddlewareConf
 	const jwksClient = createJwksClient(discoveryData.jwks_uri);
 	const verifyOptions = createVerifyOptions(config.oidcClientId, discoveryData.issuer);
 	const keyRetriever = createKeyRetriever(jwksClient);
+	const redirectToLogin = (req: Request, res: Response) => res.redirect(createLoginRedirectUrl(getFullUrl(req), config.loginRedirectUrl));
 
 	return (req: Request, res: Response, next: NextFunction) => {
 		const token = getCookieValue(req, config.tokenCookieName);
-		verifyJwtToken(token, keyRetriever, verifyOptions)
-			.then(() => {
-				next();
-			}).catch(() => {
-				res.redirect(createLoginRedirectUrl(getFullUrl(req), config.loginRedirectUrl));
-			});
+
+		if (!token) {
+			redirectToLogin(req, res);
+		} else {
+			verifyJwtToken(token, keyRetriever, verifyOptions)
+				.then(() => next())
+				.catch(() => redirectToLogin(req, res));
+		}
+
 	}
 };
 

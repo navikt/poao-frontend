@@ -1,4 +1,4 @@
-import jwksRsa, { CertSigningKey } from 'jwks-rsa';
+import jwksRsa, { RsaSigningKey } from 'jwks-rsa';
 import { GetPublicKeyOrSecret, JwtHeader, SigningKeyCallback, verify, VerifyOptions } from 'jsonwebtoken';
 import { Request } from 'express';
 import fetch from 'node-fetch';
@@ -91,7 +91,7 @@ export function createKeyRetriever(jwksClient: jwksRsa.JwksClient) {
 		}
 
 		jwksClient.getSigningKey(header.kid, function(err, key) {
-			const signingKey = (key as CertSigningKey).publicKey;
+			const signingKey = (key as RsaSigningKey).rsaPublicKey;
 			callback(null, signingKey);
 		});
 	};
