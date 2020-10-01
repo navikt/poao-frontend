@@ -1,5 +1,5 @@
 const DEFAULT_PORT = 8080;
-const DEFAULT_PUBLIC_PATH = '/public';
+const DEFAULT_SERVE_FROM_PATH = '/app/public';
 const DEFAULT_CONTEXT_PATH = '';
 const DEFAULT_REDIRECT_ON_NOT_FOUND = 'true';
 
@@ -11,8 +11,8 @@ class Environment {
 		return isNaN(port) ? DEFAULT_PORT : port;
 	}
 
-	get publicPath(): string {
-		return process.env.PUBLIC_PATH || DEFAULT_PUBLIC_PATH;
+	get serveFromPath(): string {
+		return process.env.SERVE_FROM_PATH || DEFAULT_SERVE_FROM_PATH;
 	}
 
 	get contextPath(): string {
@@ -26,6 +26,10 @@ class Environment {
 
 	get navDekoratorUrl(): string | undefined {
 		return process.env.NAV_DEKORATOR_URL;
+	}
+
+	get enableFrontendEnv(): boolean {
+		return process.env.ENABLE_FRONTEND_ENV === 'true';
 	}
 
 }

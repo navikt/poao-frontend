@@ -3,19 +3,24 @@ import helmet from 'helmet';
 import { isAbsolute, join } from 'path';
 import { resolve } from 'url';
 import env from './environment';
+import { createEnvJsFile } from './frontend-env-creator';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const NAV_DEKORATOR_PROXY_PATH = '/dekorator';
 
-const publicPath = isAbsolute(env.publicPath)
-	? env.publicPath
-	: join(__dirname, env.publicPath);
+const serveFromPath = isAbsolute(env.serveFromPath)
+	? env.serveFromPath
+	: join(__dirname, env.serveFromPath);
 
 const contextPath = env.contextPath === ''
 	? '/'
 	: env.contextPath;
 
 const app: express.Application = express();
+
+if (env.enableFrontendEnv) {
+	createEnvJsFile(serveFromPath);
+}
 
 /**
  * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.
@@ -41,7 +46,7 @@ app.use(helmet({
 	}
 }));
 
-app.use(contextPath, express.static(publicPath, {
+app.use(contextPath, express.static(serveFromPath, {
 	cacheControl: false
 }));
 
@@ -64,16 +69,17 @@ app.get(resolve(contextPath, '/*'), (req, res) => {
 	if (env.redirectOnNotFound) {
 		res.redirect(contextPath);
 	} else {
-		res.sendFile(join(publicPath, 'index.html'));
+		res.sendFile(join(serveFromPath, 'index.html'));
 	}
 });
 
 app.listen(env.port, () => {
 	console.log('Starting server with config');
-	console.log(`Public path: ${publicPath}`);
+	console.log(`Public path: ${serveFromPath}`);
 	console.log(`Context path: ${contextPath}`);
 	console.log(`Redirect to index.html for 404: ${env.redirectOnNotFound}`);
 	console.log(`Port: ${env.port}`);
+	console.log(`Frontend environment enabled: ${env.enableFrontendEnv}`);
 
 	if (env.navDekoratorUrl) {
 		console.log(`Proxying requests to NAV dekorator on path ${NAV_DEKORATOR_PROXY_PATH} to: ${env.navDekoratorUrl}`);

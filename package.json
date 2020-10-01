@@ -4,8 +4,8 @@
   "description": "Enkel express app for å serve statiske filer",
   "main": "src/server.ts",
   "scripts": {
-    "start": "cross-env PUBLIC_PATH=../public ts-node src/server.ts",
-    "start:context": "cross-env PUBLIC_PATH=../public CONTEXT_PATH=/pto-frontend ts-node src/server.ts",
+    "start": "cross-env SERVE_FROM_PATH=../public ts-node src/server.ts",
+    "start:context": "cross-env SERVE_FROM_PATH=../public CONTEXT_PATH=/pto-frontend ts-node src/server.ts",
     "build": "tsc"
   },
   "repository": {
