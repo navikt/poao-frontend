@@ -22,19 +22,25 @@ Setter hvor pto-frontend skal lete etter statiske filer. Default er /app/public.
 ### CONTEXT_PATH
 Setter context path for alle paths i pto-frontend. Default er ingen context path.
 
-### REDIRECT_ON_NOT_FOUND
-Hvis satt til **true** så vil forespørsler som gir 404 bli redirectet til root path.
-Hvis satt til noe annet, så vil 404 forespørsler defaulte til å returnere index.html.
-Default er **true**.
+### FALLBACK_STRATEGY
+Hvis satt til **redirect** så vil forespørsler som gir 404 bli redirectet til root path.
+Hvis satt til **serve** så vil forespørsler som gir 404 bli servert index.html.
+Hvis satt til **none** så vil forespørsler som gir 404 gi 404 melding tilbake til brukere.
+Default er **redirect**.
 
-REDIRECT_ON_NOT_FOUND=true
+REDIRECT_ON_NOT_FOUND=redirect
 ```
 https://my-app.dev.nav.no/not/a/real/path -> Redirected to https://my-app.dev.nav.no
 ```
 
-REDIRECT_ON_NOT_FOUND=false
+REDIRECT_ON_NOT_FOUND=serve
 ```
 https://my-app.dev.nav.no/not/a/real/path -> Serve index.html on this url
+```
+
+REDIRECT_ON_NOT_FOUND=none
+```
+https://my-app.dev.nav.no/not/a/real/path -> Return 404-message to user
 ```
 
 ### NAV_DEKORATOR_URL

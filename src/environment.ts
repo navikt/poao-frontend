@@ -1,7 +1,13 @@
+export enum FallbackStrategy {
+	REDIRECT = 'redirect',
+	SERVE = 'serve',
+	NONE = 'none'
+}
+
 const DEFAULT_PORT = 8080;
 const DEFAULT_SERVE_FROM_PATH = '/app/public';
 const DEFAULT_CONTEXT_PATH = '';
-const DEFAULT_REDIRECT_ON_NOT_FOUND = 'true';
+const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.REDIRECT;
 
 export class Environment {
 
@@ -19,9 +25,15 @@ export class Environment {
 		return process.env.CONTEXT_PATH || DEFAULT_CONTEXT_PATH;
 	}
 
-	get redirectOnNotFound(): boolean {
-		const redirectOnNotFound = process.env.REDIRECT_ON_NOT_FOUND || DEFAULT_REDIRECT_ON_NOT_FOUND;
-		return redirectOnNotFound === 'true';
+	get fallbackStrategy(): FallbackStrategy {
+		const strategy = process.env.FALLBACK_STRATEGY || DEFAULT_FALLBACK_STRATEGY;
+
+		// @ts-ignore
+		if (!Object.values(FallbackStrategy).includes(strategy)) {
+			throw new Error('Invalid fallback strategy ' + strategy);
+		}
+
+		return strategy as FallbackStrategy;
 	}
 
 	get navDekoratorUrl(): string | undefined {

@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { isAbsolute, join } from 'path';
 import cookieParser from 'cookie-parser';
-import env from './environment';
+import env, { FallbackStrategy } from './environment';
 import { createEnvJsFile } from './frontend-env-creator';
 import { authenticationWithLoginRedirect } from './auth-middleware';
 import { createAuthConfig } from './auth-utils';
@@ -71,19 +71,23 @@ async function startServer() {
 		});
 	}
 
-	app.get(joinUrlSegments(contextPath, '/*'), (req, res) => {
-		if (env.redirectOnNotFound) {
-			res.redirect(contextPath);
-		} else {
-			res.sendFile(join(serveFromPath, 'index.html'));
-		}
-	});
+	if (env.fallbackStrategy !== FallbackStrategy.NONE) {
+		app.get(joinUrlSegments(contextPath, '/*'), (req, res) => {
+			if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
+				res.redirect(contextPath);
+			} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
+				res.sendFile(join(serveFromPath, 'index.html'));
+			} else {
+				throw new Error('Unsupported strategy ' + env.fallbackStrategy);
+			}
+		});
+	}
 
 	app.listen(env.port, () => {
 		console.log('Starting server with config');
 		console.log(`Public path: ${serveFromPath}`);
 		console.log(`Context path: ${contextPath}`);
-		console.log(`Redirect to index.html for 404: ${env.redirectOnNotFound}`);
+		console.log(`Fallback strategy: ${env.fallbackStrategy}`);
 		console.log(`Port: ${env.port}`);
 		console.log(`Frontend environment enabled: ${env.enableFrontendEnv}`);
 		console.log(`Enforce login: ${env.enforceLogin}`);
