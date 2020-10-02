@@ -7,6 +7,7 @@ import { createEnvJsFile } from './frontend-env-creator';
 import { authenticationWithLoginRedirect } from './auth-middleware';
 import { createAuthConfig } from './auth-utils';
 import { joinUrlSegments } from './utils';
+import { logger } from './logger';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const NAV_DEKORATOR_PROXY_PATH = '/dekorator';
@@ -84,25 +85,25 @@ async function startServer() {
 	}
 
 	app.listen(env.port, () => {
-		console.log('Starting server with config');
-		console.log(`Public path: ${serveFromPath}`);
-		console.log(`Context path: ${contextPath}`);
-		console.log(`Fallback strategy: ${env.fallbackStrategy}`);
-		console.log(`Port: ${env.port}`);
-		console.log(`Frontend environment enabled: ${env.enableFrontendEnv}`);
-		console.log(`Enforce login: ${env.enforceLogin}`);
+		logger.info('Starting server with config');
+		logger.info(`Public path: ${serveFromPath}`);
+		logger.info(`Context path: ${contextPath}`);
+		logger.info(`Fallback strategy: ${env.fallbackStrategy}`);
+		logger.info(`Port: ${env.port}`);
+		logger.info(`Frontend environment enabled: ${env.enableFrontendEnv}`);
+		logger.info(`Enforce login: ${env.enforceLogin}`);
 
 		if (env.enforceLogin) {
-			console.log(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
-			console.log(`OIDC client id: ${env.oidcClientId}`);
-			console.log(`Token cookie name: ${env.tokenCookieName}`);
-			console.log(`Login redirect url: ${env.loginRedirectUrl}`);
+			logger.info(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
+			logger.info(`OIDC client id: ${env.oidcClientId}`);
+			logger.info(`Token cookie name: ${env.tokenCookieName}`);
+			logger.info(`Login redirect url: ${env.loginRedirectUrl}`);
 		}
 
 		if (env.navDekoratorUrl) {
-			console.log(`Proxying requests to NAV dekorator on path ${NAV_DEKORATOR_PROXY_PATH} to: ${env.navDekoratorUrl}`);
+			logger.info(`Proxying requests to NAV dekorator on path ${NAV_DEKORATOR_PROXY_PATH} to: ${env.navDekoratorUrl}`);
 		} else {
-			console.log('Proxy to NAV dekorator is disabled');
+			logger.info('Proxy to NAV dekorator is disabled');
 		}
 	});
 }
@@ -113,5 +114,5 @@ if (env.enableFrontendEnv) {
 
 startServer()
 	.catch(err => {
-		console.error('Failed to start server', err);
+		logger.error('Failed to start server', err);
 	});
