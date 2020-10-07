@@ -43,15 +43,6 @@ REDIRECT_ON_NOT_FOUND=none
 https://my-app.dev.nav.no/not/a/real/path -> Return 404-message to user
 ```
 
-### NAV_DEKORATOR_URL
-Hvis satt så vil pto-frontend sette opp et endepunkt på {CONTEXT_PATH}/dekorator som vil redirecte til URLen som er spesifisert.
-Default er **ingen url**.
-
-NAV_DEKORATOR_URL=https://dekoratoren.dev.nav.no
-```
-/dekorator/client.js -> redirected to https://dekoratoren.dev.nav.no/client.js
-```
-
 ### JSON_CONFIG_FILE_PATH
 pto-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som inneholder config for å sette opp serveren.
 Hvis ingen config fil er tilgjengelig så pto-frontend kjøre uten

@@ -45,10 +45,6 @@ export class Environment {
 		return strategy as FallbackStrategy;
 	}
 
-	get navDekoratorUrl(): string | undefined {
-		return process.env.NAV_DEKORATOR_URL;
-	}
-
 	get enableFrontendEnv(): boolean {
 		return process.env.ENABLE_FRONTEND_ENV === 'true';
 	}

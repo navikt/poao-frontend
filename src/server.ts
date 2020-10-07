@@ -12,7 +12,6 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Config, readConfigFile, validateConfig } from './config';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
-const NAV_DEKORATOR_PROXY_PATH = '/dekorator';
 
 const serveFromPath = isAbsolute(env.serveFromPath)
 	? env.serveFromPath
@@ -83,14 +82,6 @@ async function startServer() {
 		cacheControl: false
 	}));
 
-	if (env.navDekoratorUrl) {
-		const dekoratorProxyPath = joinUrlSegments(contextPath, NAV_DEKORATOR_PROXY_PATH);
-		app.get(joinUrlSegments(dekoratorProxyPath, '*'), (req, res) => {
-			const redirectUrl = req.originalUrl.slice(dekoratorProxyPath.length);
-			res.redirect(joinUrlSegments(env.navDekoratorUrl as string, redirectUrl));
-		});
-	}
-
 	if (env.fallbackStrategy !== FallbackStrategy.NONE) {
 		app.get(joinUrlSegments(contextPath, '/*'), (req, res) => {
 			if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
@@ -119,12 +110,6 @@ async function startServer() {
 			logger.info(`OIDC client id: ${env.oidcClientId}`);
 			logger.info(`Token cookie name: ${env.tokenCookieName}`);
 			logger.info(`Login redirect url: ${env.loginRedirectUrl}`);
-		}
-
-		if (env.navDekoratorUrl) {
-			logger.info(`Proxying requests to NAV dekorator on path ${NAV_DEKORATOR_PROXY_PATH} to: ${env.navDekoratorUrl}`);
-		} else {
-			logger.info('Proxy to NAV dekorator is disabled');
 		}
 	});
 }
