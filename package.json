@@ -6,6 +6,7 @@
   "scripts": {
     "start": "dotenv -e env/basic.env ts-node src/server.ts",
     "start:auth": "dotenv -e env/auth.env ts-node src/server.ts",
+    "start:proxy": "dotenv -e env/proxy.env ts-node src/server.ts",
     "build": "tsc"
   },
   "repository": {

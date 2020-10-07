@@ -56,7 +56,7 @@ async function startServer() {
 
 	if (config.proxies) {
 		config.proxies.forEach(proxy => {
-			app.use(proxy.from, createProxyMiddleware({
+			app.use(proxy.from, createProxyMiddleware(proxy.from, {
 				target: proxy.to,
 				pathRewrite: proxy.preserveContextPath ? undefined : {
 					[`^${proxy.from}`]: ''
