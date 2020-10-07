@@ -52,6 +52,24 @@ NAV_DEKORATOR_URL=https://dekoratoren.dev.nav.no
 /dekorator/client.js -> redirected to https://dekoratoren.dev.nav.no/client.js
 ```
 
+### JSON_CONFIG_FILE_PATH
+pto-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som inneholder config for å sette opp serveren.
+Hvis ingen config fil er tilgjengelig så pto-frontend kjøre uten
+Default er **/app/config/config.json**.
+
+### JSON_CONFIG
+Hvis satt så vil pto-frontend hente configen herfra istedenfor å lete etter en JSON-fil på JSON_CONFIG_FILE_PATH.
+
+Kan for eksempel brukes slik i en nais-yaml fil.
+```yaml
+      env:
+        - name: CONFIG_JSON
+          value: >
+            {
+              "proxies": [...]
+            }
+```
+
 ### ENABLE_FRONTEND_ENV
 Hvis satt til **true** så vil pto-frontend lage en **env.js** som blir plassert i SERVE_FROM_PATH.
 Denne filen vil inneholde alle miljø variabler som starter med PUBLIC og sette det på window.
@@ -91,6 +109,26 @@ En klient id som brukes for å verifisere at tokenet kan brukes i appen din.
 #### TOKEN_COOKIE_NAME
 Navnet på cookien som inneholder tokenet til bruker.
 
+## JSON config
+Miljøvariabler er ikke alltid like fleksibelt med tanke på config, så noe av configen som f.eks sette opp proxy endepunkter gjøres med JSON.
+Configen kan enten leses som en fil fra JSON_CONFIG_FILE_PATH eller som en miljøvariabel med JSON_CONFIG.
+
+Eksempel config:
+```json
+{
+  "proxies": [
+    {
+      "from": "/dekorator",
+      "to": "https://dekoratoren.dev.nav.no",
+      "preserveContextPath": false
+    },
+    {
+      "from": "/proxy",
+      "to": "https://pto-proxy.dev.nav.no"
+    }  
+  ]
+}
+```
 
 ## Eksempel på konfigurasjon
 
@@ -98,7 +136,7 @@ Her er noen eksempler på konfigurasjoner som kan bli brukt.
 
 Konfigurasjon med NAV dekoratør proxy, miljø variabler i frontend og login med redirect for eksterne brukere i testmiljøet.
 ```
-NAV_DEKORATOR_URL=https://dekoratoren.dev.nav.no
+CONFIG_JSON={ "proxies": [ { "from": "/dekorator", "to": "https://dekoratoren.dev.nav.no" } ] }
 ENABLE_FRONTEND_ENV=true
 ENFORCE_LOGIN=true
 LOGIN_REDIRECT_URL=https://loginservice.dev.nav.no/login?redirect={RETURN_TO_URL}&level=Level4
@@ -109,7 +147,7 @@ TOKEN_COOKIE_NAME=selvbetjening-idtoken
 
 Konfigurasjon med NAV dekoratør proxy, miljø variabler i frontend og login med redirect for eksterne brukere i produkjson.
 ```
-NAV_DEKORATOR_URL=https://www.nav.no/dekoratoren
+CONFIG_JSON={ "proxies": [ { "from": "/dekorator", "to": "https://www.nav.no/dekoratoren" } ] }
 ENABLE_FRONTEND_ENV=true
 ENFORCE_LOGIN=true
 LOGIN_REDIRECT_URL=https://loginservice.nav.no/login?redirect={RETURN_TO_URL}&level=Level4

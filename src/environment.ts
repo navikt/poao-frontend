@@ -6,6 +6,7 @@ export enum FallbackStrategy {
 
 const DEFAULT_PORT = 8080;
 const DEFAULT_SERVE_FROM_PATH = '/app/public';
+const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config/config.js';
 const DEFAULT_CONTEXT_PATH = '';
 const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.REDIRECT;
 
@@ -21,8 +22,16 @@ export class Environment {
 		return process.env.SERVE_FROM_PATH || DEFAULT_SERVE_FROM_PATH;
 	}
 
+	get jsonConfigFilePath(): string {
+		return process.env.JSON_CONFIG_FILE_PATH || DEFAULT_JSON_CONFIG_FILE_PATH;
+	}
+
 	get contextPath(): string {
 		return process.env.CONTEXT_PATH || DEFAULT_CONTEXT_PATH;
+	}
+
+	get jsonConfig(): string | undefined {
+		return process.env.JSON_CONFIG;
 	}
 
 	get fallbackStrategy(): FallbackStrategy {
