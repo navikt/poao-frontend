@@ -12,6 +12,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Config, readConfigFile, validateConfig } from './config';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
+const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";
 
 const serveFromPath = isAbsolute(env.serveFromPath)
 	? env.serveFromPath
@@ -56,13 +57,13 @@ async function startServer() {
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
-				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS),
+				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS).concat(GOOGLE_ANALYTICS_DOMAIN),
 				baseUri: ["'self'"],
 				blockAllMixedContent: [],
 				fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
 				frameAncestors: ["'self'"],
 				objectSrc: ["'none'"],
-				scriptSrc: ["'self'", "'unsafe-inline'"].concat(ALLOWED_DOMAINS).concat(["*.google-analytics.com"]),
+				scriptSrc: ["'self'", "'unsafe-inline'"].concat(ALLOWED_DOMAINS).concat(GOOGLE_ANALYTICS_DOMAIN),
 				scriptSrcAttr: ["'none'"],
 				styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
 				imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS),
