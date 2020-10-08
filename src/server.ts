@@ -2,11 +2,11 @@ import express from 'express';
 import helmet from 'helmet';
 import { isAbsolute, join } from 'path';
 import cookieParser from 'cookie-parser';
+import urlJoin from 'url-join';
 import env, { FallbackStrategy } from './environment';
 import { createEnvJsFile } from './frontend-env-creator';
 import { authenticationWithLoginRedirect } from './auth-middleware';
 import { createAuthConfig } from './auth-utils';
-import { joinUrlSegments } from './utils';
 import { logger } from './logger';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Config, readConfigFile, validateConfig } from './config';
@@ -73,7 +73,7 @@ async function startServer() {
 
 	if (config.proxies) {
 		config.proxies.forEach(proxy => {
-			const proxyFrom = joinUrlSegments(contextPath, proxy.from);
+			const proxyFrom = urlJoin(contextPath, proxy.from);
 			app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
 				target: proxy.to,
 				logLevel: 'debug',
@@ -86,11 +86,11 @@ async function startServer() {
 		});
 	}
 
-	app.get(joinUrlSegments(contextPath, '/internal/isReady'), (req, res) => {
+	app.get(urlJoin(contextPath, '/internal/isReady'), (req, res) => {
 		res.send('');
 	});
 
-	app.get(joinUrlSegments(contextPath, '/internal/isAlive'), (req, res) => {
+	app.get(urlJoin(contextPath, '/internal/isAlive'), (req, res) => {
 		res.send('');
 	});
 
@@ -104,7 +104,7 @@ async function startServer() {
 	}));
 
 	if (env.fallbackStrategy !== FallbackStrategy.NONE) {
-		app.get(joinUrlSegments(contextPath, '/*'), (req, res) => {
+		app.get(urlJoin(contextPath, '/*'), (req, res) => {
 			if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
 				res.redirect(contextPath);
 			} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
