@@ -56,8 +56,12 @@ async function startServer() {
 
 	if (config.proxies) {
 		config.proxies.forEach(proxy => {
+			// TODO: Add context path
 			app.use(proxy.from, createProxyMiddleware(proxy.from, {
 				target: proxy.to,
+				logLevel: 'debug',
+				logProvider: () => logger,
+				changeOrigin: true,
 				pathRewrite: proxy.preserveContextPath ? undefined : {
 					[`^${proxy.from}`]: ''
 				}
