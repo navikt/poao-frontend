@@ -56,8 +56,8 @@ async function startServer() {
 
 	if (config.proxies) {
 		config.proxies.forEach(proxy => {
-			// TODO: Add context path
-			app.use(proxy.from, createProxyMiddleware(proxy.from, {
+			const proxyFrom = joinUrlSegments(contextPath, proxy.from);
+			app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
 				target: proxy.to,
 				logLevel: 'debug',
 				logProvider: () => logger,

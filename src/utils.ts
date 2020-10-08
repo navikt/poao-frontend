@@ -16,12 +16,12 @@ export function hoursToMs(hours: number): number {
 /**
  * Joins url segments with '/'.
  * Will not work for segments that start with more than 1 '/'.
- * @param segements url segments that will be joined
+ * @param segments url segments that will be joined
  */
-export function joinUrlSegments(...segements: string[]): string {
-	return segements
-		.map(segment => {
-			return segment.startsWith('/')
+export function joinUrlSegments(...segments: string[]): string {
+	return segments
+		.map((segment, idx) => {
+			return segment.startsWith('/') && idx > 0
 				? segment.slice(1)
 				: segment;
 		}).join('/');
