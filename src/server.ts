@@ -30,6 +30,23 @@ const app: express.Application = express();
 async function startServer() {
 	validateConfig(config);
 
+	logger.info('Starting server with config');
+	logger.info(`Public path: ${serveFromPath}`);
+	logger.info(`Context path: ${contextPath}`);
+	logger.info(`Fallback strategy: ${env.fallbackStrategy}`);
+	logger.info(`Port: ${env.port}`);
+	logger.info(`Frontend environment enabled: ${env.enableFrontendEnv}`);
+	logger.info(`Enforce login: ${env.enforceLogin}`);
+
+	logger.info(`Setting up server with JSON config: ${JSON.stringify(config)}`);
+
+	if (env.enforceLogin) {
+		logger.info(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
+		logger.info(`OIDC client id: ${env.oidcClientId}`);
+		logger.info(`Token cookie name: ${env.tokenCookieName}`);
+		logger.info(`Login redirect url: ${env.loginRedirectUrl}`);
+	}
+
 	/**
 	 * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.
 	 * Denne reglen vil også treffe applikasjoner som bruker create-react-app siden den lager et inline script for å bootstrape appen.
@@ -98,24 +115,7 @@ async function startServer() {
 		});
 	}
 
-	app.listen(env.port, () => {
-		logger.info('Starting server with config');
-		logger.info(`Public path: ${serveFromPath}`);
-		logger.info(`Context path: ${contextPath}`);
-		logger.info(`Fallback strategy: ${env.fallbackStrategy}`);
-		logger.info(`Port: ${env.port}`);
-		logger.info(`Frontend environment enabled: ${env.enableFrontendEnv}`);
-		logger.info(`Enforce login: ${env.enforceLogin}`);
-
-		logger.info(`Setting up server with JSON config: ${JSON.stringify(config)}`);
-
-		if (env.enforceLogin) {
-			logger.info(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
-			logger.info(`OIDC client id: ${env.oidcClientId}`);
-			logger.info(`Token cookie name: ${env.tokenCookieName}`);
-			logger.info(`Login redirect url: ${env.loginRedirectUrl}`);
-		}
-	});
+	app.listen(env.port, () => logger.info('Server started successfully'));
 }
 
 if (env.enableFrontendEnv) {
