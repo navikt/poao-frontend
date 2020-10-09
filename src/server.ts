@@ -9,7 +9,8 @@ import { authenticationWithLoginRedirect } from './auth-middleware';
 import { createAuthConfig } from './auth-utils';
 import { logger } from './logger';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { Config, readConfigFile, validateConfig } from './config';
+import { JsonConfig, readConfigFile, validateConfig } from './json-config';
+import { gcsRouter } from './gcs-router';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";
@@ -22,24 +23,29 @@ const contextPath = env.contextPath === ''
 	? '/'
 	: env.contextPath;
 
-const config = env.jsonConfig
-	? JSON.parse(env.jsonConfig) as Config
+const jsonConfig = env.jsonConfig
+	? JSON.parse(env.jsonConfig) as JsonConfig
 	: readConfigFile(env.jsonConfigFilePath);
 
 const app: express.Application = express();
 
 async function startServer() {
-	validateConfig(config);
+	validateConfig(jsonConfig);
 
 	logger.info('Starting server with config');
-	logger.info(`Public path: ${serveFromPath}`);
+
+	if (env.gcsBucketName) {
+		logger.info(`Serving files from GCS bucket. bucket=${env.gcsBucketName} pathPrefix=${env.gcsBucketPrefixPath || ''} fallback=${env.fallbackStrategy} saPath=${env.gcsSaKeyPath}`);
+	} else {
+		logger.info(`Serving files from local filesystem. path=${serveFromPath} fallback=${env.fallbackStrategy}`);
+	}
+
 	logger.info(`Context path: ${contextPath}`);
-	logger.info(`Fallback strategy: ${env.fallbackStrategy}`);
 	logger.info(`Port: ${env.port}`);
 	logger.info(`Frontend environment enabled: ${env.enableFrontendEnv}`);
 	logger.info(`Enforce login: ${env.enforceLogin}`);
 
-	logger.info(`Setting up server with JSON config: ${JSON.stringify(config)}`);
+	logger.info(`Setting up server with JSON config: ${JSON.stringify(jsonConfig)}`);
 
 	if (env.enforceLogin) {
 		logger.info(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
@@ -72,8 +78,8 @@ async function startServer() {
 		}
 	}));
 
-	if (config.proxies) {
-		config.proxies.forEach(proxy => {
+	if (jsonConfig.proxies) {
+		jsonConfig.proxies.forEach(proxy => {
 			const proxyFrom = urlJoin(contextPath, proxy.from);
 			app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
 				target: proxy.to,
@@ -100,20 +106,30 @@ async function startServer() {
 		app.use(await authenticationWithLoginRedirect(createAuthConfig(env)));
 	}
 
-	app.use(contextPath, express.static(serveFromPath, {
-		cacheControl: false
-	}));
+	if (env.gcsBucketName) {
+		app.use(contextPath, gcsRouter({
+			gcsServiceAccountPath: env.gcsSaKeyPath,
+			bucketName: env.gcsBucketName,
+			contextPath,
+			fallbackStrategy: env.fallbackStrategy,
+			bucketPrefixPath: env.gcsBucketPrefixPath
+		}));
+	} else {
+		app.use(contextPath, express.static(serveFromPath, {
+			cacheControl: false
+		}));
 
-	if (env.fallbackStrategy !== FallbackStrategy.NONE) {
-		app.get(urlJoin(contextPath, '/*'), (req, res) => {
-			if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
-				res.redirect(contextPath);
-			} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
-				res.sendFile(join(serveFromPath, 'index.html'));
-			} else {
-				throw new Error('Unsupported strategy ' + env.fallbackStrategy);
-			}
-		});
+		if (env.fallbackStrategy !== FallbackStrategy.NONE) {
+			app.get(urlJoin(contextPath, '/*'), (req, res) => {
+				if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
+					res.redirect(contextPath);
+				} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
+					res.sendFile(join(serveFromPath, 'index.html'));
+				} else {
+					throw new Error('Unsupported strategy ' + env.fallbackStrategy);
+				}
+			});
+		}
 	}
 
 	app.listen(env.port, () => logger.info('Server started successfully'));

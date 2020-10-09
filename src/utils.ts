@@ -12,3 +12,11 @@ export function getFullUrl(req: Request): string {
 export function hoursToMs(hours: number): number {
 	return hours * 60 * 60 * 1000;
 }
+
+export function stripStartPath(path: string, startPath: string): string {
+	if (path.startsWith(startPath)) {
+		return path.substring(startPath.length);
+	}
+
+	return path;
+}

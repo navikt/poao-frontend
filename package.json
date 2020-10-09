@@ -7,6 +7,7 @@
     "start": "dotenv -e env/basic.env ts-node src/server.ts",
     "start:auth": "dotenv -e env/auth.env ts-node src/server.ts",
     "start:proxy": "dotenv -e env/proxy.env ts-node src/server.ts",
+    "start:gcs": "dotenv -e env/gcs.env ts-node src/server.ts",
     "test": "jest",
     "build": "tsc"
   },
@@ -20,12 +21,15 @@
   },
   "homepage": "https://github.com/navikt/pto-frontend#readme",
   "dependencies": {
+    "@google-cloud/storage": "^5.3.0",
     "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
     "helmet": "^4.1.1",
     "http-proxy-middleware": "^1.0.5",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.10.1",
+    "mime-types": "^2.1.27",
+    "node-cache": "^5.1.2",
     "node-fetch": "^2.6.1",
     "url-join": "^4.0.1",
     "winston": "^3.3.3"
@@ -35,6 +39,7 @@
     "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
     "@types/jsonwebtoken": "^8.5.0",
+    "@types/mime-types": "^2.1.0",
     "@types/node": "^14.11.2",
     "@types/node-fetch": "^2.5.7",
     "@types/url-join": "^4.0.0",

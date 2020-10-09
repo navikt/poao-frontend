@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 
-export interface Config {
+export interface JsonConfig {
 	proxies?: ProxyConfig[]
 }
 
@@ -10,7 +10,7 @@ export interface ProxyConfig {
 	preserveContextPath?: boolean;
 }
 
-export function readConfigFile(configFilePath: string): Config {
+export function readConfigFile(configFilePath: string): JsonConfig {
 	if (!existsSync(configFilePath)) return {};
 
 	const configStr = readFileSync(configFilePath).toString();
@@ -18,7 +18,7 @@ export function readConfigFile(configFilePath: string): Config {
 	return JSON.parse(configStr);
 }
 
-export function validateConfig(config: Config) {
+export function validateConfig(config: JsonConfig) {
 	if (config.proxies) {
 		config.proxies.forEach(proxy => {
 			if (!proxy.from) {
