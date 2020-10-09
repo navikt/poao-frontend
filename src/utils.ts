@@ -13,6 +13,14 @@ export function hoursToMs(hours: number): number {
 	return hours * 60 * 60 * 1000;
 }
 
+export function hoursToSeconds(hours: number): number {
+	return hours * 60 * 60;
+}
+
+export function minutesToSeconds(minutes: number): number {
+	return minutes * 60;
+}
+
 export function stripStartPath(path: string, startPath: string): string {
 	if (path.startsWith(startPath)) {
 		return path.substring(startPath.length);

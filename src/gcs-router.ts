@@ -4,12 +4,20 @@ import { Storage } from '@google-cloud/storage';
 import mime from 'mime-types';
 import { extname } from 'path';
 import urlJoin from 'url-join';
+import { readFileSync } from 'fs';
 import { FallbackStrategy } from './environment';
 import { logger } from './logger';
-import { stripStartPath } from './utils';
+import { hoursToSeconds, minutesToSeconds, stripStartPath } from './utils';
 
-const staticCache = new NodeCache();
-const quickCache = new NodeCache();
+// Used to cache requests to static resources that NEVER change
+const staticCache = new NodeCache({
+	stdTTL: hoursToSeconds(12)
+});
+
+// Used to cache files that can change at any moment from a dep
+const volatileCache = new NodeCache({
+	stdTTL: minutesToSeconds(5)
+});
 
 interface GcsRouterConfig {
 	gcsServiceAccountPath: string;
@@ -20,7 +28,8 @@ interface GcsRouterConfig {
 }
 
 export function gcsRouter(config: GcsRouterConfig) {
-	const storage = new Storage({keyFilename: config.gcsServiceAccountPath});
+	const saToken = readFileSync(config.gcsServiceAccountPath).toString();
+	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
 
 	return (req: Request, res: Response) => {
