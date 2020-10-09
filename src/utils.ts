@@ -21,10 +21,10 @@ export function minutesToSeconds(minutes: number): number {
 	return minutes * 60;
 }
 
-export function stripStartPath(path: string, startPath: string): string {
-	if (path.startsWith(startPath)) {
-		return path.substring(startPath.length);
+export function stripPrefix(sourceStr: string, prefixToStrip: string): string {
+	if (sourceStr.startsWith(prefixToStrip)) {
+		return sourceStr.substring(prefixToStrip.length);
 	}
 
-	return path;
+	return sourceStr;
 }

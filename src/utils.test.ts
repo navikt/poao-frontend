@@ -1,4 +1,4 @@
-import { hoursToMs, hoursToSeconds, minutesToSeconds, stripStartPath } from './utils';
+import { hoursToMs, hoursToSeconds, minutesToSeconds, stripPrefix } from './utils';
 
 describe('hoursToMs', () => {
 	it('should convert hours to milliseconds', () => {
@@ -19,9 +19,9 @@ describe('minutesToSeconds', () => {
 });
 
 
-describe('stripStartPath', () => {
-	it('should strip start of path', () => {
-		expect(stripStartPath('/test/path', '/test')).toBe('/path');
-		expect(stripStartPath('/test/path', '/test1')).toBe('/test/path');
+describe('stripPrefix', () => {
+	it('should strip prefix', () => {
+		expect(stripPrefix('/test/path', '/test')).toBe('/path');
+		expect(stripPrefix('/test/path', '/test1')).toBe('/test/path');
 	})
 });
