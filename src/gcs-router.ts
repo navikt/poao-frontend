@@ -102,6 +102,16 @@ export function gcsRouter(config: GcsRouterConfig) {
 	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
 
+	bucket.getFiles()
+		.then(files => {
+			files.forEach(file => {
+				console.log('file', file)
+			});
+		})
+		.catch(err => {
+			console.error(err);
+		})
+
 	return (req: Request, res: Response) => {
 		if (req.method !== 'GET') {
 			// We only serve resources so only GET is allowed
