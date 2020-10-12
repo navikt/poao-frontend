@@ -1,12 +1,10 @@
 import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
-import mime from 'mime-types';
-import { extname } from 'path';
 import urlJoin from 'url-join';
 import env, { FallbackStrategy } from './environment';
 import { logger } from './logger';
-import { hoursToSeconds, minutesToSeconds, stripPrefix } from './utils';
+import { getMimeType, hoursToSeconds, isRequestingFile, minutesToSeconds, stripPrefix } from './utils';
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -49,9 +47,8 @@ function readFromCache(bucketFilePath: string): Buffer | undefined {
 }
 
 function sendContent(res: Response, bucketFilePath: string, content: Buffer) {
-	const contentType = mime.lookup(extname(bucketFilePath)) || 'application/octet-stream';
 	// TODO: If the resource is static then we should add cache headers
-	res.setHeader('Content-Type', contentType);
+	res.setHeader('Content-Type', getMimeType(bucketFilePath));
 	res.send(content);
 }
 
@@ -120,7 +117,10 @@ export function gcsRouter(config: GcsRouterConfig) {
 			.catch(err => {
 				logger.warn('Fant ikke fil med path: ' + bucketFilePath, err);
 
-				if (config.fallbackStrategy === FallbackStrategy.REDIRECT) {
+				// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
+				if (config.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(bucketFilePath)) {
+					res.sendStatus(404);
+				} else if (config.fallbackStrategy === FallbackStrategy.REDIRECT) {
 					res.redirect(config.contextPath);
 				} else if (config.fallbackStrategy === FallbackStrategy.SERVE) {
 					const defaultFilePath = defaultBucketFilePath(config);
@@ -133,8 +133,6 @@ export function gcsRouter(config: GcsRouterConfig) {
 							logger.info('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);
 							res.sendStatus(404);
 						});
-				} else if (config.fallbackStrategy === FallbackStrategy.NONE) {
-					res.sendStatus(404);
 				} else {
 					throw new Error('Unsupported strategy ' + env.fallbackStrategy);
 				}

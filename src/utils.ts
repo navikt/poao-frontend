@@ -1,5 +1,7 @@
 import { Request } from 'express';
 import { format } from 'url';
+import mime from 'mime-types';
+import { extname } from "path";
 
 export function getFullUrl(req: Request): string {
 	return format({
@@ -19,6 +21,27 @@ export function hoursToSeconds(hours: number): number {
 
 export function minutesToSeconds(minutes: number): number {
 	return minutes * 60;
+}
+
+/*
+	Checks if the request path references a file such as /path/to/img.png
+	Ex:
+		/path/to/img.png -> true
+		/path/to/img.png?hello=world -> true
+		/path/to/something -> false
+ */
+export function isRequestingFile(requestPath: string): boolean {
+	const queryParamStart = requestPath.indexOf('?');
+
+	if (queryParamStart >= 0) {
+		requestPath = requestPath.substring(0, queryParamStart);
+	}
+
+	return !!mime.lookup(extname(requestPath));
+}
+
+export function getMimeType(path: string): string {
+	return mime.lookup(extname(path)) || 'application/octet-stream';
 }
 
 export function stripPrefix(sourceStr: string, prefixToStrip: string): string {

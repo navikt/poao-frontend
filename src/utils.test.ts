@@ -1,4 +1,4 @@
-import { hoursToMs, hoursToSeconds, minutesToSeconds, stripPrefix } from './utils';
+import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, stripPrefix } from './utils';
 
 describe('hoursToMs', () => {
 	it('should convert hours to milliseconds', () => {
@@ -18,6 +18,20 @@ describe('minutesToSeconds', () => {
 	})
 });
 
+describe('isRequestingFile', () => {
+	it('should check if path is requesting file', () => {
+		expect(isRequestingFile('/some/path/img.png')).toBe(true);
+	});
+
+	it('should check if path is requesting file with query params', () => {
+		expect(isRequestingFile('/some/path/img.png?hello=world')).toBe(true);
+	});
+
+	it('should check if path is NOT requesting file', () => {
+		expect(isRequestingFile('')).toBe(false);
+		expect(isRequestingFile('/some/path/img')).toBe(false);
+	});
+});
 
 describe('stripPrefix', () => {
 	it('should strip prefix', () => {

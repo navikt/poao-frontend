@@ -11,6 +11,7 @@ import { logger } from './logger';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { JsonConfig, readConfigFile, validateConfig } from './json-config';
 import { gcsRouter } from './gcs-router';
+import { isRequestingFile } from './utils';
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";
@@ -119,17 +120,18 @@ async function startServer() {
 			cacheControl: false
 		}));
 
-		if (env.fallbackStrategy !== FallbackStrategy.NONE) {
-			app.get(urlJoin(contextPath, '/*'), (req, res) => {
-				if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
-					res.redirect(contextPath);
-				} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
-					res.sendFile(join(serveFromPath, 'index.html'));
-				} else {
-					throw new Error('Unsupported strategy ' + env.fallbackStrategy);
-				}
-			});
-		}
+		app.get(urlJoin(contextPath, '/*'), (req, res) => {
+			// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
+			if (env.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(req.path)) {
+				res.sendStatus(404);
+			} else if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
+				res.redirect(contextPath);
+			} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
+				res.sendFile(join(serveFromPath, 'index.html'));
+			} else {
+				throw new Error('Unsupported strategy ' + env.fallbackStrategy);
+			}
+		});
 	}
 
 	app.listen(env.port, () => logger.info('Server started successfully'));
