@@ -6,8 +6,8 @@ import {
 	getCookieValue,
 	getJwksUrlFromDiscoveryEndpoint,
 	verifyJwtToken
-} from './auth-utils';
-import { getFullUrl } from './utils';
+} from './utils/auth-utils';
+import { getFullUrl } from './utils/utils';
 
 export interface AuthMiddlewareConfig {
 	oidcDiscoveryUrl: string;

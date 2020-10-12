@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
-import env, { FallbackStrategy } from './environment';
+import env, { FallbackStrategy } from './config/environment';
 import { logger } from './logger';
-import { getMimeType, hoursToSeconds, isRequestingFile, minutesToSeconds, stripPrefix } from './utils';
+import { getMimeType, hoursToSeconds, isRequestingFile, minutesToSeconds, stripPrefix } from './utils/utils';
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({

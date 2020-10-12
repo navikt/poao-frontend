@@ -2,8 +2,8 @@ import jwksRsa, { RsaSigningKey } from 'jwks-rsa';
 import { GetPublicKeyOrSecret, JwtHeader, SigningKeyCallback, verify, VerifyOptions } from 'jsonwebtoken';
 import { Request } from 'express';
 import fetch from 'node-fetch';
-import { AuthMiddlewareConfig } from './auth-middleware';
-import { Environment } from './environment';
+import { AuthMiddlewareConfig } from '../auth-middleware';
+import { Environment } from '../config/environment';
 import { hoursToMs } from './utils';
 
 export function createJwksClient(jwksUri: string): jwksRsa.JwksClient {
