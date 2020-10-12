@@ -15,7 +15,8 @@ const staticCache = new NodeCache({
 
 // Used to cache files that can change during deployment of a new version (index.html, asset-manifest.json etc...)
 const volatileCache = new NodeCache({
-	stdTTL: minutesToSeconds(5)
+	stdTTL: minutesToSeconds(5),
+	checkperiod: 120 // 2 minutes
 });
 
 interface GcsRouterConfig {
@@ -49,6 +50,7 @@ function readFromCache(bucketFilePath: string): Buffer | undefined {
 
 function sendContent(res: Response, bucketFilePath: string, content: Buffer) {
 	const contentType = mime.lookup(extname(bucketFilePath)) || 'application/octet-stream';
+	// TODO: If the resource is static then we should add cache headers
 	res.setHeader('Content-Type', contentType);
 	res.send(content);
 }
