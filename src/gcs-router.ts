@@ -47,7 +47,10 @@ function readFromCache(bucketFilePath: string): Buffer | undefined {
 }
 
 function sendContent(res: Response, bucketFilePath: string, content: Buffer) {
-	// TODO: If the resource is static then we should add cache headers
+	if (isStaticResource(bucketFilePath)) {
+		res.setHeader('Cache-Control', 'public, immutable, max-age=604800'); // 1 week expiration
+	}
+
 	res.setHeader('Content-Type', getMimeType(bucketFilePath));
 	res.send(content);
 }
