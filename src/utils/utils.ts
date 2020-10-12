@@ -31,13 +31,12 @@ export function minutesToSeconds(minutes: number): number {
 		/path/to/something -> false
  */
 export function isRequestingFile(requestPath: string): boolean {
+	return !!mime.lookup(extname(removeQueryParams(requestPath)));
+}
+
+export function removeQueryParams(requestPath: string): string {
 	const queryParamStart = requestPath.indexOf('?');
-
-	if (queryParamStart >= 0) {
-		requestPath = requestPath.substring(0, queryParamStart);
-	}
-
-	return !!mime.lookup(extname(requestPath));
+	return queryParamStart >= 0 ? requestPath.substring(0, queryParamStart) : requestPath;
 }
 
 export function getMimeType(path: string): string {

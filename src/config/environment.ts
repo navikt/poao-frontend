@@ -7,7 +7,6 @@ export enum FallbackStrategy {
 const DEFAULT_PORT = 8080;
 const DEFAULT_SERVE_FROM_PATH = '/app/public';
 const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config/config.js';
-const DEFAULT_GCS_SA_KEY_FILE_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token';
 const DEFAULT_CONTEXT_PATH = '';
 const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.REDIRECT;
 
@@ -29,10 +28,6 @@ export class Environment {
 
 	get gcsBucketPrefixPath(): string | undefined {
 		return process.env.GCS_BUCKET_PREFIX_PATH;
-	}
-
-	get gcsSaKeyPath(): string {
-		return process.env.GCS_SA_KEY_FILE_PATH || DEFAULT_GCS_SA_KEY_FILE_PATH;
 	}
 
 	get jsonConfigFilePath(): string {

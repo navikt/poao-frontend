@@ -1,4 +1,4 @@
-import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, stripPrefix } from './utils';
+import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, removeQueryParams, stripPrefix } from './utils';
 
 describe('hoursToMs', () => {
 	it('should convert hours to milliseconds', () => {
@@ -30,6 +30,16 @@ describe('isRequestingFile', () => {
 	it('should check if path is NOT requesting file', () => {
 		expect(isRequestingFile('')).toBe(false);
 		expect(isRequestingFile('/some/path/img')).toBe(false);
+	});
+});
+
+describe('removeQueryParams', () => {
+	it('should remove query params', () => {
+		expect(removeQueryParams('/some/path/test?hello=world')).toBe('/some/path/test');
+	});
+
+	it('should not change if no query params', () => {
+		expect(removeQueryParams('/some/path/test')).toBe('/some/path/test');
 	});
 });
 

@@ -4,7 +4,14 @@ import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
 import env, { FallbackStrategy } from './config/environment';
 import { logger } from './logger';
-import { getMimeType, hoursToSeconds, isRequestingFile, minutesToSeconds, stripPrefix } from './utils/utils';
+import {
+	getMimeType,
+	hoursToSeconds,
+	isRequestingFile,
+	minutesToSeconds,
+	removeQueryParams,
+	stripPrefix
+} from './utils/utils';
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -18,16 +25,15 @@ const volatileCache = new NodeCache({
 });
 
 interface GcsRouterConfig {
-	gcsServiceAccountPath: string;
 	bucketName: string;
 	bucketPrefixPath?: string;
 	contextPath: string;
 	fallbackStrategy: FallbackStrategy;
 }
 
+// All resource inside static/ are considered to be static and can be cached forever
 function isStaticResource(bucketFilePath: string): boolean {
-	// TODO: This check could be made a bit more robust
-	return bucketFilePath.includes('/static');
+	return bucketFilePath.startsWith('static');
 }
 
 function updateCache(bucketFilePath: string, content: Buffer): void {
@@ -82,6 +88,8 @@ function defaultBucketFilePath(config: GcsRouterConfig): string {
 }
 
 function createBucketFilePath(requestPath: string, config: GcsRouterConfig): string {
+	requestPath = removeQueryParams(requestPath);
+
 	const strippedPath = config.contextPath === '/'
 		? requestPath
 		: stripPrefix(requestPath, config.contextPath);
@@ -99,7 +107,7 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 }
 
 export function gcsRouter(config: GcsRouterConfig) {
-	const storage = new Storage();
+	const storage = new Storage({keyFilename: '/Users/alex/secrets/gcs-srv-acc-dev.json'});
 	const bucket = storage.bucket(config.bucketName);
 
 	return (req: Request, res: Response) => {
@@ -110,8 +118,6 @@ export function gcsRouter(config: GcsRouterConfig) {
 		}
 
 		const bucketFilePath = createBucketFilePath(req.path, config);
-
-		logger.info('Trying to fetch ' + bucketFilePath);
 
 		getFileFromCacheOrBucket(bucket, bucketFilePath)
 			.then(fileContent => {

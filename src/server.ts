@@ -36,7 +36,7 @@ async function startServer() {
 	logger.info('Starting server with config');
 
 	if (env.gcsBucketName) {
-		logger.info(`Serving files from GCS bucket. bucket=${env.gcsBucketName} pathPrefix=${env.gcsBucketPrefixPath || ''} fallback=${env.fallbackStrategy} saPath=${env.gcsSaKeyPath}`);
+		logger.info(`Serving files from GCS bucket. bucket=${env.gcsBucketName} pathPrefix=${env.gcsBucketPrefixPath || ''} fallback=${env.fallbackStrategy}`);
 	} else {
 		logger.info(`Serving files from local filesystem. path=${serveFromPath} fallback=${env.fallbackStrategy}`);
 	}
@@ -109,7 +109,6 @@ async function startServer() {
 
 	if (env.gcsBucketName) {
 		app.use(contextPath, gcsRouter({
-			gcsServiceAccountPath: env.gcsSaKeyPath,
 			bucketName: env.gcsBucketName,
 			contextPath,
 			fallbackStrategy: env.fallbackStrategy,
