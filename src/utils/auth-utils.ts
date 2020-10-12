@@ -2,8 +2,6 @@ import jwksRsa, { RsaSigningKey } from 'jwks-rsa';
 import { GetPublicKeyOrSecret, JwtHeader, SigningKeyCallback, verify, VerifyOptions } from 'jsonwebtoken';
 import { Request } from 'express';
 import fetch from 'node-fetch';
-import { AuthMiddlewareConfig } from '../auth-middleware';
-import { Environment } from '../config/environment';
 import { hoursToMs } from './utils';
 
 export function createJwksClient(jwksUri: string): jwksRsa.JwksClient {
@@ -44,31 +42,6 @@ export async function getJwksUrlFromDiscoveryEndpoint(discoveryUrl: string): Pro
 				issuer
 			};
 		});
-}
-
-export function createAuthConfig(env: Environment): AuthMiddlewareConfig {
-	if (!env.loginRedirectUrl) {
-		throw new Error('Cannot enforce login. Login redirect url is missing');
-	}
-
-	if (!env.oidcDiscoveryUrl) {
-		throw new Error('Cannot enforce login. OIDC discovery url is missing');
-	}
-
-	if (!env.oidcClientId) {
-		throw new Error('Cannot enforce login. OIDC client id is missing');
-	}
-
-	if (!env.tokenCookieName) {
-		throw new Error('Cannot enforce login. Token cookie name is missing');
-	}
-
-	return {
-		oidcClientId: env.oidcClientId,
-		oidcDiscoveryUrl: env.oidcDiscoveryUrl,
-		loginRedirectUrl: env.loginRedirectUrl,
-		tokenCookieName: env.tokenCookieName
-	};
 }
 
 export const getCookieValue = (req: Request, cookieName: string): string | undefined => {

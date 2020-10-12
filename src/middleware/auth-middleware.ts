@@ -6,8 +6,9 @@ import {
 	getCookieValue,
 	getJwksUrlFromDiscoveryEndpoint,
 	verifyJwtToken
-} from './utils/auth-utils';
-import { getFullUrl } from './utils/utils';
+} from '../utils/auth-utils';
+import { getFullUrl } from '../utils/utils';
+import { Environment } from '../config/environment';
 
 export interface AuthMiddlewareConfig {
 	oidcDiscoveryUrl: string;
@@ -20,6 +21,31 @@ const RETURN_TO = '{RETURN_TO_URL}';
 
 function createLoginRedirectUrl(returnToUrl: string, loginRedirectUrl: string): string {
 	return loginRedirectUrl.replace(RETURN_TO, encodeURIComponent(returnToUrl))
+}
+
+export function createAuthConfig(env: Environment): AuthMiddlewareConfig {
+	if (!env.loginRedirectUrl) {
+		throw new Error('Cannot enforce login. Login redirect url is missing');
+	}
+
+	if (!env.oidcDiscoveryUrl) {
+		throw new Error('Cannot enforce login. OIDC discovery url is missing');
+	}
+
+	if (!env.oidcClientId) {
+		throw new Error('Cannot enforce login. OIDC client id is missing');
+	}
+
+	if (!env.tokenCookieName) {
+		throw new Error('Cannot enforce login. Token cookie name is missing');
+	}
+
+	return {
+		oidcClientId: env.oidcClientId,
+		oidcDiscoveryUrl: env.oidcDiscoveryUrl,
+		loginRedirectUrl: env.loginRedirectUrl,
+		tokenCookieName: env.tokenCookieName
+	};
 }
 
 export const authenticationWithLoginRedirect = async (config: AuthMiddlewareConfig) => {
