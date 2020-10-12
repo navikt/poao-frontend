@@ -107,7 +107,7 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 }
 
 export function gcsRouter(config: GcsRouterConfig) {
-	const storage = new Storage({keyFilename: '/Users/alex/secrets/gcs-srv-acc-dev.json'});
+	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
 
 	return (req: Request, res: Response) => {

@@ -1,12 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 
-const envJsStr = 'window.env = {?};';
-const envOutputFile = 'env.js';
-const publicEnvPrefix = 'PUBLIC_';
+const ENV_FILE_NAME = 'env.js';
+const PUBLIC_ENV_PREFIX = 'PUBLIC_';
 
 export function createEnvJsFile(outputDir: string): void {
-	const publicEnvVars = getPrefixedEnvVars(publicEnvPrefix);
+	const envJsFilePath = path.join(outputDir, ENV_FILE_NAME);
+	const envJsFileContent = createEnvJsContent(PUBLIC_ENV_PREFIX, process.env);
+
+	fs.mkdirSync(outputDir, { recursive: true });
+	fs.writeFileSync(envJsFilePath, envJsFileContent);
+}
+
+export function createEnvJsContent(publicEnvPrefix: string, env: ProcessEnv): string {
+	const publicEnvVars = getPrefixedEnvVars(publicEnvPrefix, env);
 
 	const envVarStr = publicEnvVars.map(envVar => {
 		const strippedKey = envVar.name.replace(publicEnvPrefix, '');
@@ -15,19 +22,22 @@ export function createEnvJsFile(outputDir: string): void {
 		return `${strippedKey}: '${safeValue}'`;
 	}).join(', ');
 
-	fs.mkdirSync(outputDir, { recursive: true });
-	fs.writeFileSync(path.join(outputDir, envOutputFile), envJsStr.replace('?', envVarStr));
+	return `window.env = {${envVarStr}};`
 }
 
-function getPrefixedEnvVars(prefix: string): EnvVar[] {
-	return Object.entries(process.env).filter(([name, value]) => {
-		return name.startsWith(prefix) && value;
+export function getPrefixedEnvVars(prefix: string, env: ProcessEnv): EnvVar[] {
+	return Object.entries(env).filter(([name, value]) => {
+		return typeof name === 'string' && name.startsWith(prefix) && value;
 	}).map(([name, value]) => {
 		return {
 			name: name as string,
 			value: value as string
 		};
 	});
+}
+
+interface ProcessEnv {
+	[key: string]: string | undefined
 }
 
 interface EnvVar {
