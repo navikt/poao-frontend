@@ -22,7 +22,7 @@ export function helmetMiddleware() {
 				fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
 				frameAncestors: ["'self'"],
 				objectSrc: ["'none'"],
-				scriptSrc: ["'self'", "'unsafe-inline'"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN),
+				scriptSrc: ["'self'", "'unsafe-inline'"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN, GOOGLE_TAG_MANAGER_DOMAIN, ACCOUNT_PSPLUGIN_DOMAIN),
 				scriptSrcAttr: ["'none'"],
 				styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
 				imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS),
