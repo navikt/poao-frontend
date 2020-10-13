@@ -4,6 +4,7 @@ const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";
 const GOOGLE_TAG_MANAGER_DOMAIN = "*.googletagmanager.com";
 const ACCOUNT_PSPLUGIN_DOMAIN = "account.psplugin.com";
+const STATIC_HOTJAR_DOMAIN = "static.hotjar.com";
 
 /**
  * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.
@@ -16,16 +17,19 @@ export function helmetMiddleware() {
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
-				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN, GOOGLE_TAG_MANAGER_DOMAIN, ACCOUNT_PSPLUGIN_DOMAIN),
+				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS),
 				baseUri: ["'self'"],
 				blockAllMixedContent: [],
 				fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
 				frameAncestors: ["'self'"],
 				objectSrc: ["'none'"],
-				scriptSrc: ["'self'", "'unsafe-inline'"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN, GOOGLE_TAG_MANAGER_DOMAIN, ACCOUNT_PSPLUGIN_DOMAIN),
+				scriptSrc: ["'self'", "'unsafe-inline'"].concat(
+					ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN,
+					GOOGLE_TAG_MANAGER_DOMAIN, ACCOUNT_PSPLUGIN_DOMAIN, STATIC_HOTJAR_DOMAIN
+				),
 				scriptSrcAttr: ["'none'"],
 				styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
-				imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS),
+				imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN), // analytics sends information by loading images with query params
 				upgradeInsecureRequests: []
 			}
 		}
