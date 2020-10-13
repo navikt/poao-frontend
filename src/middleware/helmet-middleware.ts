@@ -4,6 +4,7 @@ const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";
 const GOOGLE_TAG_MANAGER_DOMAIN = "*.googletagmanager.com";
 const ACCOUNT_PSPLUGIN_DOMAIN = "account.psplugin.com";
+const NAV_PSPLUGIN_DOMAIN = "nav.psplugin.com";
 const HOTJAR_DOMAIN = "*.hotjar.com";
 const VARS_HOTJAR_DOMAIN = "vars.hotjar.com";
 
@@ -20,7 +21,7 @@ export function helmetMiddleware() {
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
-				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS),
+				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN, NAV_PSPLUGIN_DOMAIN),
 				baseUri: ["'self'"],
 				blockAllMixedContent: [],
 				fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
