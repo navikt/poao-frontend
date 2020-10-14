@@ -19,6 +19,14 @@ Setter hvilken port pto-frontend skal kjøre på. Default er 8080.
 ### SERVE_FROM_PATH
 Setter hvor pto-frontend skal lete etter statiske filer. Default er /app/public.
 
+### GCS_BUCKET_NAME
+Navnet til en GCS bøtte som pto-frontend skal servere filer fra. Hvis GCS_BUCKET_NAME er satt så vil dette overskrive servering av lokale filer.
+Ex: *behovsvurdering-dev* (navn må være unike på tvers av hele Google sin infrastruktur så det må skilles på dev/prod)
+
+### GCS_BUCKET_CONTEXT_PATH
+Setter context path for servering av filer fra en GCS bøtte. Kan brukes hvis man skal servere filer som ikke ligger i root av bøtten (/).
+Ex: *build*
+
 ### CONTEXT_PATH
 Setter context path for alle paths i pto-frontend. Default er ingen context path.
 

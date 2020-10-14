@@ -26,8 +26,8 @@ export class Environment {
 		return process.env.GCS_BUCKET_NAME;
 	}
 
-	get gcsBucketPrefixPath(): string | undefined {
-		return process.env.GCS_BUCKET_PREFIX_PATH;
+	get gcsBucketContextPath(): string | undefined {
+		return process.env.GCS_BUCKET_CONTEXT_PATH;
 	}
 
 	get jsonConfigFilePath(): string {

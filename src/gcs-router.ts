@@ -26,7 +26,7 @@ const volatileCache = new NodeCache({
 
 interface GcsRouterConfig {
 	bucketName: string;
-	bucketPrefixPath?: string;
+	bucketContextPath?: string;
 	contextPath: string;
 	fallbackStrategy: FallbackStrategy;
 }
@@ -84,7 +84,7 @@ function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string): Promi
 }
 
 function defaultBucketFilePath(config: GcsRouterConfig): string {
-	return stripPrefix(urlJoin(config.bucketPrefixPath || '', 'index.html'), '/');
+	return stripPrefix(urlJoin(config.bucketContextPath || '', 'index.html'), '/');
 }
 
 function createBucketFilePath(requestPath: string, config: GcsRouterConfig): string {
@@ -98,8 +98,8 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 		return defaultBucketFilePath(config);
 	}
 
-	let bucketFilePath = config.bucketPrefixPath
-		? urlJoin(config.bucketPrefixPath, strippedPath)
+	let bucketFilePath = config.bucketContextPath
+		? urlJoin(config.bucketContextPath, strippedPath)
 		: strippedPath;
 
 	// Bucket file paths cannot not start with /
