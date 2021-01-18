@@ -14,18 +14,20 @@ All konfigurering av pto-frontend gjøres gjennom miljø variabler.
 
 
 ### PORT
-Setter hvilken port pto-frontend skal kjøre på. Default er 8080.
+Setter hvilken port pto-frontend skal kjøre på. Default er **8080**.
+Eksempel: `PORT=8081`
 
 ### SERVE_FROM_PATH
-Setter hvor pto-frontend skal lete etter statiske filer. Default er /app/public.
+Setter hvor pto-frontend skal lete etter statiske filer. Default er **/app/public**.
+Eksempel: `SERVE_FROM_PATH=/some/path`
 
 ### GCS_BUCKET_NAME
 Navnet til en GCS bøtte som pto-frontend skal servere filer fra. Hvis GCS_BUCKET_NAME er satt så vil dette overskrive servering av lokale filer.
-Ex: *behovsvurdering-dev* (navn må være unike på tvers av hele Google sin infrastruktur så det må skilles på dev/prod)
+Eksempel: GCS_BUCKET_NAME=behovsvurdering-dev` (navn må være unike på tvers av hele Google sin infrastruktur så det må skilles på dev/prod)
 
 ### GCS_BUCKET_CONTEXT_PATH
 Setter context path for servering av filer fra en GCS bøtte. Kan brukes hvis man skal servere filer som ikke ligger i root av bøtten (/).
-Ex: *build*
+Eksempel: `GCS_BUCKET_CONTEXT_PATH=build`
 
 ### CONTEXT_PATH
 Setter context path for alle paths i pto-frontend. Default er ingen context path.
@@ -50,6 +52,17 @@ REDIRECT_ON_NOT_FOUND=none
 ```
 https://my-app.dev.nav.no/not/a/real/path -> Return 404-message to user
 ```
+
+### CORS_DOMAIN
+Skru på CORS for spesifisert domene. Default er at CORS er skrudd av for alle domener.
+
+Eksempel: `CORS_DOMAIN=*` eller `CORS_DOMAIN=nav.no`
+
+### CORS_ALLOW_CREDENTIALS
+Kontrollerer **Access-Control-Allow-Credentials** som bestemmer om klienter får sende med cookies og authorization header.
+Default er **false**
+
+Eksempel: `CORS_ALLOW_CREDENTIALS=true` 
 
 ### JSON_CONFIG_FILE_PATH
 pto-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som inneholder config for å sette opp serveren.
@@ -96,8 +109,7 @@ Hvis ENFORCE_LOGIN er på så må også variblene LOGIN_REDIRECT_URL, OIDC_DISCO
 Hvor skal brukeren sendes hvis de ikke har et gyldig token.
 Denne URLen burde inneholde **{RETURN_TO_URL}** som vil bli byttet ut med URLen som brukeren var på før de ble sendt videre for innlogging.
 
-Eks:
-LOGIN_REDIRECT_URL=https://loginservice.dev.nav.no/login?redirect={RETURN_TO_URL}&level=Level4
+Eksempel: LOGIN_REDIRECT_URL=https://loginservice.dev.nav.no/login?redirect={RETURN_TO_URL}&level=Level4`
 
 #### OIDC_DISCOVERY_URL
 URL som peker til discovery endepunktet for en OIDC provider. Brukes for å hente JWKS URI og issuer.
@@ -153,9 +165,4 @@ LOGIN_REDIRECT_URL=https://loginservice.nav.no/login?redirect={RETURN_TO_URL}&le
 OIDC_DISCOVERY_URL=https://login.microsoftonline.com/navnob2c.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten
 OIDC_CLIENT_ID=45104d6a-f5bc-4e8c-b352-4bbfc9381f25
 TOKEN_COOKIE_NAME=selvbetjening-idtoken
-```
-
-Konfigurasjon med context path for micro frontends.
-```
-CONTEXT_PATH=/my-app
 ```

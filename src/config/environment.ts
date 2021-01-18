@@ -42,6 +42,14 @@ export class Environment {
 		return process.env.JSON_CONFIG;
 	}
 
+	get corsDomain(): string | undefined {
+		return process.env.CORS_DOMAIN;
+	}
+
+	get corsAllowCredentials(): boolean {
+		return process.env.CORS_ALLOW_CREDENTIALS === 'true';
+	}
+
 	get fallbackStrategy(): FallbackStrategy {
 		const strategy = process.env.FALLBACK_STRATEGY || DEFAULT_FALLBACK_STRATEGY;
 

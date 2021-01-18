@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { isAbsolute, join } from 'path';
 import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
@@ -42,13 +43,22 @@ async function startServer() {
 	logger.info(`Frontend environment enabled: ${env.enableFrontendEnv}`);
 	logger.info(`Enforce login: ${env.enforceLogin}`);
 
-	logger.info(`Setting up server with JSON config: ${JSON.stringify(jsonConfig)}`);
+	logger.info(`Cors domain: ${env.corsDomain}`);
+	logger.info(`Cors allow credentials: ${env.corsAllowCredentials}`);
+
+	if (Object.keys(jsonConfig).length > 0) {
+		logger.info(`Setting up server with JSON config: ${JSON.stringify(jsonConfig)}`);
+	}
 
 	if (env.enforceLogin) {
 		logger.info(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
 		logger.info(`OIDC client id: ${env.oidcClientId}`);
 		logger.info(`Token cookie name: ${env.tokenCookieName}`);
 		logger.info(`Login redirect url: ${env.loginRedirectUrl}`);
+	}
+
+	if (env.corsDomain) {
+		app.use(cors({origin: env.corsDomain, credentials: env.corsAllowCredentials}));
 	}
 
 	app.use(helmetMiddleware());
