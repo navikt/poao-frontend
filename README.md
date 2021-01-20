@@ -10,8 +10,10 @@ COPY build /app/public
 ```
 
 ## Konfigurering
-All konfigurering av pto-frontend gjøres gjennom miljø variabler.
-
+Konfigurering av pto-frontend kan gjøres enten med miljøvariabler eller JSON. 
+Nedenfor ligger en liste over miljøvariabler som kan konfigureres.
+Hver miljøvariabel har et tilsvarende felt i JSON hvor navnet er det samme, men i camel case.
+F.eks **GCS_BUCKET_NAME** -> **gcsBucketName**
 
 ### PORT
 Setter hvilken port pto-frontend skal kjøre på. Default er **8080**.
