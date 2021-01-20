@@ -132,6 +132,29 @@ En klient id som brukes for å verifisere at tokenet kan brukes i appen din.
 #### TOKEN_COOKIE_NAME
 Navnet på cookien som inneholder tokenet til bruker.
 
+
+### Proxy
+Setter opp en HTTP proxy fra pto-frontend til en gitt URL. 
+Kan f.eks brukes for å slippe unna CORS mot eksterne tjenester eller for å nå tjenester som man ikke kan nå fra browseren.
+Proxyer må settes opp med JSON config.
+
+Eksempel:
+```json
+{
+  "proxies": [
+    {
+      "from": "/dekorator",
+      "to": "https://dekoratoren.dev.nav.no",
+      "preserveContextPath": false
+    },
+    {
+      "from": "/proxy",
+      "to": "https://pto-proxy.dev.nav.no"
+    }  
+  ]
+}
+```
+
 ## JSON config
 Det er mulig å bruke JSON til å representere configen til pto-frontend. Alt som kan konfigureres med miljøvariabler kan også konfigureres med JSON.
 I tillegg så kan JSON også konfigurere ting som proxy, som ikke kan konfigureres med miljøvariabler.
@@ -159,11 +182,7 @@ Eksempel config med alle felt satt:
       "from": "/dekorator",
       "to": "https://dekoratoren.dev.nav.no",
       "preserveContextPath": false
-    },
-    {
-      "from": "/proxy",
-      "to": "https://pto-proxy.dev.nav.no"
-    }  
+    }
   ]
 }
 ```
