@@ -42,27 +42,33 @@ export function createAppConfig(): AppConfig {
 
 	validateConfig(jsonConfig);
 
-	const rawServeFromPath = environmentConfig.serveFromPath || DEFAULT_SERVE_FROM_PATH;
-	const rawContextPath = environmentConfig.contextPath || DEFAULT_CONTEXT_PATH;
+	const rawServeFromPath = jsonConfig?.serveFromPath || environmentConfig.serveFromPath || DEFAULT_SERVE_FROM_PATH;
+	const rawContextPath = jsonConfig?.contextPath || environmentConfig.contextPath || DEFAULT_CONTEXT_PATH;
 
 	const serveFromPath = isAbsolute(rawServeFromPath) ? rawServeFromPath : join(__dirname, rawServeFromPath);
 	const contextPath = rawContextPath === '' ? '/' : rawContextPath;
 
 	return {
-		port: environmentConfig.port || DEFAULT_PORT,
+		port: jsonConfig?.port || environmentConfig.port || DEFAULT_PORT,
 		serveFromPath: serveFromPath,
 		contextPath: contextPath,
-		gcsBucketName: environmentConfig.gcsBucketName,
-		gcsBucketContextPath: environmentConfig.gcsBucketContextPath,
-		corsDomain: environmentConfig.corsDomain,
-		corsAllowCredentials: !!environmentConfig.corsAllowCredentials,
-		fallbackStrategy: environmentConfig.fallbackStrategy || DEFAULT_FALLBACK_STRATEGY,
-		enableFrontendEnv: !!environmentConfig.enableFrontendEnv,
-		enforceLogin: !!environmentConfig.enforceLogin,
-		loginRedirectUrl: environmentConfig.loginRedirectUrl,
-		oidcDiscoveryUrl: environmentConfig.oidcDiscoveryUrl,
-		oidcClientId: environmentConfig.oidcClientId,
-		tokenCookieName: environmentConfig.tokenCookieName,
+		gcsBucketName: jsonConfig?.gcsBucketName || environmentConfig.gcsBucketName,
+		gcsBucketContextPath: jsonConfig?.gcsBucketContextPath || environmentConfig.gcsBucketContextPath,
+		corsDomain: jsonConfig?.corsDomain || environmentConfig.corsDomain,
+		corsAllowCredentials: jsonConfig?.corsAllowCredentials != undefined
+			? jsonConfig.corsAllowCredentials
+			: !!environmentConfig.corsAllowCredentials,
+		fallbackStrategy: jsonConfig?.fallbackStrategy || environmentConfig.fallbackStrategy || DEFAULT_FALLBACK_STRATEGY,
+		enableFrontendEnv: jsonConfig?.enableFrontendEnv != undefined
+			? jsonConfig.enableFrontendEnv
+			: !!environmentConfig.enableFrontendEnv,
+		enforceLogin: jsonConfig?.enforceLogin != undefined
+			? jsonConfig.enforceLogin
+			: !!environmentConfig.enforceLogin,
+		loginRedirectUrl: jsonConfig?.loginRedirectUrl || environmentConfig.loginRedirectUrl,
+		oidcDiscoveryUrl: jsonConfig?.oidcDiscoveryUrl || environmentConfig.oidcDiscoveryUrl,
+		oidcClientId: jsonConfig?.oidcClientId || environmentConfig.oidcClientId,
+		tokenCookieName: jsonConfig?.tokenCookieName || environmentConfig.tokenCookieName,
 		proxies: jsonConfig?.proxies
 	};
 }

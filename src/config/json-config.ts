@@ -1,6 +1,21 @@
 import { existsSync, readFileSync } from 'fs';
+import { FallbackStrategy } from './app-config';
 
 export interface JsonConfig {
+	port?: number;
+	serveFromPath?: string;
+	contextPath?: string;
+	gcsBucketName?: string;
+	gcsBucketContextPath?: string;
+	corsDomain?: string;
+	corsAllowCredentials?: boolean;
+	fallbackStrategy?: FallbackStrategy;
+	enableFrontendEnv?: boolean;
+	enforceLogin?: boolean;
+	loginRedirectUrl?: string;
+	oidcDiscoveryUrl?: string;
+	oidcClientId?: string;
+	tokenCookieName?: string;
 	proxies?: ProxyConfig[]
 }
 
