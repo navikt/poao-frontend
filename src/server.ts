@@ -1,71 +1,39 @@
 import express from 'express';
 import cors from 'cors';
-import { isAbsolute, join } from 'path';
+import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
-import env, { FallbackStrategy } from './config/environment';
 import { createEnvJsFile } from './frontend-env-creator';
 import { authenticationWithLoginRedirect, createAuthConfig } from './middleware/auth-middleware';
 import { logger } from './logger';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { JsonConfig, readConfigFile, validateConfig } from './config/json-config';
 import { gcsRouter } from './gcs-router';
 import { isRequestingFile } from './utils/utils';
 import { helmetMiddleware } from './middleware/helmet-middleware';
-
-const serveFromPath = isAbsolute(env.serveFromPath)
-	? env.serveFromPath
-	: join(__dirname, env.serveFromPath);
-
-const contextPath = env.contextPath === ''
-	? '/'
-	: env.contextPath;
-
-const jsonConfig = env.jsonConfig
-	? JSON.parse(env.jsonConfig) as JsonConfig
-	: readConfigFile(env.jsonConfigFilePath);
+import { createAppConfig, FallbackStrategy, logAppConfig } from './config/app-config';
 
 const app: express.Application = express();
 
 async function startServer() {
-	validateConfig(jsonConfig);
+	logger.info('Starting PTO-frontend');
 
-	logger.info('Starting server with config');
+	const appConfig = createAppConfig();
 
-	if (env.gcsBucketName) {
-		logger.info(`Serving files from GCS bucket. bucket=${env.gcsBucketName} contextPath=${env.gcsBucketContextPath || ''} fallback=${env.fallbackStrategy}`);
-	} else {
-		logger.info(`Serving files from local filesystem. path=${serveFromPath} fallback=${env.fallbackStrategy}`);
+	logAppConfig(appConfig);
+
+	if (appConfig.enableFrontendEnv) {
+		createEnvJsFile(appConfig.serveFromPath);
 	}
 
-	logger.info(`Context path: ${contextPath}`);
-	logger.info(`Port: ${env.port}`);
-	logger.info(`Frontend environment enabled: ${env.enableFrontendEnv}`);
-	logger.info(`Enforce login: ${env.enforceLogin}`);
-
-	logger.info(`Cors domain: ${env.corsDomain}`);
-	logger.info(`Cors allow credentials: ${env.corsAllowCredentials}`);
-
-	if (Object.keys(jsonConfig).length > 0) {
-		logger.info(`Setting up server with JSON config: ${JSON.stringify(jsonConfig)}`);
-	}
-
-	if (env.enforceLogin) {
-		logger.info(`OIDC discovery url: ${env.oidcDiscoveryUrl}`);
-		logger.info(`OIDC client id: ${env.oidcClientId}`);
-		logger.info(`Token cookie name: ${env.tokenCookieName}`);
-		logger.info(`Login redirect url: ${env.loginRedirectUrl}`);
-	}
-
-	if (env.corsDomain) {
-		app.use(cors({origin: env.corsDomain, credentials: env.corsAllowCredentials}));
+	if (appConfig.corsDomain) {
+		app.use(cors({origin: appConfig.corsDomain, credentials: appConfig.corsAllowCredentials}));
 	}
 
 	app.use(helmetMiddleware());
 
-	if (jsonConfig.proxies) {
-		jsonConfig.proxies.forEach(proxy => {
-			const proxyFrom = urlJoin(contextPath, proxy.from);
+	if (appConfig.proxies) {
+		appConfig.proxies.forEach(proxy => {
+			const proxyFrom = urlJoin(appConfig.contextPath, proxy.from);
 			app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
 				target: proxy.to,
 				logLevel: 'debug',
@@ -78,50 +46,44 @@ async function startServer() {
 		});
 	}
 
-	app.get(urlJoin(contextPath, '/internal/isReady'), (req, res) => {
+	app.get(urlJoin(appConfig.contextPath, '/internal/isReady'), (req, res) => {
 		res.send('');
 	});
 
-	app.get(urlJoin(contextPath, '/internal/isAlive'), (req, res) => {
+	app.get(urlJoin(appConfig.contextPath, '/internal/isAlive'), (req, res) => {
 		res.send('');
 	});
 
-	if (env.enforceLogin) {
+	if (appConfig.enforceLogin) {
 		app.use(cookieParser());
-		app.use(await authenticationWithLoginRedirect(createAuthConfig(env)));
+		app.use(await authenticationWithLoginRedirect(createAuthConfig(appConfig)));
 	}
 
-	if (env.gcsBucketName) {
-		app.use(contextPath, gcsRouter({
-			bucketName: env.gcsBucketName,
-			contextPath,
-			fallbackStrategy: env.fallbackStrategy,
-			bucketContextPath: env.gcsBucketContextPath
+	if (appConfig.gcsBucketName) {
+		app.use(appConfig.contextPath, gcsRouter({
+			bucketName: appConfig.gcsBucketName,
+			contextPath: appConfig.contextPath,
+			fallbackStrategy: appConfig.fallbackStrategy,
+			bucketContextPath: appConfig.gcsBucketContextPath
 		}));
 	} else {
-		app.use(contextPath, express.static(serveFromPath, {
-			cacheControl: false
-		}));
+		app.use(appConfig.contextPath, express.static(appConfig.serveFromPath, {cacheControl: false}));
 
-		app.get(urlJoin(contextPath, '/*'), (req, res) => {
+		app.get(urlJoin(appConfig.contextPath, '/*'), (req, res) => {
 			// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
-			if (env.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(req.path)) {
+			if (appConfig.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(req.path)) {
 				res.sendStatus(404);
-			} else if (env.fallbackStrategy === FallbackStrategy.REDIRECT) {
-				res.redirect(contextPath);
-			} else if (env.fallbackStrategy === FallbackStrategy.SERVE) {
-				res.sendFile(join(serveFromPath, 'index.html'));
+			} else if (appConfig.fallbackStrategy === FallbackStrategy.REDIRECT) {
+				res.redirect(appConfig.contextPath);
+			} else if (appConfig.fallbackStrategy === FallbackStrategy.SERVE) {
+				res.sendFile(join(appConfig.serveFromPath, 'index.html'));
 			} else {
-				throw new Error('Unsupported strategy ' + env.fallbackStrategy);
+				throw new Error('Unsupported strategy ' + appConfig.fallbackStrategy);
 			}
 		});
 	}
 
-	app.listen(env.port, () => logger.info('Server started successfully'));
-}
-
-if (env.enableFrontendEnv) {
-	createEnvJsFile(serveFromPath);
+	app.listen(appConfig.port, () => logger.info('Server started successfully'));
 }
 
 startServer()

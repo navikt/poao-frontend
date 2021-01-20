@@ -1,6 +1,21 @@
 import { existsSync, readFileSync } from 'fs';
+import { FallbackStrategy } from './app-config';
 
 export interface JsonConfig {
+	port?: number;
+	serveFromPath?: string;
+	contextPath?: string;
+	gcsBucketName?: string;
+	gcsBucketContextPath?: string;
+	corsDomain?: string;
+	corsAllowCredentials?: boolean;
+	fallbackStrategy?: FallbackStrategy;
+	enableFrontendEnv?: boolean;
+	enforceLogin?: boolean;
+	loginRedirectUrl?: string;
+	oidcDiscoveryUrl?: string;
+	oidcClientId?: string;
+	tokenCookieName?: string;
 	proxies?: ProxyConfig[]
 }
 
@@ -10,15 +25,17 @@ export interface ProxyConfig {
 	preserveContextPath?: boolean;
 }
 
-export function readConfigFile(configFilePath: string): JsonConfig {
-	if (!existsSync(configFilePath)) return {};
+export function readConfigFile(configFilePath: string): JsonConfig | undefined {
+	if (!existsSync(configFilePath)) return undefined;
 
 	const configStr = readFileSync(configFilePath).toString();
 
 	return JSON.parse(configStr);
 }
 
-export function validateConfig(config: JsonConfig) {
+export function validateConfig(config: JsonConfig | undefined) {
+	if (!config) return;
+
 	if (config.proxies) {
 		config.proxies.forEach(proxy => {
 			if (!proxy.from) {

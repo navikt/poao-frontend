@@ -69,6 +69,16 @@ pto-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som innehold
 Hvis ingen config fil er tilgjengelig så pto-frontend kjøre uten
 Default er **/app/config/config.json**.
 
+Hvis man lager et configmap med configen til pto-frontend, så kan man injecte det som en fil i nais-yamlen.
+```bash
+kubectl create configmap my-app-config -n <team-namespace> --from-file=./config.json
+```
+```yaml
+filesFrom:
+    - configmap: my-app-config
+      mountPath: /app/config
+```
+
 ### JSON_CONFIG
 Hvis satt så vil pto-frontend hente configen herfra istedenfor å lete etter en JSON-fil på JSON_CONFIG_FILE_PATH.
 
@@ -121,12 +131,27 @@ En klient id som brukes for å verifisere at tokenet kan brukes i appen din.
 Navnet på cookien som inneholder tokenet til bruker.
 
 ## JSON config
-Miljøvariabler er ikke alltid like fleksibelt med tanke på config, så noe av configen som f.eks sette opp proxy endepunkter gjøres med JSON.
-Configen kan enten leses som en fil fra JSON_CONFIG_FILE_PATH eller som en miljøvariabel med JSON_CONFIG.
+Det er mulig å bruke JSON til å representere configen til pto-frontend. Alt som kan konfigureres med miljøvariabler kan også konfigureres med JSON.
+I tillegg så kan JSON også konfigurere ting som proxy, som ikke kan konfigureres med miljøvariabler.
+Konfigen kan enten leses som en fil fra JSON_CONFIG_FILE_PATH eller som en miljøvariabel med JSON_CONFIG.
 
-Eksempel config:
+Eksempel config med alle felt satt:
 ```json
 {
+  "port": 8080,
+  "serveFromPath": "/app/public",
+  "contextPath": "",
+  "gcsBucketName": "demo-app",
+  "gcsBucketContextPath": "/build",
+  "corsDomain": "*",
+  "corsAllowCredentials": false,
+  "fallbackStrategy": "redirect",
+  "enableFrontendEnv": false,
+  "enforceLogin": false,
+  "loginRedirectUrl": "https://some.domain.com/path",
+  "oidcDiscoveryUrl": "https://some.domain.com/path",
+  "oidcClientId": "abc123efg456",
+  "tokenCookieName": "selvbetjening-idtoken",
   "proxies": [
     {
       "from": "/dekorator",

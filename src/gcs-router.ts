@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
-import env, { FallbackStrategy } from './config/environment';
 import { logger } from './logger';
 import {
 	getMimeType,
@@ -12,6 +11,7 @@ import {
 	removeQueryParams,
 	stripPrefix
 } from './utils/utils';
+import { AppConfig, FallbackStrategy } from './config/app-config';
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -143,7 +143,7 @@ export function gcsRouter(config: GcsRouterConfig) {
 							res.sendStatus(404);
 						});
 				} else {
-					throw new Error('Unsupported strategy ' + env.fallbackStrategy);
+					throw new Error('Unsupported strategy ' + config.fallbackStrategy);
 				}
 			});
 	};
