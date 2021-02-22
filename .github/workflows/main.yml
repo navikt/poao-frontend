@@ -1,7 +1,6 @@
 name: Build and push to registry
 on: push
 env:
-  IMAGE_TAG: ${{ github.sha }}
   IMAGE: docker.pkg.github.com/${{ github.repository }}/pto-frontend
 
 jobs:
@@ -36,6 +35,8 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
+      - name: Create image tag
+        run: echo "IMAGE_TAG=$(TZ=\"Europe/Oslo\" date +%Y.%m.%d_%H.%M)-$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
       - name: Build and push Docker image
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
