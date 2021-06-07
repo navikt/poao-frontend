@@ -64,8 +64,13 @@ export function createKeyRetriever(jwksClient: jwksRsa.JwksClient) {
 		}
 
 		jwksClient.getSigningKey(header.kid, function(err, key) {
-			const signingKey = (key as RsaSigningKey).rsaPublicKey;
-			callback(null, signingKey);
+			// The typings says that the key is always defined, but there have been cases where the key is undefined
+			if (!key) {
+				callback(new Error('Unable to find key for kid: ' + header.kid));
+			} else {
+				const signingKey = (key as RsaSigningKey).rsaPublicKey;
+				callback(null, signingKey);
+			}
 		});
 	};
 }
