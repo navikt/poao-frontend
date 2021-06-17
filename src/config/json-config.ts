@@ -16,13 +16,19 @@ export interface JsonConfig {
 	oidcDiscoveryUrl?: string;
 	oidcClientId?: string;
 	tokenCookieName?: string;
-	proxies?: ProxyConfig[]
+	proxies?: ProxyConfig[];
+	redirects?: RedirectConfig[];
 }
 
 export interface ProxyConfig {
 	from: string; // Must be a relative path
 	to: string;
 	preserveContextPath?: boolean;
+}
+
+export interface RedirectConfig {
+	from: string; // Must be a relative path
+	to: string;
 }
 
 export function readConfigFile(configFilePath: string): JsonConfig | undefined {
@@ -53,6 +59,26 @@ export function validateConfig(config: JsonConfig | undefined) {
 			if (proxy.from.startsWith("/internal")) {
 				throw new Error(`'${proxy.from}' cannot start with '/internal'`);
 			}
-		})
+		});
+	}
+
+	if (config.redirects) {
+		config.redirects.forEach(redirect => {
+			if (!redirect.from) {
+				throw new Error(`The field 'from' is missing from: ${JSON.stringify(redirect)}`);
+			}
+
+			if (!redirect.to) {
+				throw new Error(`The field 'to' is missing from: ${JSON.stringify(redirect)}`);
+			}
+
+			if (!redirect.from.startsWith("/")) {
+				throw new Error(`'${redirect.from}' is not a relative path starting with '/'`);
+			}
+
+			if (redirect.from.startsWith("/internal")) {
+				throw new Error(`'${redirect.from}' cannot start with '/internal'`);
+			}
+		});
 	}
 }

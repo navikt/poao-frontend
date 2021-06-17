@@ -1,5 +1,5 @@
 import { getEnvironmentConfig } from './environment-config';
-import { ProxyConfig, readConfigFile, validateConfig } from './json-config';
+import { ProxyConfig, readConfigFile, RedirectConfig, validateConfig } from './json-config';
 import { logger } from '../logger';
 import { isAbsolute, join } from 'path';
 
@@ -31,6 +31,7 @@ export interface AppConfig {
 	oidcClientId?: string;
 	tokenCookieName?: string;
 	proxies?: ProxyConfig[];
+	redirects?: RedirectConfig[];
 }
 
 export function createAppConfig(): AppConfig {
@@ -69,7 +70,8 @@ export function createAppConfig(): AppConfig {
 		oidcDiscoveryUrl: jsonConfig?.oidcDiscoveryUrl || environmentConfig.oidcDiscoveryUrl,
 		oidcClientId: jsonConfig?.oidcClientId || environmentConfig.oidcClientId,
 		tokenCookieName: jsonConfig?.tokenCookieName || environmentConfig.tokenCookieName,
-		proxies: jsonConfig?.proxies
+		proxies: jsonConfig?.proxies,
+		redirects: jsonConfig?.redirects
 	};
 }
 
@@ -95,6 +97,13 @@ export function logAppConfig(appConfig: AppConfig): void {
 		logStr += 'HTTP Proxies:\n';
 		appConfig.proxies.forEach(proxy => {
 			logStr += `\t from=${proxy.from} to: ${proxy.to} preserve context path: ${!!proxy.preserveContextPath}`;
+		});
+	}
+
+	if (appConfig.redirects) {
+		logStr += 'Redirects:\n';
+		appConfig.redirects.forEach(redirect => {
+			logStr += `\t from=${redirect.from} to: ${redirect.to}`;
 		});
 	}
 

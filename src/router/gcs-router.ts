@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
-import { logger } from './logger';
+import { logger } from '../logger';
 import {
 	getMimeType,
 	hoursToSeconds,
@@ -10,8 +10,8 @@ import {
 	minutesToSeconds,
 	removeQueryParams,
 	stripPrefix
-} from './utils/utils';
-import { AppConfig, FallbackStrategy } from './config/app-config';
+} from '../utils/utils';
+import { FallbackStrategy } from '../config/app-config';
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({

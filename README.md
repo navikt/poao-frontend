@@ -155,9 +155,28 @@ Eksempel:
 }
 ```
 
+### Redirect
+Setter opp redirect fra pto-frontend til en gitt URL.
+Kan brukes for å ha lenker til forskjellige tjenester som er forskjellig i hvert miljø (preprod/prod).
+
+Redirects må settes opp med JSON config.
+
+Eksempel:
+```json
+{
+  "redirects": [
+    {
+      "from": "/some-path",
+      "to": "https://some-application.nav.no"
+    }
+  ]
+}
+```
+
+
 ## JSON config
 Det er mulig å bruke JSON til å representere configen til pto-frontend. Alt som kan konfigureres med miljøvariabler kan også konfigureres med JSON.
-I tillegg så kan JSON også konfigurere ting som proxy, som ikke kan konfigureres med miljøvariabler.
+I tillegg så kan JSON også konfigurere ting som proxy og redirect, som ikke kan konfigureres med miljøvariabler.
 Konfigen kan enten leses som en fil fra JSON_CONFIG_FILE_PATH eller som en miljøvariabel med JSON_CONFIG.
 
 Eksempel config med alle felt satt:
@@ -182,6 +201,12 @@ Eksempel config med alle felt satt:
       "from": "/dekorator",
       "to": "https://dekoratoren.dev.nav.no",
       "preserveContextPath": false
+    }
+  ],
+  "redirects": [
+    {
+      "from": "/some-path",
+      "to": "https://some-application.nav.no"
     }
   ]
 }

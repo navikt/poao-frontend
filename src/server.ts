@@ -7,10 +7,11 @@ import { createEnvJsFile } from './frontend-env-creator';
 import { authenticationWithLoginRedirect, createAuthConfig } from './middleware/auth-middleware';
 import { logger } from './logger';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { gcsRouter } from './gcs-router';
+import { gcsRouter } from './router/gcs-router';
 import { isRequestingFile } from './utils/utils';
 import { helmetMiddleware } from './middleware/helmet-middleware';
 import { createAppConfig, FallbackStrategy, logAppConfig } from './config/app-config';
+import { redirectRouter } from './router/redirect-router';
 
 const app: express.Application = express();
 
@@ -30,6 +31,13 @@ async function startServer() {
 	}
 
 	app.use(helmetMiddleware());
+
+	if (appConfig.redirects) {
+		appConfig.redirects.forEach(redirect => {
+			const redirectFrom = urlJoin(appConfig.contextPath, redirect.from);
+			app.use(redirectFrom, redirectRouter({ to: redirect.to }));
+		});
+	}
 
 	if (appConfig.proxies) {
 		appConfig.proxies.forEach(proxy => {
