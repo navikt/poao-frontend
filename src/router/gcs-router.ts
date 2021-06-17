@@ -124,10 +124,9 @@ export function gcsRouter(config: GcsRouterConfig) {
 				sendContent(res, bucketFilePath, fileContent);
 			})
 			.catch(err => {
-				logger.warn('Fant ikke fil med path: ' + bucketFilePath, err);
-
 				// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
 				if (config.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(bucketFilePath)) {
+					logger.warn('Fant ikke fil med path: ' + bucketFilePath, err);
 					res.sendStatus(404);
 				} else if (config.fallbackStrategy === FallbackStrategy.REDIRECT) {
 					res.redirect(config.contextPath);
@@ -139,7 +138,7 @@ export function gcsRouter(config: GcsRouterConfig) {
 							sendContent(res, defaultFilePath, content);
 						})
 						.catch(() => {
-							logger.info('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);
+							logger.warn('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);
 							res.sendStatus(404);
 						});
 				} else {
