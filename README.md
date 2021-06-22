@@ -115,7 +115,7 @@ Dette kan brukes med en script tag for å laste inn miljøvariabler før appen s
 Hvis satt til **true** så vil pto-frontend validere tokenet til bruker for alle forespørsler. 
 Default er **false**.
 
-Hvis ENFORCE_LOGIN er på så må også variblene LOGIN_REDIRECT_URL, OIDC_DISCOVERY_URL, OIDC_CLIENT_ID, TOKEN_COOKIE_NAME settes.
+Hvis ENFORCE_LOGIN er på så må også variablene LOGIN_REDIRECT_URL, OIDC_DISCOVERY_URL, OIDC_CLIENT_ID, TOKEN_COOKIE_NAME settes.
 
 #### LOGIN_REDIRECT_URL
 Hvor skal brukeren sendes hvis de ikke har et gyldig token.
