@@ -12,6 +12,7 @@ import { isRequestingFile } from './utils/utils';
 import { helmetMiddleware } from './middleware/helmet-middleware';
 import { createAppConfig, FallbackStrategy, logAppConfig } from './config/app-config';
 import { redirectRouter } from './router/redirect-router';
+import { authInfoRouter } from './router/auth-info-router';
 
 const app: express.Application = express();
 
@@ -31,6 +32,8 @@ async function startServer() {
 	}
 
 	app.use(helmetMiddleware());
+
+	app.use(cookieParser());
 
 	if (appConfig.redirects) {
 		appConfig.redirects.forEach(redirect => {
@@ -62,9 +65,17 @@ async function startServer() {
 		res.send('');
 	});
 
+	if (appConfig.oidcClientId && appConfig.oidcDiscoveryUrl && appConfig.tokenCookieName) {
+		app.get('/auth/info', await authInfoRouter({
+			oidcClientId: appConfig.oidcClientId,
+			oidcDiscoveryUrl: appConfig.oidcDiscoveryUrl,
+			tokenCookieName: appConfig.tokenCookieName,
+		}));
+	}
+
 	if (appConfig.enforceLogin) {
-		app.use(cookieParser());
-		app.use(await authenticationWithLoginRedirect(createAuthConfig(appConfig)));
+		const authConfig = createAuthConfig(appConfig);
+		app.use(await authenticationWithLoginRedirect(authConfig));
 	}
 
 	if (appConfig.gcsBucketName) {

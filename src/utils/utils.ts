@@ -50,3 +50,7 @@ export function stripPrefix(sourceStr: string, prefixToStrip: string): string {
 
 	return sourceStr;
 }
+
+export function fromBase64(base64Str: string): string {
+	return new Buffer(base64Str, 'base64').toString('ascii');
+}
