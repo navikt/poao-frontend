@@ -30,6 +30,7 @@ export interface ProxyConfig {
 export interface RedirectConfig {
 	from: string; // Must be a relative path
 	to: string;
+	preserveContextPath?: boolean;
 }
 
 export function readConfigFile(configFilePath: string): JsonConfig | undefined {

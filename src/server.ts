@@ -38,7 +38,7 @@ async function startServer() {
 	if (appConfig.redirects) {
 		appConfig.redirects.forEach(redirect => {
 			const redirectFrom = urlJoin(appConfig.contextPath, redirect.from);
-			app.use(redirectFrom, redirectRouter({ to: redirect.to }));
+			app.use(redirectFrom, redirectRouter({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
 		});
 	}
 
