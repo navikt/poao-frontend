@@ -10,7 +10,6 @@ export interface RedirectRouterConfig {
 export function redirectRouter(config: RedirectRouterConfig) {
 	return (req: Request, res: Response) => {
 		if (config.preserveContextPath) {
-			urljoin(config.to, req.path)
 			// @ts-ignore
 			let query = unescape(stringify(req.query));
 			query = !!query ? '?' + query : '';
