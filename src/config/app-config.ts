@@ -104,7 +104,7 @@ export function logAppConfig(appConfig: AppConfig): void {
 	if (appConfig.redirects) {
 		logStr += 'Redirects:\n';
 		appConfig.redirects.forEach(redirect => {
-			logStr += `\t from=${redirect.from} to: ${redirect.to}`;
+			logStr += `\t from=${redirect.from} to: ${redirect.to} preserveContextPath: ${redirect.preserveContextPath}` ;
 		});
 	}
 
