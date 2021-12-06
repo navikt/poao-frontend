@@ -1,7 +1,7 @@
 name: Build and push to registry
 on: push
 env:
-  IMAGE: docker.pkg.github.com/${{ github.repository }}/pto-frontend
+  IMAGE: docker.pkg.github.com/${{ github.repository }}/poao-frontend
 
 jobs:
   test:

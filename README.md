@@ -1,30 +1,32 @@
-# pto-frontend
+# POAO Frontend
 Node.js Express app som håndterer diverse funksjoner som er påkrevd av de fleste frontend applikasjoner.
+
+Forket fra https://github.com/navikt/pto-frontend.
 
 ## Hvordan ta i bruk
 Kopier filene som skal serveres til /app/public.
 
 ```dockerfile
-FROM docker.pkg.github.com/navikt/pto-frontend/pto-frontend:IMAGE_VERSION
+FROM docker.pkg.github.com/navikt/poao-frontend/poao-frontend:IMAGE_VERSION
 COPY build /app/public
 ```
 
 ## Konfigurering
-Konfigurering av pto-frontend kan gjøres enten med miljøvariabler eller JSON. 
+Konfigurering av poao-frontend kan gjøres enten med miljøvariabler eller JSON. 
 Nedenfor ligger en liste over miljøvariabler som kan konfigureres.
 Hver miljøvariabel har et tilsvarende felt i JSON hvor navnet er det samme, men i camel case.
 F.eks **GCS_BUCKET_NAME** -> **gcsBucketName**
 
 ### PORT
-Setter hvilken port pto-frontend skal kjøre på. Default er **8080**.
+Setter hvilken port poao-frontend skal kjøre på. Default er **8080**.
 Eksempel: `PORT=8081`
 
 ### SERVE_FROM_PATH
-Setter hvor pto-frontend skal lete etter statiske filer. Default er **/app/public**.
+Setter hvor poao-frontend skal lete etter statiske filer. Default er **/app/public**.
 Eksempel: `SERVE_FROM_PATH=/some/path`
 
 ### GCS_BUCKET_NAME
-Navnet til en GCS bøtte som pto-frontend skal servere filer fra. Hvis GCS_BUCKET_NAME er satt så vil dette overskrive servering av lokale filer.
+Navnet til en GCS bøtte som poao-frontend skal servere filer fra. Hvis GCS_BUCKET_NAME er satt så vil dette overskrive servering av lokale filer.
 Eksempel: GCS_BUCKET_NAME=behovsvurdering-dev` (navn må være unike på tvers av hele Google sin infrastruktur så det må skilles på dev/prod)
 
 ### GCS_BUCKET_CONTEXT_PATH
@@ -32,7 +34,7 @@ Setter context path for servering av filer fra en GCS bøtte. Kan brukes hvis ma
 Eksempel: `GCS_BUCKET_CONTEXT_PATH=build`
 
 ### CONTEXT_PATH
-Setter context path for alle paths i pto-frontend. Default er ingen context path.
+Setter context path for alle paths i poao-frontend. Default er ingen context path.
 
 ### FALLBACK_STRATEGY
 Hvis satt til **redirect** så vil forespørsler som gir 404 bli redirectet til root path.
@@ -67,11 +69,11 @@ Default er **false**
 Eksempel: `CORS_ALLOW_CREDENTIALS=true` 
 
 ### JSON_CONFIG_FILE_PATH
-pto-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som inneholder config for å sette opp serveren.
-Hvis ingen config fil er tilgjengelig så pto-frontend kjøre uten
+poao-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som inneholder config for å sette opp serveren.
+Hvis ingen config fil er tilgjengelig så poao-frontend kjøre uten
 Default er **/app/config/config.json**.
 
-Hvis man lager et configmap med configen til pto-frontend, så kan man injecte det som en fil i nais-yamlen.
+Hvis man lager et configmap med configen til poao-frontend, så kan man injecte det som en fil i nais-yamlen.
 ```bash
 kubectl create configmap my-app-config -n <team-namespace> --from-file=./config.json
 ```
@@ -82,7 +84,7 @@ filesFrom:
 ```
 
 ### JSON_CONFIG
-Hvis satt så vil pto-frontend hente configen herfra istedenfor å lete etter en JSON-fil på JSON_CONFIG_FILE_PATH.
+Hvis satt så vil poao-frontend hente configen herfra istedenfor å lete etter en JSON-fil på JSON_CONFIG_FILE_PATH.
 
 Kan for eksempel brukes slik i en nais-yaml fil.
 ```yaml
@@ -95,7 +97,7 @@ Kan for eksempel brukes slik i en nais-yaml fil.
 ```
 
 ### ENABLE_FRONTEND_ENV
-Hvis satt til **true** så vil pto-frontend lage en **env.js** som blir plassert i SERVE_FROM_PATH.
+Hvis satt til **true** så vil poao-frontend lage en **env.js** som blir plassert i SERVE_FROM_PATH.
 Denne filen vil inneholde alle miljø variabler som starter med PUBLIC og sette det på window.
 Default er **false**.
 
@@ -112,7 +114,7 @@ Dette kan brukes med en script tag for å laste inn miljøvariabler før appen s
 ```
 
 ### ENFORCE_LOGIN
-Hvis satt til **true** så vil pto-frontend validere tokenet til bruker for alle forespørsler. 
+Hvis satt til **true** så vil poao-frontend validere tokenet til bruker for alle forespørsler. 
 Default er **false**.
 
 Hvis ENFORCE_LOGIN er på så må også variablene LOGIN_REDIRECT_URL, OIDC_DISCOVERY_URL, OIDC_CLIENT_ID, TOKEN_COOKIE_NAME settes.
@@ -134,7 +136,7 @@ Navnet på cookien som inneholder tokenet til bruker.
 
 
 ### Proxy
-Setter opp en HTTP proxy fra pto-frontend til en gitt URL. 
+Setter opp en HTTP proxy fra poao-frontend til en gitt URL. 
 Kan f.eks brukes for å slippe unna CORS mot eksterne tjenester eller for å nå tjenester som man ikke kan nå fra browseren.
 Proxyer må settes opp med JSON config.
 
@@ -156,7 +158,7 @@ Eksempel:
 ```
 
 ### Redirect
-Setter opp redirect fra pto-frontend til en gitt URL.
+Setter opp redirect fra poao-frontend til en gitt URL.
 Kan brukes for å ha lenker til forskjellige tjenester som er forskjellig i hvert miljø (preprod/prod).
 
 Redirects må settes opp med JSON config.
@@ -175,7 +177,7 @@ Eksempel:
 
 
 ## JSON config
-Det er mulig å bruke JSON til å representere configen til pto-frontend. Alt som kan konfigureres med miljøvariabler kan også konfigureres med JSON.
+Det er mulig å bruke JSON til å representere configen til poao-frontend. Alt som kan konfigureres med miljøvariabler kan også konfigureres med JSON.
 I tillegg så kan JSON også konfigurere ting som proxy og redirect, som ikke kan konfigureres med miljøvariabler.
 Konfigen kan enten leses som en fil fra JSON_CONFIG_FILE_PATH eller som en miljøvariabel med JSON_CONFIG.
 

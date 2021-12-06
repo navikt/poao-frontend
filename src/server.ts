@@ -17,7 +17,7 @@ import { authInfoRouter } from './router/auth-info-router';
 const app: express.Application = express();
 
 async function startServer() {
-	logger.info('Starting PTO-frontend');
+	logger.info('Starting poao-frontend');
 
 	const appConfig = createAppConfig();
 

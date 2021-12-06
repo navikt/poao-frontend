@@ -20,14 +20,14 @@ export interface DiscoveryData {
 
 export async function getJwksUrlFromDiscoveryEndpoint(discoveryUrl: string): Promise<DiscoveryData> {
 	return fetch(discoveryUrl)
-		.then(res => {
+		.then((res: any) => {
 			if (!res.ok) {
 				throw new Error(`Received unexpected status ${res.status} from ${discoveryUrl}`);
 			}
 
 			return res.json();
 		})
-		.then(discoveryData => {
+		.then((discoveryData: any) => {
 			const jwks_uri = discoveryData.jwks_uri;
 			const issuer = discoveryData.issuer;
 
