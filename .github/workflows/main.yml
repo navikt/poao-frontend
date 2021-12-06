@@ -1,7 +1,7 @@
 name: Build and push to registry
 on: push
 env:
-  IMAGE: docker.pkg.github.com/${{ github.repository }}/poao-frontend
+  IMAGE: ghcr.io/${{ github.repository }}/poao-frontend
 
 jobs:
   test:
@@ -10,11 +10,12 @@ jobs:
     if: github.ref != 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          node-version: '14.x'
+          node-version: '14'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -26,11 +27,12 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          node-version: '14.x'
+          node-version: '14'
+          cache: 'npm'
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -41,6 +43,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
+          echo ${GITHUB_TOKEN} | docker login ghcr.io -u ${GITHUB_REPOSITORY} --password-stdin
           docker build -t ${IMAGE}:${IMAGE_TAG} .
           docker push ${IMAGE}:${IMAGE_TAG}
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.IMAGE_TAG }}
+          release_name: Release poao-frontend
+          prerelease: false
