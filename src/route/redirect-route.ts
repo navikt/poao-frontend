@@ -7,7 +7,7 @@ export interface RedirectRouterConfig {
 	preserveContextPath?: boolean
 }
 
-export function redirectRouter(config: RedirectRouterConfig) {
+export function redirectRoute(config: RedirectRouterConfig) {
 	return (req: Request, res: Response) => {
 		if (config.preserveContextPath) {
 			// @ts-ignore

@@ -1,18 +1,18 @@
 import express from 'express';
-import cors from 'cors';
+import corsMiddleware from 'cors';
 import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
-import { createEnvJsFile } from './frontend-env-creator';
-import { authenticationWithLoginRedirect, createAuthConfig } from './middleware/auth-middleware';
-import { logger } from './logger';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import { gcsRouter } from './router/gcs-router';
+import { createEnvJsFile } from './utils/frontend-env-creator';
+import { logger } from './utils/logger';
+import { gcsRoute } from './route/gcs-route';
 import { isRequestingFile } from './utils/utils';
 import { helmetMiddleware } from './middleware/helmet-middleware';
-import { createAppConfig, FallbackStrategy, logAppConfig } from './config/app-config';
-import { redirectRouter } from './router/redirect-router';
-import { authInfoRouter } from './router/auth-info-router';
+import { redirectRoute } from './route/redirect-route';
+import { createAppConfig, logAppConfig } from './config/app-config-resolver';
+import { FallbackStrategy } from './config/base-config';
+import { fallbackRoute } from './route/fallback-route';
+import { pingRoute } from './route/ping-route';
 
 const app: express.Application = express();
 
@@ -21,88 +21,60 @@ async function startServer() {
 
 	const appConfig = createAppConfig();
 
+	const { base, cors, gcs, auth, proxy, redirect } = appConfig;
+
 	logAppConfig(appConfig);
 
-	if (appConfig.enableFrontendEnv) {
-		createEnvJsFile(appConfig.serveFromPath);
+	if (base.enableFrontendEnv) {
+		// TODO: Expose as endpoint to prevent fs read-only
+		createEnvJsFile(base.serveFromPath);
 	}
 
-	if (appConfig.corsDomain) {
-		app.use(cors({origin: appConfig.corsDomain, credentials: appConfig.corsAllowCredentials}));
+	if (cors.origin) {
+		app.use(corsMiddleware({origin: cors.origin, credentials: cors.credentials }));
 	}
 
 	app.use(helmetMiddleware());
 
 	app.use(cookieParser());
 
-	if (appConfig.redirects) {
-		appConfig.redirects.forEach(redirect => {
-			const redirectFrom = urlJoin(appConfig.contextPath, redirect.from);
-			app.use(redirectFrom, redirectRouter({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
-		});
-	}
-
-	if (appConfig.proxies) {
-		appConfig.proxies.forEach(proxy => {
-			const proxyFrom = urlJoin(appConfig.contextPath, proxy.from);
-			app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
-				target: proxy.to,
-				logLevel: 'debug',
-				logProvider: () => logger,
-				changeOrigin: true,
-				pathRewrite: proxy.preserveContextPath ? undefined : {
-					[`^${proxy.from}`]: ''
-				}
-			}));
-		});
-	}
-
-	app.get(urlJoin(appConfig.contextPath, '/internal/isReady'), (req, res) => {
-		res.send('');
+	redirect.redirects.forEach(redirect => {
+		const redirectFrom = urlJoin(base.contextPath, redirect.from);
+		app.use(redirectFrom, redirectRoute({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
 	});
 
-	app.get(urlJoin(appConfig.contextPath, '/internal/isAlive'), (req, res) => {
-		res.send('');
+	proxy.proxies.forEach(proxy => {
+		// const proxyFrom = urlJoin(base.contextPath, proxy.from);
+		//
+		// app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
+		// 	target: proxy.to,
+		// 	logLevel: 'debug',
+		// 	logProvider: () => logger,
+		// 	changeOrigin: true,
+		// 	pathRewrite: proxy.preserveContextPath ? undefined : {
+		// 		[`^${proxy.from}`]: ''
+		// 	}
+		// }));
 	});
 
-	if (appConfig.oidcClientId && appConfig.oidcDiscoveryUrl && appConfig.tokenCookieName) {
-		app.get('/auth/info', await authInfoRouter({
-			oidcClientId: appConfig.oidcClientId,
-			oidcDiscoveryUrl: appConfig.oidcDiscoveryUrl,
-			tokenCookieName: appConfig.tokenCookieName,
-		}));
-	}
+	app.get(urlJoin(base.contextPath, '/internal/isReady'), pingRoute());
 
-	if (appConfig.enforceLogin) {
-		const authConfig = createAuthConfig(appConfig);
-		app.use(await authenticationWithLoginRedirect(authConfig));
-	}
+	app.get(urlJoin(base.contextPath, '/internal/isAlive'), pingRoute());
 
-	if (appConfig.gcsBucketName) {
-		app.use(appConfig.contextPath, gcsRouter({
-			bucketName: appConfig.gcsBucketName,
-			contextPath: appConfig.contextPath,
-			fallbackStrategy: appConfig.fallbackStrategy,
-			bucketContextPath: appConfig.gcsBucketContextPath
+	if (gcs) {
+		app.use(base.contextPath, gcsRoute({
+			bucketName: gcs.bucketName,
+			contextPath: base.contextPath,
+			fallbackStrategy: base.fallbackStrategy,
+			bucketContextPath: gcs.bucketContextPath
 		}));
 	} else {
-		app.use(appConfig.contextPath, express.static(appConfig.serveFromPath, {cacheControl: false}));
+		app.use(base.contextPath, express.static(base.serveFromPath, {cacheControl: false}));
 
-		app.get(urlJoin(appConfig.contextPath, '/*'), (req, res) => {
-			// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
-			if (appConfig.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(req.path)) {
-				res.sendStatus(404);
-			} else if (appConfig.fallbackStrategy === FallbackStrategy.REDIRECT) {
-				res.redirect(appConfig.contextPath);
-			} else if (appConfig.fallbackStrategy === FallbackStrategy.SERVE) {
-				res.sendFile(join(appConfig.serveFromPath, 'index.html'));
-			} else {
-				throw new Error('Unsupported strategy ' + appConfig.fallbackStrategy);
-			}
-		});
+		app.get(urlJoin(base.contextPath, '/*'), fallbackRoute(base));
 	}
 
-	app.listen(appConfig.port, () => logger.info('Server started successfully'));
+	app.listen(base.port, () => logger.info('Server started successfully'));
 }
 
 startServer()

@@ -1,4 +1,8 @@
 
+export interface JsonData {
+    [key: string]: any;
+}
+
 const substituteEnvVariables = (key: string, value: any): any => {
     if (typeof value !== "string") return value;
     const matches = value.match('{{(.*?)}}');
@@ -9,6 +13,6 @@ const substituteEnvVariables = (key: string, value: any): any => {
     return valueFromEnv;
 }
 
-export function parseJSONwithSubstitutions(text: string): any {
+export function parseJSONwithSubstitutions(text: string): JsonData {
     return JSON.parse(text, substituteEnvVariables);
 }

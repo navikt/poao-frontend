@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 import {
 	getMimeType,
 	hoursToSeconds,
@@ -11,7 +11,7 @@ import {
 	removeQueryParams,
 	stripPrefix
 } from '../utils/utils';
-import { FallbackStrategy } from '../config/app-config';
+import { FallbackStrategy } from '../config/base-config';
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -106,7 +106,7 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 	return stripPrefix(bucketFilePath, '/');
 }
 
-export function gcsRouter(config: GcsRouterConfig) {
+export function gcsRoute(config: GcsRouterConfig) {
 	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
 

@@ -1,11 +1,7 @@
 import { Request, Response } from 'express';
-import {
-	createJwksClient,
-	createKeyRetriever,
-	createVerifyOptions, getCookieValue,
-	getJwksUrlFromDiscoveryEndpoint, verifyJwtToken
-} from '../utils/auth-utils';
 import { fromBase64 } from '../utils/utils';
+import { TokenValidator } from '../utils/auth/token-validator';
+import { getAccessToken } from '../utils/auth/auth-token-utils';
 
 interface AuthInfoResponse {
 	loggedIn: boolean,
@@ -21,19 +17,14 @@ const authInfoNotAuthenticated: AuthInfoResponse = {
 	securityLevel: null
 };
 
-export async function authInfoRouter(config: { oidcClientId: string, oidcDiscoveryUrl: string, tokenCookieName: string }) {
-	const discoveryData = await getJwksUrlFromDiscoveryEndpoint(config.oidcDiscoveryUrl);
-	const jwksClient = createJwksClient(discoveryData.jwks_uri);
-	const verifyOptions = createVerifyOptions(config.oidcClientId, discoveryData.issuer);
-	const keyRetriever = createKeyRetriever(jwksClient);
-
+export async function authInfoRoute(config: { validator: TokenValidator }) {
 	return (req: Request, res: Response) => {
-		const token = getCookieValue(req, config.tokenCookieName);
+		const token = getAccessToken(req);
 
 		if (!token) {
 			res.send(authInfoNotAuthenticated);
 		} else {
-			verifyJwtToken(token, keyRetriever, verifyOptions)
+			config.validator.isValid(token)
 				.then(() => {
 					const payload = JSON.parse(fromBase64(token.split('.')[1]));
 					const epochSec = Math.ceil(new Date().getTime() / 1000);
@@ -50,7 +41,7 @@ export async function authInfoRouter(config: { oidcClientId: string, oidcDiscove
 				})
 				.catch(() => {
 					res.send(authInfoNotAuthenticated);
-				});
+				})
 		}
 	}
 }
