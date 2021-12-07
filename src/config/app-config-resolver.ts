@@ -28,11 +28,11 @@ export function createAppConfig(): AppConfig {
 
 	return {
 		base: resolveBaseConfig(jsonData),
-		auth: resolveAuthConfig(jsonData),
-		cors: resolveCorsConfig(jsonData),
-		gcs: resolveGcsConfig(jsonData),
-		proxy: resolveProxyConfig(jsonData),
-		redirect: resolveRedirectConfig(jsonData),
+		auth: resolveAuthConfig(jsonData?.auth),
+		cors: resolveCorsConfig(jsonData?.cors),
+		gcs: resolveGcsConfig(jsonData?.gcs),
+		proxy: resolveProxyConfig(jsonData?.proxy),
+		redirect: resolveRedirectConfig(jsonData?.redirect),
 	};
 }
 

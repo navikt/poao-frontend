@@ -40,13 +40,12 @@ export const resolveCorsConfig = (jsonData: JsonData | undefined): CorsConfig =>
 		config.allowedHeaders = DEFAULT_CORS_ALLOWED_HEADERS;
 	}
 
-	validateCorsConfig(config);
-
-	return config as CorsConfig;
+	return validateConfig(config);
 };
 
-const validateCorsConfig = (config: Partial<CorsConfig>): void => {
+const validateConfig = (config: Partial<CorsConfig>): CorsConfig => {
 	assert(config.credentials, `CORS 'credentials' is missing`)
 	assert(config.maxAge, `CORS 'maxAge' is missing`)
 	assert(config.allowedHeaders, `CORS 'allowedHeaders' is missing`)
+	return config as CorsConfig;
 };

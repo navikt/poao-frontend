@@ -1,31 +1,9 @@
 export const assert = <T extends any>(value: T | undefined | null, msg?: string): T => {
-	if (value == null) {
+	if (!value) {
 		throw new Error(msg || 'Value is missing');
 	}
 
 	return value;
-};
-
-export const strToNumber = (str: string | undefined): number | undefined => {
-	if (!str) {
-		return undefined;
-	}
-
-	const num = parseInt(str, 10);
-
-	if (isNaN(num)) {
-		return undefined;
-	}
-
-	return num;
-};
-
-export const strToBoolean = (str: string | undefined): boolean | undefined => {
-	if (!str) {
-		return undefined;
-	}
-
-	return str.toLowerCase() === 'true';
 };
 
 export const csvStrToStrArray = (str: string | undefined): string[] => {

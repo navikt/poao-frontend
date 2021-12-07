@@ -15,6 +15,11 @@ export interface OboToken {
 	accessToken: string; // The OBO token
 }
 
+export interface OboTokenStore {
+	getUserOboToken: (sessionId: string, appIdentifier: string) => Promise<OboToken | undefined>;
+	setUserOboToken: (sessionId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
+}
+
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {
 	return expiresInSeconds - EXPIRE_BEFORE_SECONDS;
 };
@@ -34,4 +39,14 @@ export const tokenSetToOboToken = (tokenSet: TokenSet): OboToken => {
 
 export function getAccessToken(req: Request): string | undefined {
 	return req.header(AUTHORIZATION_HEADER);
+}
+
+export function getTokenSubject(accessToken: string): string | undefined {
+	try {
+		const payload = JSON.parse(accessToken.split('.')[1])
+
+		return payload.sub;
+	} catch (e) {
+		return undefined;
+	}
 }

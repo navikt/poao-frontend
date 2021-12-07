@@ -1,18 +1,21 @@
 import express from 'express';
 import corsMiddleware from 'cors';
-import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
 import { createEnvJsFile } from './utils/frontend-env-creator';
 import { logger } from './utils/logger';
 import { gcsRoute } from './route/gcs-route';
-import { isRequestingFile } from './utils/utils';
 import { helmetMiddleware } from './middleware/helmet-middleware';
 import { redirectRoute } from './route/redirect-route';
 import { createAppConfig, logAppConfig } from './config/app-config-resolver';
-import { FallbackStrategy } from './config/base-config';
 import { fallbackRoute } from './route/fallback-route';
 import { pingRoute } from './route/ping-route';
+import { errorHandlerMiddleware } from './middleware/error-handler-middleware';
+import { setupProxyRoutes } from './route/setup-proxy-routes';
+import { createTokenStore } from './utils/auth/in-memory-token-store';
+import { createTokenValidator } from './utils/auth/token-validator';
+import { createClient, createIssuer } from './utils/auth/auth-client-utils';
+import { createJWKS } from './utils/auth/auth-config-utils';
 
 const app: express.Application = express();
 
@@ -36,30 +39,37 @@ async function startServer() {
 
 	app.use(helmetMiddleware());
 
+	app.use(errorHandlerMiddleware());
+
 	app.use(cookieParser());
+
+	app.get(urlJoin(base.contextPath, '/internal/isReady'), pingRoute());
+
+	app.get(urlJoin(base.contextPath, '/internal/isAlive'), pingRoute());
 
 	redirect.redirects.forEach(redirect => {
 		const redirectFrom = urlJoin(base.contextPath, redirect.from);
 		app.use(redirectFrom, redirectRoute({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
 	});
 
-	proxy.proxies.forEach(proxy => {
-		// const proxyFrom = urlJoin(base.contextPath, proxy.from);
-		//
-		// app.use(proxyFrom, createProxyMiddleware(proxyFrom, {
-		// 	target: proxy.to,
-		// 	logLevel: 'debug',
-		// 	logProvider: () => logger,
-		// 	changeOrigin: true,
-		// 	pathRewrite: proxy.preserveContextPath ? undefined : {
-		// 		[`^${proxy.from}`]: ''
-		// 	}
-		// }));
-	});
+	if (auth && proxy.proxies.length > 0) {
+		const tokenStore = createTokenStore();
 
-	app.get(urlJoin(base.contextPath, '/internal/isReady'), pingRoute());
+		const tokenValidator = await createTokenValidator(auth.loginOidcProvider.discoveryUrl, auth.loginOidcProvider.clientId);
 
-	app.get(urlJoin(base.contextPath, '/internal/isAlive'), pingRoute());
+		const oboIssuer = await createIssuer(auth.oboOidcProvider.discoveryUrl);
+
+		const oboClient = createClient(oboIssuer, auth.oboOidcProvider.clientId, createJWKS(auth.oboOidcProvider.privateJwk));
+
+		setupProxyRoutes({
+			app: app,
+			authConfig: auth,
+			proxyConfig: proxy,
+			tokenValidator: tokenValidator,
+			oboTokenClient: oboClient,
+			oboTokenStore: tokenStore
+		});
+	}
 
 	if (gcs) {
 		app.use(base.contextPath, gcsRoute({

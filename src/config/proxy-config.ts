@@ -34,60 +34,45 @@ export const resolveProxyConfig = (jsonData: JsonData | undefined): ProxyConfig 
 		return { proxies: [] };
 	}
 
-	const config = resolveProxyConfigFromJson(jsonData);
+	const partialProxies = jsonData.proxies as Partial<Proxy>[];
 
-	if (!config.proxies) {
-		config.proxies = [];
-	}
+	const proxies = partialProxies.map(validateProxy);
 
-	validateProxyConfig(config);
-
-	return config as ProxyConfig;
+	return { proxies };
 };
 
-const resolveProxyConfigFromJson = (jsonConfig: JsonData | undefined): Partial<ProxyConfig> => {
-	if (!jsonConfig?.proxy) return {};
-	return jsonConfig.proxy;
-};
-
-const validateProxyConfig = (config: Partial<ProxyConfig>): void => {
-	if (!config.proxies || config.proxies.length === 0) {
-		return;
+const validateProxy = (proxy: Partial<Proxy>): Proxy => {
+	if (!proxy.fromPath) {
+		throw new Error(`The field 'fromPath' is missing`);
 	}
 
-	config.proxies.forEach((proxy) => {
-		const proxyJson = JSON.stringify(proxy);
+	if (!proxy.fromPath.startsWith('/')) {
+		throw new Error(`'${proxy.fromPath}' is not a relative path starting with '/'`);
+	}
 
-		if (!proxy.fromPath) {
-			throw new Error(`The field 'fromPath' is missing from: ${proxyJson}`);
-		}
+	if (proxy.fromPath.startsWith('/internal')) {
+		throw new Error(`'${proxy.fromPath}' cannot start with '/internal'`);
+	}
 
-		if (!proxy.fromPath.startsWith('/')) {
-			throw new Error(`'${proxy.fromPath}' is not a relative path starting with '/'`);
-		}
+	if (!proxy.toUrl) {
+		throw new Error(`The field 'toUrl' is missing from`);
+	}
 
-		if (proxy.fromPath.startsWith('/internal')) {
-			throw new Error(`'${proxy.fromPath}' cannot start with '/internal'`);
-		}
+	if (!proxy.toApp) {
+		throw new Error(`The field 'toApp' is missing from`);
+	}
 
-		if (!proxy.toUrl) {
-			throw new Error(`The field 'toUrl' is missing from: ${proxyJson}`);
-		}
+	if (!proxy.toApp.name) {
+		throw new Error(`The field 'toApp.name' is missing from`);
+	}
 
-		if (!proxy.toApp) {
-			throw new Error(`The field 'toApp' is missing from: ${proxyJson}`);
-		}
+	if (!proxy.toApp.namespace) {
+		throw new Error(`The field 'toApp.namespace' is missing from`);
+	}
 
-		if (!proxy.toApp.name) {
-			throw new Error(`The field 'toApp.name' is missing from: ${proxyJson}`);
-		}
+	if (!proxy.toApp.cluster) {
+		throw new Error(`The field 'toApp.cluster' is missing from`);
+	}
 
-		if (!proxy.toApp.namespace) {
-			throw new Error(`The field 'toApp.namespace' is missing from: ${proxyJson}`);
-		}
-
-		if (!proxy.toApp.cluster) {
-			throw new Error(`The field 'toApp.cluster' is missing from: ${proxyJson}`);
-		}
-	});
+	return proxy as Proxy;
 };
