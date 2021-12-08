@@ -11,8 +11,8 @@ FROM node:14-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/build .
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/build .
 
 USER node
 
