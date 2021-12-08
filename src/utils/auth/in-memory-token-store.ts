@@ -2,8 +2,8 @@ import { OboToken, OboTokenStore } from './auth-token-utils';
 import NodeCache from 'node-cache';
 import { minutesToSeconds } from '../utils';
 
-function createOboTokenKey(sessionId: string, appIdentifier: string): string {
-	return `${sessionId}_${appIdentifier}`;
+function createOboTokenKey(userId: string, appIdentifier: string): string {
+	return `${userId}_${appIdentifier}`;
 }
 
 export function createTokenStore(): OboTokenStore {
@@ -12,11 +12,11 @@ export function createTokenStore(): OboTokenStore {
 	});
 
 	return {
-		getUserOboToken: async (sessionId: string, appIdentifier: string): Promise<OboToken | undefined> => {
-			return cache.get(createOboTokenKey(sessionId, appIdentifier))
+		getUserOboToken: async (userId: string, appIdentifier: string): Promise<OboToken | undefined> => {
+			return cache.get(createOboTokenKey(userId, appIdentifier))
 		},
-		setUserOboToken: async (sessionId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
-			cache.set(createOboTokenKey(sessionId, appIdentifier), oboToken, expiresInSeconds)
+		setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
+			cache.set(createOboTokenKey(userId, appIdentifier), oboToken, expiresInSeconds)
 		},
 	}
 }

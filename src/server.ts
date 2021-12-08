@@ -54,11 +54,11 @@ async function startServer() {
 	if (auth && proxy.proxies.length > 0) {
 		const tokenStore = createTokenStore();
 
-		const tokenValidator = await createTokenValidator(auth.loginOidcProvider.discoveryUrl, auth.loginOidcProvider.clientId);
+		const tokenValidator = await createTokenValidator(auth.loginProvider.discoveryUrl, auth.loginProvider.clientId);
 
-		const oboIssuer = await createIssuer(auth.oboOidcProvider.discoveryUrl);
+		const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
 
-		const oboClient = createClient(oboIssuer, auth.oboOidcProvider.clientId, createJWKS(auth.oboOidcProvider.privateJwk));
+		const oboClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
 
 		setupProxyRoutes({
 			app: app,

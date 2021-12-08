@@ -6,7 +6,7 @@ const AUTHORIZATION_HEADER = 'Authorization';
 
 // The tokens should be considered expired a bit before the actual expiration.
 // This is to prevent problems with clock skew and that the token might expire in-flight.
-export const EXPIRE_BEFORE_SECONDS = 15;
+export const EXPIRE_BEFORE_SECONDS = 30;
 
 export interface OboToken {
 	tokenType: string; // Always "Bearer"
@@ -16,8 +16,8 @@ export interface OboToken {
 }
 
 export interface OboTokenStore {
-	getUserOboToken: (sessionId: string, appIdentifier: string) => Promise<OboToken | undefined>;
-	setUserOboToken: (sessionId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
+	getUserOboToken: (userId: string, appIdentifier: string) => Promise<OboToken | undefined>;
+	setUserOboToken: (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
 }
 
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {

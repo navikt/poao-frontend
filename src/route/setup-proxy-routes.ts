@@ -13,7 +13,7 @@ import {
 } from '../utils/auth/auth-token-utils';
 import { asyncMiddleware } from '../utils/express-utils';
 import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils';
-import { AuthConfig, OboOidcProviderType } from '../config/auth-config';
+import { AuthConfig, OboProviderType } from '../config/auth-config';
 import { ProxyConfig } from '../config/proxy-config';
 import { getSecondsUntil } from '../utils/date-utisl';
 
@@ -34,7 +34,7 @@ export const setupProxyRoutes = (params: SetupProxyRoutesParams): void => {
 	proxyConfig.proxies.forEach((proxy) => {
 		const proxyFrom = urlJoin(PROXY_BASE_PATH, proxy.fromPath);
 
-		const isUsingTokenX = authConfig.oboOidcProviderType === OboOidcProviderType.TOKEN_X;
+		const isUsingTokenX = authConfig.oboProviderType === OboProviderType.TOKEN_X;
 
 		const appId = isUsingTokenX
 			? createTokenXAppId(proxy.toApp)
@@ -50,7 +50,7 @@ export const setupProxyRoutes = (params: SetupProxyRoutesParams): void => {
 				const isValid = await tokenValidator.isValid(accessToken);
 
 				if (!isValid || !accessToken) {
-					logger.info('Valid access token is missing from proxy request');
+					logger.warn('Valid access token is missing from proxy request');
 					res.sendStatus(401);
 					return;
 				}
@@ -58,7 +58,7 @@ export const setupProxyRoutes = (params: SetupProxyRoutesParams): void => {
 				const tokenSubject = getTokenSubject(accessToken);
 
 				if (!tokenSubject) {
-					logger.info('Unable to get subject from token');
+					logger.error('Unable to get subject from token');
 					res.sendStatus(401);
 					return;
 				}
@@ -66,16 +66,9 @@ export const setupProxyRoutes = (params: SetupProxyRoutesParams): void => {
 				let oboToken = await oboTokenStore.getUserOboToken(tokenSubject, appId);
 
 				if (!oboToken) {
-					const oboTokenPromise = isUsingTokenX
-						? createTokenXOnBehalfOfToken(
-							oboTokenClient,
-							appId,
-							accessToken,
-							authConfig.oboOidcProvider.clientId
-						)
-						: createAzureAdOnBehalfOfToken(oboTokenClient, appId, accessToken);
-
-					oboToken = await oboTokenPromise;
+					oboToken = isUsingTokenX
+						? await createTokenXOnBehalfOfToken(oboTokenClient, appId, accessToken, authConfig.oboProvider.clientId)
+						: await createAzureAdOnBehalfOfToken(oboTokenClient, appId, accessToken);
 
 					const expiresInSeconds = getSecondsUntil(oboToken.expiresAt * 1000);
 					const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
@@ -94,9 +87,7 @@ export const setupProxyRoutes = (params: SetupProxyRoutesParams): void => {
 				changeOrigin: true,
 				pathRewrite: proxy.preserveFromPath
 					? undefined
-					: {
-							[`^${proxyFrom}`]: '',
-					  },
+					: { [`^${proxyFrom}`]: '' },
 				onError: (error, request, response) => {
 					logger.error(`onError, error=${error.message}`);
 				},
