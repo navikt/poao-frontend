@@ -1,15 +1,15 @@
-import fs from 'fs';
-import path from 'path';
+import { Request, Response } from 'express';
 
-const ENV_FILE_NAME = 'env.js';
 const PUBLIC_ENV_PREFIX = 'PUBLIC_';
 
-export function createEnvJsFile(outputDir: string): void {
-	const envJsFilePath = path.join(outputDir, ENV_FILE_NAME);
+export function frontendEnvRoute() {
 	const envJsFileContent = createEnvJsContent(PUBLIC_ENV_PREFIX, process.env);
 
-	fs.mkdirSync(outputDir, { recursive: true });
-	fs.writeFileSync(envJsFilePath, envJsFileContent);
+	return (req: Request, res: Response) => {
+		res.contentType('application/javascript');
+		res.setHeader('Cache-Control', 'no-cache');
+		res.send(envJsFileContent);
+	};
 }
 
 export function createEnvJsContent(publicEnvPrefix: string, env: ProcessEnv): string {

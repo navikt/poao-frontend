@@ -2,7 +2,6 @@ import express from 'express';
 import corsMiddleware from 'cors';
 import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
-import { createEnvJsFile } from './utils/frontend-env-creator';
 import { logger } from './utils/logger';
 import { gcsRoute } from './route/gcs-route';
 import { helmetMiddleware } from './middleware/helmet-middleware';
@@ -16,6 +15,7 @@ import { createTokenStore } from './utils/auth/in-memory-token-store';
 import { createTokenValidator } from './utils/auth/token-validator';
 import { createClient, createIssuer } from './utils/auth/auth-client-utils';
 import { createJWKS } from './utils/auth/auth-config-utils';
+import { frontendEnvRoute } from './route/frontend-env-route';
 
 const app: express.Application = express();
 
@@ -27,11 +27,6 @@ async function startServer() {
 	const { base, cors, gcs, auth, proxy, redirect } = appConfig;
 
 	logAppConfig(appConfig);
-
-	if (base.enableFrontendEnv) {
-		// TODO: Expose as endpoint to prevent fs read-only
-		createEnvJsFile(base.serveFromPath);
-	}
 
 	if (cors.origin) {
 		app.use(corsMiddleware({origin: cors.origin, credentials: cors.credentials }));
@@ -46,6 +41,10 @@ async function startServer() {
 	app.get(urlJoin(base.contextPath, '/internal/isReady'), pingRoute());
 
 	app.get(urlJoin(base.contextPath, '/internal/isAlive'), pingRoute());
+
+	if (base.enableFrontendEnv) {
+		app.get(urlJoin(base.contextPath, '/env.js'), frontendEnvRoute());
+	}
 
 	redirect.redirects.forEach(redirect => {
 		const redirectFrom = urlJoin(base.contextPath, redirect.from);

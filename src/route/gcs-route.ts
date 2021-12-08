@@ -57,7 +57,7 @@ function sendContent(res: Response, bucketFilePath: string, content: Buffer) {
 		res.setHeader('Cache-Control', 'public, immutable, max-age=604800'); // 1 week expiration
 	}
 
-	res.setHeader('Content-Type', getMimeType(bucketFilePath));
+	res.contentType(getMimeType(bucketFilePath));
 	res.send(content);
 }
 

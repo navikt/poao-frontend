@@ -1,4 +1,4 @@
-import { createEnvJsContent, getPrefixedEnvVars } from './frontend-env-creator';
+import { createEnvJsContent, getPrefixedEnvVars } from './frontend-env-route';
 
 describe('getPrefixedEnvVars', () => {
 	it('should get prefixed env vars', () => {
