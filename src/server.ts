@@ -63,6 +63,7 @@ async function startServer() {
 		setupProxyRoutes({
 			app: app,
 			authConfig: auth,
+			baseConfig: base,
 			proxyConfig: proxy,
 			tokenValidator: tokenValidator,
 			oboTokenClient: oboClient,

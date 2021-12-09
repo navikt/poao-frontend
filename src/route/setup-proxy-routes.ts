@@ -16,23 +16,23 @@ import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../ut
 import { AuthConfig, OboProviderType } from '../config/auth-config';
 import { ProxyConfig } from '../config/proxy-config';
 import { getSecondsUntil } from '../utils/date-utisl';
+import { BaseConfig } from '../config/base-config';
 
 interface SetupProxyRoutesParams {
 	app: express.Application;
 	authConfig: AuthConfig;
+	baseConfig: BaseConfig;
 	proxyConfig: ProxyConfig;
 	oboTokenStore: OboTokenStore;
 	oboTokenClient: Client;
 	tokenValidator: TokenValidator;
 }
 
-const PROXY_BASE_PATH = '/proxy';
-
 export const setupProxyRoutes = (params: SetupProxyRoutesParams): void => {
-	const { app, authConfig, proxyConfig, oboTokenStore, oboTokenClient, tokenValidator } = params;
+	const { app, authConfig, baseConfig, proxyConfig, oboTokenStore, oboTokenClient, tokenValidator } = params;
 
 	proxyConfig.proxies.forEach((proxy) => {
-		const proxyFrom = urlJoin(PROXY_BASE_PATH, proxy.fromPath);
+		const proxyFrom = urlJoin(baseConfig.contextPath, proxy.fromPath);
 
 		const isUsingTokenX = authConfig.oboProviderType === OboProviderType.TOKEN_X;
 
