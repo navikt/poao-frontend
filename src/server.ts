@@ -10,12 +10,13 @@ import { createAppConfig, logAppConfig } from './config/app-config-resolver';
 import { fallbackRoute } from './route/fallback-route';
 import { pingRoute } from './route/ping-route';
 import { errorHandlerMiddleware } from './middleware/error-handler-middleware';
-import { setupProxyRoutes } from './route/setup-proxy-routes';
 import { createTokenStore } from './utils/auth/in-memory-token-store';
 import { createTokenValidator } from './utils/auth/token-validator';
 import { createClient, createIssuer } from './utils/auth/auth-client-utils';
 import { createJWKS } from './utils/auth/auth-config-utils';
 import { frontendEnvRoute } from './route/frontend-env-route';
+import { proxyOboMiddleware } from './middleware/proxy-obo-middleware';
+import { proxyRoute } from './route/proxy-route';
 
 const app: express.Application = express();
 
@@ -52,22 +53,22 @@ async function startServer() {
 	});
 
 	if (auth && proxy.proxies.length > 0) {
-		const tokenStore = createTokenStore();
+		const oboTokenStore = createTokenStore();
 
 		const tokenValidator = await createTokenValidator(auth.loginProvider.discoveryUrl, auth.loginProvider.clientId);
 
 		const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
 
-		const oboClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
+		const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
 
-		setupProxyRoutes({
-			app: app,
-			authConfig: auth,
-			baseConfig: base,
-			proxyConfig: proxy,
-			tokenValidator: tokenValidator,
-			oboTokenClient: oboClient,
-			oboTokenStore: tokenStore
+		proxy.proxies.forEach(p => {
+			const proxyFrom = urlJoin(base.contextPath, p.fromPath);
+
+			app.use(
+				proxyFrom,
+				proxyOboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
+				proxyRoute(proxyFrom, p)
+			);
 		});
 	}
 
