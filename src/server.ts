@@ -30,6 +30,8 @@ async function startServer() {
 
 	logAppConfig(appConfig);
 
+	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
+
 	if (cors.origin) {
 		app.use(corsMiddleware({origin: cors.origin, credentials: cors.credentials }));
 	}
@@ -40,17 +42,16 @@ async function startServer() {
 
 	app.use(cookieParser());
 
-	app.get(urlJoin(base.contextPath, '/internal/isReady'), pingRoute());
+	app.get(routeUrl('/internal/isReady'), pingRoute());
 
-	app.get(urlJoin(base.contextPath, '/internal/isAlive'), pingRoute());
+	app.get(routeUrl('/internal/isAlive'), pingRoute());
 
 	if (base.enableFrontendEnv) {
-		app.get(urlJoin(base.contextPath, '/env.js'), frontendEnvRoute());
+		app.get(routeUrl('/env.js'), frontendEnvRoute());
 	}
 
 	redirect.redirects.forEach(redirect => {
-		const redirectFrom = urlJoin(base.contextPath, redirect.from);
-		app.use(redirectFrom, redirectRoute({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
+		app.use(routeUrl(redirect.from), redirectRoute({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
 	});
 
 	if (auth && proxy.proxies.length > 0) {
@@ -63,7 +64,7 @@ async function startServer() {
 		const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
 
 		proxy.proxies.forEach(p => {
-			const proxyFrom = urlJoin(base.contextPath, p.fromPath);
+			const proxyFrom = routeUrl(p.fromPath);
 
 			app.use(
 				proxyFrom,
@@ -72,7 +73,7 @@ async function startServer() {
 			);
 		});
 
-		app.get(urlJoin(base.contextPath, '/auth/info'), authInfoRoute(tokenValidator));
+		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
 	}
 
 	if (gcs) {
@@ -85,7 +86,7 @@ async function startServer() {
 	} else {
 		app.use(base.contextPath, express.static(base.serveFromPath, {cacheControl: false}));
 
-		app.get(urlJoin(base.contextPath, '/*'), fallbackRoute(base));
+		app.get(routeUrl('/*'), fallbackRoute(base));
 	}
 
 	app.listen(base.port, () => logger.info('Server started successfully'));

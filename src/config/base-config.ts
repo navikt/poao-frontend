@@ -19,7 +19,7 @@ const DEFAULT_PORT = 8080;
 
 const DEFAULT_SERVE_FROM_PATH = '/app/public';
 
-const DEFAULT_CONTEXT_PATH = '';
+const DEFAULT_CONTEXT_PATH = '/';
 
 const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.NONE;
 
