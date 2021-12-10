@@ -5,10 +5,6 @@
   "main": "src/server.ts",
   "scripts": {
     "start": "dotenv -e env/basic.env ts-node src/server.ts",
-    "start:auth": "dotenv -e env/auth.env ts-node src/server.ts",
-    "start:proxy": "dotenv -e env/proxy.env ts-node src/server.ts",
-    "start:gcs": "dotenv -e env/gcs.env ts-node src/server.ts",
-    "start:redirect": "dotenv -e env/redirect.env ts-node src/server.ts",
     "test": "jest",
     "build": "tsc"
   },
