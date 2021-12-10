@@ -34,7 +34,7 @@ export const resolveProxyConfig = (jsonData: JsonData | undefined): ProxyConfig 
 		return { proxies: [] };
 	}
 
-	const partialProxies = jsonData.proxies as Partial<Proxy>[];
+	const partialProxies = jsonData as Partial<Proxy>[];
 
 	const proxies = partialProxies.map(validateProxy);
 

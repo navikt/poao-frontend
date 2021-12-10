@@ -24,7 +24,7 @@ export const resolveRedirectConfig = (jsonData: JsonData | undefined): RedirectC
 		return { redirects: [] };
 	}
 
-	const partialRedirects = jsonData.redirects as Partial<Redirect>[];
+	const partialRedirects = jsonData as Partial<Redirect>[];
 
 	const redirects = partialRedirects.map(validateRedirect);
 
