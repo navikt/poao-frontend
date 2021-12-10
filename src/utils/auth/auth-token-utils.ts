@@ -37,8 +37,10 @@ export const tokenSetToOboToken = (tokenSet: TokenSet): OboToken => {
 	};
 };
 
+// The header should contain a value in the following format: "Bearer <token>"
 export function getAccessToken(req: Request): string | undefined {
-	return req.header(AUTHORIZATION_HEADER);
+	const header = req.header(AUTHORIZATION_HEADER);
+	return header?.split(' ')[1];
 }
 
 export function getTokenSubject(accessToken: string): string | undefined {

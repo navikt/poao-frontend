@@ -25,7 +25,12 @@ export function authInfoRoute(validator: TokenValidator) {
 			res.send(authInfoNotAuthenticated);
 		} else {
 			validator.isValid(token)
-				.then(() => {
+				.then((isValid) => {
+					if (!isValid) {
+						res.send(authInfoNotAuthenticated);
+						return;
+					}
+
 					const payload = JSON.parse(fromBase64(token.split('.')[1]));
 					const epochSec = Math.ceil(new Date().getTime() / 1000);
 					const expirationTime = new Date(payload.exp * 1000).toISOString()
