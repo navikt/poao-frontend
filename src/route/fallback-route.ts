@@ -8,9 +8,9 @@ export function fallbackRoute(baseConfig: BaseConfig) {
 		// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
 		if (baseConfig.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(req.path)) {
 			res.sendStatus(404);
-		} else if (baseConfig.fallbackStrategy === FallbackStrategy.REDIRECT) {
+		} else if (baseConfig.fallbackStrategy === FallbackStrategy.REDIRECT_TO_ROOT) {
 			res.redirect(baseConfig.contextPath);
-		} else if (baseConfig.fallbackStrategy === FallbackStrategy.SERVE) {
+		} else if (baseConfig.fallbackStrategy === FallbackStrategy.SERVE_INDEX_HTML) {
 			res.sendFile(join(baseConfig.serveFromPath, 'index.html'));
 		} else {
 			throw new Error('Unsupported strategy ' + baseConfig.fallbackStrategy);

@@ -128,9 +128,9 @@ export function gcsRoute(config: GcsRouterConfig) {
 				if (config.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(bucketFilePath)) {
 					logger.warn('Fant ikke fil med path: ' + bucketFilePath, err);
 					res.sendStatus(404);
-				} else if (config.fallbackStrategy === FallbackStrategy.REDIRECT) {
+				} else if (config.fallbackStrategy === FallbackStrategy.REDIRECT_TO_ROOT) {
 					res.redirect(config.contextPath);
-				} else if (config.fallbackStrategy === FallbackStrategy.SERVE) {
+				} else if (config.fallbackStrategy === FallbackStrategy.SERVE_INDEX_HTML) {
 					const defaultFilePath = defaultBucketFilePath(config);
 
 					getFileFromCacheOrBucket(bucket, defaultFilePath)
