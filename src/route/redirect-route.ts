@@ -4,7 +4,7 @@ import {stringify, unescape} from "querystring";
 
 export interface RedirectRouterConfig {
 	to: string;
-	preserveContextPath?: boolean
+	preserveContextPath: boolean
 }
 
 export function redirectRoute(config: RedirectRouterConfig) {

@@ -51,7 +51,7 @@ async function startServer() {
 	}
 
 	redirect.redirects.forEach(redirect => {
-		app.use(routeUrl(redirect.from), redirectRoute({ to: redirect.to , preserveContextPath: redirect.preserveContextPath}));
+		app.get(routeUrl(redirect.fromPath), redirectRoute({ to: redirect.toUrl, preserveContextPath: redirect.preserveFromPath}));
 	});
 
 	if (auth && proxy.proxies.length > 0) {
