@@ -36,10 +36,16 @@ export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
 
 		const accessToken = getAccessToken(req);
 
+		if (!accessToken) {
+			logger.warn('Access token is missing from proxy request');
+			res.sendStatus(401);
+			return;
+		}
+
 		const isValid = await tokenValidator.isValid(accessToken);
 
-		if (!isValid || !accessToken) {
-			logger.warn('Valid access token is missing from proxy request');
+		if (!isValid) {
+			logger.error('Access token is not valid');
 			res.sendStatus(401);
 			return;
 		}
