@@ -17,6 +17,7 @@ import { createJWKS } from './utils/auth/auth-config-utils';
 import { frontendEnvRoute } from './route/frontend-env-route';
 import { proxyOboMiddleware } from './middleware/proxy-obo-middleware';
 import { proxyRoute } from './route/proxy-route';
+import { authInfoRoute } from './route/auth-info-route';
 
 const app: express.Application = express();
 
@@ -70,6 +71,8 @@ async function startServer() {
 				proxyRoute(proxyFrom, p)
 			);
 		});
+
+		app.get(urlJoin(base.contextPath, '/auth/info'), authInfoRoute(tokenValidator));
 	}
 
 	if (gcs) {

@@ -17,14 +17,14 @@ const authInfoNotAuthenticated: AuthInfoResponse = {
 	securityLevel: null
 };
 
-export async function authInfoRoute(config: { validator: TokenValidator }) {
+export function authInfoRoute(validator: TokenValidator) {
 	return (req: Request, res: Response) => {
 		const token = getAccessToken(req);
 
 		if (!token) {
 			res.send(authInfoNotAuthenticated);
 		} else {
-			config.validator.isValid(token)
+			validator.isValid(token)
 				.then(() => {
 					const payload = JSON.parse(fromBase64(token.split('.')[1]));
 					const epochSec = Math.ceil(new Date().getTime() / 1000);
