@@ -1,6 +1,8 @@
 import { TokenSet } from 'openid-client';
 import { assert } from '../index';
 import { Request } from 'express';
+import { JsonData } from '../json-utils';
+import { fromBase64 } from '../utils';
 
 const AUTHORIZATION_HEADER = 'Authorization';
 
@@ -43,12 +45,11 @@ export function getAccessToken(req: Request): string | undefined {
 	return header?.split(' ')[1];
 }
 
-export function getTokenSubject(accessToken: string): string | undefined {
-	try {
-		const payload = JSON.parse(accessToken.split('.')[1])
+export function extractTokenPayload(jwtToken: string): JsonData {
+	const payload = fromBase64(jwtToken.split('.')[1]);
+	return JSON.parse(payload);
+}
 
-		return payload.sub;
-	} catch (e) {
-		return undefined;
-	}
+export function getTokenSubject(jwtToken: string): string | undefined {
+	return extractTokenPayload(jwtToken).sub;
 }

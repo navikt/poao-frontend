@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import { fromBase64 } from '../utils/utils';
 import { TokenValidator } from '../utils/auth/token-validator';
-import { getAccessToken } from '../utils/auth/auth-token-utils';
+import { extractTokenPayload, getAccessToken } from '../utils/auth/auth-token-utils';
 
 interface AuthInfoResponse {
 	loggedIn: boolean,
@@ -31,7 +30,7 @@ export function authInfoRoute(validator: TokenValidator) {
 						return;
 					}
 
-					const payload = JSON.parse(fromBase64(token.split('.')[1]));
+					const payload = extractTokenPayload(token);
 					const epochSec = Math.ceil(new Date().getTime() / 1000);
 					const expirationTime = new Date(payload.exp * 1000).toISOString()
 
