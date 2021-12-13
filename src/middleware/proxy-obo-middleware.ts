@@ -72,6 +72,7 @@ export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
 		}
 
 		req.headers['Authorization'] = `Bearer ${oboToken.accessToken}`;
+		req.headers['X-Wonderwall-ID-Token'] = undefined; // Vi trenger ikke å forwarde ID-token siden det ikke brukes
 
 		next();
 	});
