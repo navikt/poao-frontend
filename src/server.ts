@@ -16,7 +16,6 @@ import { createClient, createIssuer } from './utils/auth/auth-client-utils';
 import { createJWKS } from './utils/auth/auth-config-utils';
 import { frontendEnvRoute } from './route/frontend-env-route';
 import { proxyOboMiddleware } from './middleware/proxy-obo-middleware';
-import { proxyRoute } from './route/proxy-route';
 import { authInfoRoute } from './route/auth-info-route';
 
 const app: express.Application = express();
@@ -65,13 +64,19 @@ async function startServer() {
 
 		const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
 
-		proxy.proxies.forEach(p => {
-			const proxyFrom = routeUrl(p.fromPath);
+		proxy.proxies.forEach(proxy => {
+			const proxyFrom = routeUrl(proxy.fromPath);
 
 			app.use(
 				proxyFrom,
-				proxyOboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
-				proxyRoute(proxyFrom, p)
+				proxyOboMiddleware({
+					authConfig: auth,
+					proxyContextPath: proxyFrom,
+					proxy,
+					oboTokenStore,
+					oboTokenClient,
+					tokenValidator
+				}),
 			);
 		});
 

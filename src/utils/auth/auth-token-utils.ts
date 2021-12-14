@@ -1,10 +1,8 @@
 import { TokenSet } from 'openid-client';
 import { assert } from '../index';
-import { Request } from 'express';
 import { JsonData } from '../json-utils';
 import { fromBase64 } from '../utils';
-
-const AUTHORIZATION_HEADER = 'Authorization';
+import { IncomingHttpHeaders } from 'http';
 
 // The tokens should be considered expired a bit before the actual expiration.
 // This is to prevent problems with clock skew and that the token might expire in-flight.
@@ -40,9 +38,8 @@ export const tokenSetToOboToken = (tokenSet: TokenSet): OboToken => {
 };
 
 // The header should contain a value in the following format: "Bearer <token>"
-export function getAccessToken(req: Request): string | undefined {
-	const header = req.header(AUTHORIZATION_HEADER);
-	return header?.split(' ')[1];
+export function getAccessToken(headers: IncomingHttpHeaders): string | undefined {
+	return headers.authorization?.split(' ')[1];
 }
 
 export function extractTokenPayload(jwtToken: string): JsonData {

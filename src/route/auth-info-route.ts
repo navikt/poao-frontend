@@ -18,7 +18,7 @@ const authInfoNotAuthenticated: AuthInfoResponse = {
 
 export function authInfoRoute(validator: TokenValidator) {
 	return (req: Request, res: Response) => {
-		const token = getAccessToken(req);
+		const token = getAccessToken(req.headers);
 
 		if (!token) {
 			res.send(authInfoNotAuthenticated);
