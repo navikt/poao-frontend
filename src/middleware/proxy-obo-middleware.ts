@@ -67,6 +67,8 @@ export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
 				? await createTokenXOnBehalfOfToken(oboTokenClient, appId, accessToken, authConfig.oboProvider.clientId)
 				: await createAzureAdOnBehalfOfToken(oboTokenClient, appId, accessToken);
 
+			logger.info('THIS IS ONLY FOR DEBUG: ' + oboToken.accessToken);
+
 			const expiresInSeconds = getSecondsUntil(oboToken.expiresAt * 1000);
 			const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
 
