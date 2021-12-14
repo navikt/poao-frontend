@@ -61,6 +61,8 @@ export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
 		let oboToken = await oboTokenStore.getUserOboToken(tokenSubject, appId);
 
 		if (!oboToken) {
+			logger.info('Creating new OBO token for application: ' + appId);
+
 			oboToken = isUsingTokenX
 				? await createTokenXOnBehalfOfToken(oboTokenClient, appId, accessToken, authConfig.oboProvider.clientId)
 				: await createAzureAdOnBehalfOfToken(oboTokenClient, appId, accessToken);
@@ -72,7 +74,7 @@ export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
 		}
 
 		req.headers['Authorization'] = `Bearer ${oboToken.accessToken}`;
-		req.headers['X-Wonderwall-ID-Token'] = undefined; // Vi trenger ikke å forwarde ID-token siden det ikke brukes
+		req.headers['X-Wonderwall-ID-Token'] = ''; // Vi trenger ikke å forwarde ID-token siden det ikke brukes
 
 		next();
 	});
