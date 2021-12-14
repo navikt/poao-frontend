@@ -3,7 +3,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { logger } from '../utils/logger';
 import { Proxy } from '../config/proxy-config';
 
-export const proxyRoute = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
+export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware(proxyContextPath, {
 		target: proxy.toUrl,
 		logLevel: 'debug',

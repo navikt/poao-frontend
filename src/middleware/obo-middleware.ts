@@ -1,10 +1,11 @@
 import { asyncMiddleware } from '../utils/express-utils';
 import { logger } from '../utils/logger';
 import {
+	AUTHORIZATION_HEADER,
 	getAccessToken,
 	getExpiresInSecondWithClockSkew,
 	getTokenSubject,
-	OboTokenStore
+	OboTokenStore, WONDERWALL_ID_TOKEN_HEADER
 } from '../utils/auth/auth-token-utils';
 import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils';
 import { getSecondsUntil } from '../utils/date-utisl';
@@ -22,7 +23,7 @@ interface ProxyOboMiddlewareParams {
 	proxy: Proxy;
 }
 
-export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
+export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 	const { authConfig, proxy, tokenValidator, oboTokenClient, oboTokenStore } = params;
 
 	const isUsingTokenX = authConfig.oboProviderType === OboProviderType.TOKEN_X;
@@ -73,8 +74,8 @@ export function proxyOboMiddleware(params: ProxyOboMiddlewareParams) {
 			await oboTokenStore.setUserOboToken(tokenSubject, appId, expiresInSecondWithClockSkew, oboToken);
 		}
 
-		req.headers['Authorization'] = `Bearer ${oboToken.accessToken}`;
-		req.headers['X-Wonderwall-ID-Token'] = ''; // Vi trenger ikke å forwarde ID-token siden det ikke brukes
+		req.headers[AUTHORIZATION_HEADER] = `Bearer ${oboToken.accessToken}`;
+		req.headers[WONDERWALL_ID_TOKEN_HEADER] = ''; // Vi trenger ikke å forwarde ID-token siden det ikke brukes
 
 		next();
 	});

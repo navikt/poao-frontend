@@ -15,9 +15,9 @@ import { createTokenValidator, mapLoginProviderTypeToValidatorType } from './uti
 import { createClient, createIssuer } from './utils/auth/auth-client-utils';
 import { createJWKS } from './utils/auth/auth-config-utils';
 import { frontendEnvRoute } from './route/frontend-env-route';
-import { proxyOboMiddleware } from './middleware/proxy-obo-middleware';
-import { proxyRoute } from './route/proxy-route';
+import { oboMiddleware } from './middleware/obo-middleware';
 import { authInfoRoute } from './route/auth-info-route';
+import { proxyMiddleware } from './middleware/proxy-middleware';
 
 const app: express.Application = express();
 
@@ -70,8 +70,8 @@ async function startServer() {
 
 			app.use(
 				proxyFrom,
-				proxyOboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
-				proxyRoute(proxyFrom, p)
+				oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
+				proxyMiddleware(proxyFrom, p)
 			);
 		});
 

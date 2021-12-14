@@ -4,7 +4,9 @@ import { Request } from 'express';
 import { JsonData } from '../json-utils';
 import { fromBase64 } from '../utils';
 
-const AUTHORIZATION_HEADER = 'Authorization';
+export const AUTHORIZATION_HEADER = 'authorization';
+
+export const WONDERWALL_ID_TOKEN_HEADER = 'x-wonderwall-id-token';
 
 // The tokens should be considered expired a bit before the actual expiration.
 // This is to prevent problems with clock skew and that the token might expire in-flight.
