@@ -1,6 +1,6 @@
-import { assert, csvStrToStrArray } from '../utils';
+import { assert } from '../utils';
 import { logger } from '../utils/logger';
-import { JsonData } from '../utils/json-utils';
+import { JsonConfig } from './app-config-resolver';
 
 export const DEFAULT_CORS_MAX_AGE = 7200; // 2 hours. Chrome caps out at this value
 export const DEFAULT_CORS_CREDENTIALS = true;
@@ -20,12 +20,12 @@ export const logCorsConfig = (config: CorsConfig): void => {
 	);
 };
 
-export const resolveCorsConfig = (jsonData: JsonData | undefined): CorsConfig => {
+export const resolveCorsConfig = (corsJsonConfig: JsonConfig.CorsConfig | undefined): CorsConfig => {
 	const config: Partial<CorsConfig> = {
-		origin: jsonData?.origin,
-		credentials: jsonData?.credentials,
-		maxAge: jsonData?.maxAge,
-		allowedHeaders: csvStrToStrArray(jsonData?.origin),
+		origin: corsJsonConfig?.origin,
+		credentials: corsJsonConfig?.credentials,
+		maxAge: corsJsonConfig?.maxAge,
+		allowedHeaders: corsJsonConfig?.allowedHeaders,
 	}
 
 	if (config.maxAge == null) {

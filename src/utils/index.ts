@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 export const assert = <T extends any>(value: T | undefined | null, msg?: string): T => {
 	if (!value) {
 		throw new Error(msg || 'Value is missing');
@@ -6,26 +8,20 @@ export const assert = <T extends any>(value: T | undefined | null, msg?: string)
 	return value;
 };
 
-export const csvStrToStrArray = (str: string | undefined): string[] => {
-	if (!str) {
-		return [];
-	}
-
-	return str.split(',').map((v) => v.trim());
-};
-
 /**
  * Safely coerces a string into a enum if the string is part of the enum's value set
- * @param str string to coerce
  * @param enumType type to coerce string into
+ * @param maybeEnumValue string to coerce
  */
-export const strToEnum = <T extends { [key: string]: string }>(
-	str: string | undefined,
-	enumType: T
-): undefined | T[keyof T] => {
-	if (str && Object.values(enumType).includes(str)) {
-		return str as T[keyof T];
+export const toNullableEnumValue = <T extends { [k: string]: string }>(enumType: T, maybeEnumValue: string | undefined): T[keyof T] | undefined => {
+	if (!maybeEnumValue) {
+		return undefined
 	}
 
-	return undefined;
-};
+	if (!Object.values(enumType).includes(maybeEnumValue)) {
+		logger.warn(`'${maybeEnumValue}' is not an enum value`);
+		return undefined;
+	}
+
+	return maybeEnumValue as T[keyof T]
+}

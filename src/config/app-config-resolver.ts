@@ -23,7 +23,7 @@ export function createAppConfig(): AppConfig {
 	const jsonConfigStr = resolveJsonConfigStr();
 
 	const jsonData = jsonConfigStr
-		? parseJSONwithSubstitutions(jsonConfigStr)
+		? parseJSONwithSubstitutions(jsonConfigStr) as JsonConfig.Config
 		: undefined;
 
 	return {
@@ -61,3 +61,52 @@ function readConfigFile(configFilePath: string): string | undefined {
 	if (!existsSync(configFilePath)) return undefined;
 	return readFileSync(configFilePath).toString();
 }
+
+export namespace JsonConfig {
+	export interface Config {
+		port?: number;
+		fallbackStrategy?: string;
+		enableFrontendEnv?: boolean;
+		contextPath?: string;
+		serveFromPath?: string;
+		auth?: AuthConfig;
+		cors?: CorsConfig;
+		gcs?: GcsConfig;
+		redirects?: Redirect[];
+		proxies?: Proxy[];
+	}
+
+	export interface AuthConfig {
+		loginProvider?: string;
+	}
+
+	export interface CorsConfig {
+		origin?: string;
+		credentials?: boolean;
+		maxAge?: number;
+		allowedHeaders?: string[];
+	}
+
+	export interface GcsConfig {
+		bucketName?: string;
+		bucketContextPath?: string;
+	}
+
+	export interface Proxy {
+		fromPath?: string;
+		toUrl?: string;
+		preserveFromPath?: boolean;
+		toApp?: {
+			name?: string;
+			namespace?: string;
+			cluster?: string;
+		}
+	}
+
+	export interface Redirect {
+		fromPath?: string;
+		toUrl?: string;
+		preserveFromPath?: boolean;
+	}
+}
+

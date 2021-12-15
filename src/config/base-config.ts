@@ -1,5 +1,6 @@
 import { logger } from '../utils/logger';
-import { JsonData } from '../utils/json-utils';
+import { JsonConfig } from './app-config-resolver';
+import { toNullableEnumValue } from '../utils';
 
 export enum FallbackStrategy {
 	REDIRECT_TO_ROOT = 'REDIRECT_TO_ROOT',
@@ -31,10 +32,10 @@ export function logBaseConfig(config: BaseConfig) {
 	);
 }
 
-export function resolveBaseConfig(jsonConfig: JsonData | undefined): BaseConfig {
+export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): BaseConfig {
 	const config: Partial<BaseConfig> = {
 		port: jsonConfig?.port,
-		fallbackStrategy: jsonConfig?.fallbackStrategy,
+		fallbackStrategy: toNullableEnumValue(FallbackStrategy, jsonConfig?.fallbackStrategy),
 		enableFrontendEnv: jsonConfig?.enableFrontendEnv,
 		contextPath: jsonConfig?.contextPath,
 		serveFromPath: jsonConfig?.serveFromPath

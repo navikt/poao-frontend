@@ -1,5 +1,5 @@
-import { JsonData } from '../utils/json-utils';
 import { logger } from '../utils/logger';
+import { JsonConfig } from './app-config-resolver';
 
 export interface RedirectConfig {
 	redirects: Redirect[];
@@ -21,19 +21,23 @@ export const logRedirectConfig = (config: RedirectConfig): void => {
 	});
 };
 
-export const resolveRedirectConfig = (jsonData: JsonData | undefined): RedirectConfig => {
-	if (!jsonData) {
+export const resolveRedirectConfig = (redirectsJsonConfig: JsonConfig.Redirect[] | undefined): RedirectConfig => {
+	if (!redirectsJsonConfig) {
 		return { redirects: [] };
 	}
 
-	const partialRedirects = jsonData as Partial<Redirect>[];
-
-	const redirects = partialRedirects.map(r => validateRedirect(addDefaultValues(r)));
+	const redirects = redirectsJsonConfig.map(r => validateRedirect(toPartialRedirect(r)));
 
 	return { redirects };
 };
 
-const addDefaultValues = (partialRedirect: Partial<Redirect>): Partial<Redirect> => {
+const toPartialRedirect = (redirect: JsonConfig.Redirect): Partial<Redirect> => {
+	const partialRedirect: Partial<Redirect> = {
+		fromPath: redirect.fromPath,
+		toUrl: redirect.toUrl,
+		preserveFromPath: redirect.preserveFromPath
+	}
+
 	if (partialRedirect.preserveFromPath == null) {
 		partialRedirect.preserveFromPath = DEFAULT_PRESERVE_FROM_PATH;
 	}

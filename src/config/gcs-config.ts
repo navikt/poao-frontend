@@ -1,6 +1,6 @@
-import { JsonData } from '../utils/json-utils';
 import { assert } from '../utils';
 import { logger } from '../utils/logger';
+import { JsonConfig } from './app-config-resolver';
 
 export interface GcsConfig {
 	bucketName: string;
@@ -13,14 +13,14 @@ export function logGcsConfig(config: GcsConfig | undefined) {
 	logger.info(`GCS config: bucketName=${config.bucketName} bucketContextPath=${config.bucketContextPath}`);
 }
 
-export const resolveGcsConfig = (gcsJsonData: JsonData | undefined): GcsConfig | undefined => {
-	if (!gcsJsonData) {
+export const resolveGcsConfig = (gcsJsonConfig: JsonConfig.GcsConfig | undefined): GcsConfig | undefined => {
+	if (!gcsJsonConfig) {
 		return undefined
 	}
 
 	const config: Partial<GcsConfig> = {
-		bucketName: gcsJsonData.bucketName,
-		bucketContextPath: gcsJsonData.bucketContextPath,
+		bucketName: gcsJsonConfig.bucketName,
+		bucketContextPath: gcsJsonConfig.bucketContextPath,
 	}
 
 	if (config.bucketContextPath == null) {

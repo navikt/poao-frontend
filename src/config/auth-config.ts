@@ -1,6 +1,6 @@
-import { assert, strToEnum } from '../utils';
+import { assert, toNullableEnumValue } from '../utils';
 import { logger } from '../utils/logger';
-import { JsonData } from '../utils/json-utils';
+import { JsonConfig } from './app-config-resolver';
 
 export enum LoginProviderType {
 	ID_PORTEN = 'ID_PORTEN',
@@ -35,10 +35,12 @@ export const logAuthConfig = (config: AuthConfig | undefined): void => {
 	logger.info(`Auth config obo: oboProviderType=${oboProviderType} discoverUrl=${oboProvider.discoveryUrl} clientId=${oboProvider.clientId}`);
 };
 
-export const resolveAuthConfig = (jsonConfig: JsonData | undefined): AuthConfig | undefined => {
-	if (!jsonConfig) return undefined;
+export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefined): AuthConfig | undefined => {
+	const loginProvider = toNullableEnumValue(LoginProviderType, authJsonConfig?.loginProvider);
 
-	const loginProvider = strToEnum(jsonConfig.loginProvider, LoginProviderType);
+	if (!loginProvider) {
+		return undefined;
+	}
 
 	if (loginProvider === LoginProviderType.AZURE_AD) {
 		const azureAdProvider = resolveAzureAdProvider();

@@ -1,5 +1,5 @@
 import { logger } from '../utils/logger';
-import { JsonData } from '../utils/json-utils';
+import { JsonConfig } from './app-config-resolver';
 
 export interface ProxyConfig {
 	proxies: Proxy[];
@@ -31,21 +31,30 @@ export const logProxyConfig = (proxyConfig: ProxyConfig): void => {
 	});
 };
 
-export const resolveProxyConfig = (jsonData: JsonData | undefined): ProxyConfig => {
-	if (!jsonData) {
+export const resolveProxyConfig = (proxiesJsonConfig: JsonConfig.Proxy[] | undefined): ProxyConfig => {
+	if (!proxiesJsonConfig) {
 		return { proxies: [] };
 	}
 
-	const partialProxies = jsonData as Partial<Proxy>[];
-
-	const proxies = partialProxies.map(p => validateProxy(addDefaultValues(p)));
+	const proxies = proxiesJsonConfig.map(p => validateProxy(toPartialProxy(p)));
 
 	return { proxies };
 };
 
-const addDefaultValues = (partialProxy: Partial<Proxy>): Partial<Proxy> => {
-	if (partialProxy.preserveFromPath == null) {
-		partialProxy.preserveFromPath = DEFAULT_PRESERVE_FROM_PATH;
+const toPartialProxy = (proxy: JsonConfig.Proxy): Partial<Proxy> => {
+	const partialProxy: Partial<Proxy> = {
+		fromPath: proxy.fromPath,
+		toUrl: proxy.toUrl,
+		preserveFromPath: proxy.preserveFromPath,
+		toApp: {
+			name: proxy.toApp?.name || '',
+			cluster: proxy.toApp?.cluster || '',
+			namespace: proxy.toApp?.namespace || '',
+		}
+	};
+
+	if (proxy.preserveFromPath == null) {
+		proxy.preserveFromPath = DEFAULT_PRESERVE_FROM_PATH;
 	}
 
 	return partialProxy
