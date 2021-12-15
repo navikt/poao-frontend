@@ -20,8 +20,8 @@ const staticCache = new NodeCache({
 
 // Used to cache files that can change during deployment of a new version (index.html, asset-manifest.json etc...)
 const volatileCache = new NodeCache({
-	stdTTL: minutesToSeconds(5),
-	checkperiod: 120 // 2 minutes
+	stdTTL: minutesToSeconds(1),
+	checkperiod: 30 // seconds
 });
 
 interface GcsRouterConfig {
