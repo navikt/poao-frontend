@@ -22,7 +22,7 @@ const DEFAULT_SERVE_FROM_PATH = '/app/public';
 
 const DEFAULT_CONTEXT_PATH = '/';
 
-const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.NONE;
+const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.SERVE_INDEX_HTML;
 
 const DEFAULT_ENABLE_FRONTEND_ENV = false;
 
