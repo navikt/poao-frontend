@@ -1,107 +1,116 @@
 # POAO Frontend
 Node.js Express app som håndterer diverse funksjoner som er påkrevd av de fleste frontend applikasjoner.
 
+POAO Frontend integrerer med https://github.com/nais/wonderwall og er avhengig av Wonderwall sidecaren for funksjoner relatert til autentisering.
+
 Forket fra https://github.com/navikt/pto-frontend.
 
-## Hvordan ta i bruk
-Kopier filene som skal serveres til /app/public.
+## Konfigurering
+Konfigurering av poao-frontend gjøres med JSON. JSON konfigurasjonen kan enten gjøres ved å sette 
+miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/app/config.json** (kan overskrives med miljøvariablen **JSON_CONFIG_FILE_PATH**).
 
-```dockerfile
-FROM docker.pkg.github.com/navikt/poao-frontend/poao-frontend:IMAGE_VERSION
-COPY build /app/public
+### Fullt eksempel JSON config
+
+```json
+{
+  "port": 8080,
+  "fallbackStrategy": "SERVE_INDEX_HTML",
+  "enableFrontendEnv": false,
+  "contextPath": "/",
+  "serveFromPath": "/app/public",
+  "auth": {
+    "loginProvider": "ID_PORTEN"
+  },
+  "cors": {
+    "origin": "nav.no",
+    "credentials": true,
+    "maxAge": 7200,
+    "allowedHeaders": ["Nav-Consumer-Id"]
+  },
+  "gcs": {
+    "bucketName": "my-bucket",
+    "bucketContextPath": "path/to/assets/inside/bucket"
+  },
+  "redirects": [
+    {
+      "fromPath": "/redirect-path",
+      "toUrl": "https://somewhere-else.nav.no",
+      "preserveFromPath": false
+    }
+  ],
+  "proxies": [
+    {
+      "fromPath": "/proxy-path",
+      "toUrl": "http://some-application",
+      "preserveFromPath": false,
+      "toApp": {
+        "name": "some-application", "namespace": "team", "cluster": "dev-gcp"
+      }
+    }
+  ] 
+}
 ```
 
-## Konfigurering
-Konfigurering av poao-frontend kan gjøres enten med miljøvariabler eller JSON. 
-Nedenfor ligger en liste over miljøvariabler som kan konfigureres.
-Hver miljøvariabel har et tilsvarende felt i JSON hvor navnet er det samme, men i camel case.
-F.eks **GCS_BUCKET_NAME** -> **gcsBucketName**
+### Base config
 
-### PORT
+### Port
+
 Setter hvilken port poao-frontend skal kjøre på. Default er **8080**.
-Eksempel: `PORT=8081`
 
-### SERVE_FROM_PATH
-Setter hvor poao-frontend skal lete etter statiske filer. Default er **/app/public**.
-Eksempel: `SERVE_FROM_PATH=/some/path`
+Eksempel:
+```json
+{ "port": 8080 }
+```
 
-### GCS_BUCKET_NAME
-Navnet til en GCS bøtte som poao-frontend skal servere filer fra. Hvis GCS_BUCKET_NAME er satt så vil dette overskrive servering av lokale filer.
-Eksempel: GCS_BUCKET_NAME=behovsvurdering-dev` (navn må være unike på tvers av hele Google sin infrastruktur så det må skilles på dev/prod)
+### Fallback strategy
 
-### GCS_BUCKET_CONTEXT_PATH
-Setter context path for servering av filer fra en GCS bøtte. Kan brukes hvis man skal servere filer som ikke ligger i root av bøtten (/).
-Eksempel: `GCS_BUCKET_CONTEXT_PATH=build`
+Bestemmer hva som skal skje hvis det blir gjort et request til en ressurs som ikke finnes.
 
-### CONTEXT_PATH
-Setter context path for alle paths i poao-frontend. Default er ingen context path.
-
-### FALLBACK_STRATEGY
-Hvis satt til **redirect** så vil forespørsler som gir 404 bli redirectet til root path.
-Hvis satt til **serve** så vil forespørsler som gir 404 bli servert index.html.
-Hvis satt til **none** så vil forespørsler som gir 404 gi 404 melding tilbake til brukere.
-Default er **redirect**.
-
-REDIRECT_ON_NOT_FOUND=redirect
+Hvis satt til **REDIRECT_TO_ROOT** så vil forespørsler som til vanlig ville returnert 404 bli redirectet til root path istedenfor.
 ```
 https://my-app.dev.nav.no/not/a/real/path -> Redirected to https://my-app.dev.nav.no
 ```
 
-REDIRECT_ON_NOT_FOUND=serve
+Hvis satt til **SERVE_INDEX_HTML** så vil forespørsler som til vanlig ville returnert 404 bli servert index.html.
 ```
 https://my-app.dev.nav.no/not/a/real/path -> Serve index.html on this url
 ```
 
-REDIRECT_ON_NOT_FOUND=none
+Hvis satt til **NONE** så vil forespørsler som gir 404 gi 404 melding tilbake til brukere.
 ```
-https://my-app.dev.nav.no/not/a/real/path -> Return 404-message to user
-```
-
-### CORS_DOMAIN
-Skru på CORS for spesifisert domene. Default er at CORS er skrudd av for alle domener.
-
-Eksempel: `CORS_DOMAIN=*` eller `CORS_DOMAIN=nav.no`
-
-### CORS_ALLOW_CREDENTIALS
-Kontrollerer **Access-Control-Allow-Credentials** som bestemmer om klienter får sende med cookies og authorization header.
-Default er **false**
-
-Eksempel: `CORS_ALLOW_CREDENTIALS=true` 
-
-### JSON_CONFIG_FILE_PATH
-poao-frontend vil sjekke på JSON_CONFIG_FILE_PATH etter en JSON-fil som inneholder config for å sette opp serveren.
-Hvis ingen config fil er tilgjengelig så poao-frontend kjøre uten
-Default er **/app/config/config.json**.
-
-Hvis man lager et configmap med configen til poao-frontend, så kan man injecte det som en fil i nais-yamlen.
-```bash
-kubectl create configmap my-app-config -n <team-namespace> --from-file=./config.json
-```
-```yaml
-filesFrom:
-    - configmap: my-app-config
-      mountPath: /app/config
+https://my-app.dev.nav.no/not/a/real/path -> Return 404-status to user
 ```
 
-### JSON_CONFIG
-Hvis satt så vil poao-frontend hente configen herfra istedenfor å lete etter en JSON-fil på JSON_CONFIG_FILE_PATH.
+Default er **SERVE_INDEX_HTML**.
 
-Kan for eksempel brukes slik i en nais-yaml fil.
-```yaml
-      env:
-        - name: CONFIG_JSON
-          value: >
-            {
-              "proxies": [...]
-            }
+Eksempel:
+```json
+{ "fallbackStrategy":  "SERVE_INDEX_HTML" }
 ```
 
-### ENABLE_FRONTEND_ENV
-Hvis satt til **true** så vil poao-frontend lage en **env.js** som blir plassert i SERVE_FROM_PATH.
-Denne filen vil inneholde alle miljø variabler som starter med PUBLIC og sette det på window.
-Default er **false**.
+### Serve from path
 
-F.eks hvis man har en variabel som heter PUBLIC_MY_APP_URL så vil dette produsere følgende **env.js** fil.
+Setter hvor poao-frontend skal lete etter statiske filer å serve. Default er **/app/public**.
+
+Eksempel:
+```json
+{ "serveFromPath":  "/app/public" }
+```
+
+### Context path
+
+Setter context path for alle paths i poao-frontend. Default er ingen context path ("/").
+
+Eksempel:
+```json
+{ "contextPath": "/" }
+```
+
+
+### Enable frontend env
+Hvis satt til **true** så vil poao-frontend sette opp et endepunkt som returnerer JavaScript.
+Scriptet vil inneholde alle miljø variabler som starter med **PUBLIC** og sette det på window-objektet.
+F.eks hvis man har en miljøvariabel som heter PUBLIC_MY_APP_URL så vil dette produsere følgende script.
 
 ```js
 window.env = {MY_APP_URL: 'https://my-app.dev.nav.no'};
@@ -113,129 +122,257 @@ Dette kan brukes med en script tag for å laste inn miljøvariabler før appen s
 <script src="{CONTEXT_PATH}/env.js"></script>
 ```
 
-### ENFORCE_LOGIN
-Hvis satt til **true** så vil poao-frontend validere tokenet til bruker for alle forespørsler. 
 Default er **false**.
 
-Hvis ENFORCE_LOGIN er på så må også variablene LOGIN_REDIRECT_URL, OIDC_DISCOVERY_URL, OIDC_CLIENT_ID, TOKEN_COOKIE_NAME settes.
+Eksempel:
+```json
+{ "enableFrontendEnv": false }
+```
 
-#### LOGIN_REDIRECT_URL
-Hvor skal brukeren sendes hvis de ikke har et gyldig token.
-Denne URLen burde inneholde **{RETURN_TO_URL}** som vil bli byttet ut med URLen som brukeren var på før de ble sendt videre for innlogging.
+### Auth config
 
-Eksempel: LOGIN_REDIRECT_URL=https://loginservice.dev.nav.no/login?redirect={RETURN_TO_URL}&level=Level4`
+Konfigurering av funksjoner relatert til autentisering.
 
-#### OIDC_DISCOVERY_URL
-URL som peker til discovery endepunktet for en OIDC provider. Brukes for å hente JWKS URI og issuer.
-
-#### OIDC_CLIENT_ID
-En klient id som brukes for å verifisere at tokenet kan brukes i appen din.
-
-#### TOKEN_COOKIE_NAME
-Navnet på cookien som inneholder tokenet til bruker.
-
-
-### Proxy
-Setter opp en HTTP proxy fra poao-frontend til en gitt URL. 
-Kan f.eks brukes for å slippe unna CORS mot eksterne tjenester eller for å nå tjenester som man ikke kan nå fra browseren.
-Proxyer må settes opp med JSON config.
+`loginProvider` kan enten settes til 'ID_PORTEN' eller 'AZURE_AD' basert på hvilken OIDC provider som brukes for å logge inn brukere.
+Hvis `loginProvider` er satt så vil tokens fra Wonderwall bli byttet til tokens som er scopet til en gitt applikasjon i proxy-endepunktene.
 
 Eksempel:
 ```json
 {
-  "proxies": [
-    {
-      "from": "/dekorator",
-      "to": "https://dekoratoren.dev.nav.no",
-      "preserveContextPath": false
-    },
-    {
-      "from": "/proxy",
-      "to": "https://pto-proxy.dev.nav.no"
-    }  
-  ]
+  "auth": { "loginProvider": "ID_PORTEN" }
 }
 ```
 
-### Redirect
-Setter opp redirect fra poao-frontend til en gitt URL.
-Kan brukes for å ha lenker til forskjellige tjenester som er forskjellig i hvert miljø (preprod/prod).
+### CORS config
 
-Redirects må settes opp med JSON config.
+Konfigurering av funksjoner relatert til CORS.
+
+Kontrollerer **Access-Control-Allow-Credentials** som bestemmer om klienter får sende med cookies og authorization header.
+Default er **false**
+
+`origin`: hvilket CORS origin som brukes. Hvis ikke satt så vil ikke andre CORS innstillinger bli tatt i bruk. Default er **null**
+
+`credentials`: om det er lov å sende med credentials eller ikke. Default er **true**
+
+`maxAge`: hvor mange sekunder response fra preflight request kan caches. Default er **7200**
+
+`allowedHeaders`: hvilke headere som det er lov å sende med requestet. Default er  **["Nav-Consumer-Id"]**
+
+Eksempel:
+```json
+{
+  "cors": {
+    "origin": "nav.no",
+    "credentials": true,
+    "maxAge": 7200,
+    "allowedHeaders": ["Nav-Consumer-Id"]
+  }
+}
+```
+
+### GCS config
+
+Konfigurering av funksjoner relatert til GCS (Google Cloud Storage).
+
+`bucketName`: hvis satt så vil poao-frontend servere statiske filer fra GCS.
+OBS: Navnet her må være unikt på tvers av GCP. Anbefalt navnekonvensjon er: `<my-app-name>-<dev|prod>`. Default er **null**
+
+`bucketContextPath`: setter context path for hvor filene i GCS skal lastes fra. Default er ingen context path
+
+Eksempel:
+```json
+{
+  "gcs": {
+    "bucketName": "my-bucket",
+    "bucketContextPath": "path/to/assets/inside/bucket"
+  }
+}
+```
+
+### Redirect config
+
+Konfigurering av funksjoner relatert til redirects fra en URL til en annen.
+
+Kan f.eks brukes for å ha lenker til forskjellige tjenester som er forskjellig i hvert miljø (dev/prod).
+
+`fromPath`: hvilken path det skal redirectes fra. Påkrevd felt
+`toUrl`: hvilken URL det skal redirectes til. Påkrevd felt
+`preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`. Default er **false**
 
 Eksempel:
 ```json
 {
   "redirects": [
     {
-      "from": "/some-path",
-      "to": "https://some-application.nav.no"
+      "fromPath": "/redirect-path",
+      "toUrl": "https://somewhere-else.nav.no",
+      "preserveFromPath": false
     }
   ]
 }
 ```
 
+### Proxy config
 
-## JSON config
-Det er mulig å bruke JSON til å representere configen til poao-frontend. Alt som kan konfigureres med miljøvariabler kan også konfigureres med JSON.
-I tillegg så kan JSON også konfigurere ting som proxy og redirect, som ikke kan konfigureres med miljøvariabler.
-Konfigen kan enten leses som en fil fra JSON_CONFIG_FILE_PATH eller som en miljøvariabel med JSON_CONFIG.
+Konfigurering av funksjoner relatert til proxy endepunkter.
 
-Eksempel config med alle felt satt:
+For å sende requests fra frontend til backend med scopet token så kan proxy-funksjonen i brukes.
+
+`fromPath`: hvilken path det skal proxies fra. Påkrevd felt
+`toUrl`: hvilken URL det skal proxies til. Påkrevd felt
+`preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`. Default er **false**
+
+`toApp`: for å kunne veksle ut token fra Wonderwall med scopet tokens, så må det konfigureres hvilken app som skal motta tokenet. Påkrevd felt
+
+`toApp.name`: navnet til applikasjonen. Påkrevd felt
+`toApp.namespace`: namespacet til applikasjonen. Påkrevd felt
+`toApp.cluster`: clusteret til applikasjonen. Påkrevd felt
+
+Eksempel:
 ```json
 {
-  "port": 8080,
-  "serveFromPath": "/app/public",
-  "contextPath": "",
-  "gcsBucketName": "demo-app",
-  "gcsBucketContextPath": "/build",
-  "corsDomain": "*",
-  "corsAllowCredentials": false,
-  "fallbackStrategy": "redirect",
-  "enableFrontendEnv": false,
-  "enforceLogin": false,
-  "loginRedirectUrl": "https://some.domain.com/path",
-  "oidcDiscoveryUrl": "https://some.domain.com/path",
-  "oidcClientId": "abc123efg456",
-  "tokenCookieName": "selvbetjening-idtoken",
   "proxies": [
     {
-      "from": "/dekorator",
-      "to": "https://dekoratoren.dev.nav.no",
-      "preserveContextPath": false
-    }
-  ],
-  "redirects": [
-    {
-      "from": "/some-path",
-      "to": "https://some-application.nav.no"
+      "fromPath": "/proxy-path",
+      "toUrl": "http://some-application",
+      "preserveFromPath": false,
+      "toApp": {
+        "name": "some-application", "namespace": "team", "cluster": "dev-gcp"
+      }
     }
   ]
 }
 ```
 
-## Eksempel på konfigurasjon
+## Eksempel NAIS-yamler
 
-Her er noen eksempler på konfigurasjoner som kan bli brukt.
+Eksempel på frontend som leser filer fra GCS og har innlogging med ID-porten og token exchange med TokenX til applikasjonen **some-other-application**
 
-Konfigurasjon med NAV dekoratør proxy, miljø variabler i frontend og login med redirect for eksterne brukere i testmiljøet.
-```
-CONFIG_JSON={ "proxies": [ { "from": "/dekorator", "to": "https://dekoratoren.dev.nav.no" } ] }
-ENABLE_FRONTEND_ENV=true
-ENFORCE_LOGIN=true
-LOGIN_REDIRECT_URL=https://loginservice.dev.nav.no/login?redirect={RETURN_TO_URL}&level=Level4
-OIDC_DISCOVERY_URL=https://login.microsoftonline.com/NAVtestB2C.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten_ver1
-OIDC_CLIENT_ID=0090b6e1-ffcc-4c37-bc21-049f7d1f0fe5
-TOKEN_COOKIE_NAME=selvbetjening-idtoken
+```yaml
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: my-application
+  namespace: my-namespace
+  labels:
+    team: my-team
+spec:
+  image: ghcr.io/navikt/poao-frontend/poao-frontend:<latest-version>
+  port: 8080
+  ingresses:
+    - https://my-application.dev.nav.no
+  liveness:
+    path: /internal/isAlive
+    initialDelay: 10
+  readiness:
+    path: /internal/isReady
+    initialDelay: 10
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 75
+  resources:
+    limits:
+      cpu: "1"
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+  tokenx:
+    enabled: true
+  gcp:
+    buckets:
+      - name: my-application-dev
+        cascadingDelete: false
+  accessPolicy:
+    outbound:
+      rules:
+        - application: some-other-application
+          namespace: some-namespace
+  env:
+    - name: JSON_CONFIG
+      value: >
+        {
+          "gcs": {
+            "bucketName": "my-application-dev"
+          },
+          "auth": {
+            "loginProvider": "ID_PORTEN"
+          },
+          "proxies": [
+            {
+              "fromPath": "/some-other-application", "toUrl": "http://some-other-application",
+              "toApp": { "name": "some-other-application", "namespace": "some-namespace", "cluster": "dev-gcp" }
+            }
+          ]
+        }
 ```
 
-Konfigurasjon med NAV dekoratør proxy, miljø variabler i frontend og login med redirect for eksterne brukere i produkjson.
-```
-CONFIG_JSON={ "proxies": [ { "from": "/dekorator", "to": "https://www.nav.no/dekoratoren" } ] }
-ENABLE_FRONTEND_ENV=true
-ENFORCE_LOGIN=true
-LOGIN_REDIRECT_URL=https://loginservice.nav.no/login?redirect={RETURN_TO_URL}&level=Level4
-OIDC_DISCOVERY_URL=https://login.microsoftonline.com/navnob2c.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=B2C_1A_idporten
-OIDC_CLIENT_ID=45104d6a-f5bc-4e8c-b352-4bbfc9381f25
-TOKEN_COOKIE_NAME=selvbetjening-idtoken
+Eksempel på frontend som leser filer fra GCS og har innlogging og token exchange med Azure AD til applikasjonen **some-other-application**
+
+```yaml
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: my-application
+  namespace: my-namespace
+  labels:
+    team: my-team
+spec:
+  image: ghcr.io/navikt/poao-frontend/poao-frontend:<latest-version>
+  port: 8080
+  ingresses:
+    - https://my-application.dev.intern.nav.no
+  liveness:
+    path: /internal/isAlive
+    initialDelay: 10
+  readiness:
+    path: /internal/isReady
+    initialDelay: 10
+  replicas:
+    min: 1
+    max: 2
+    cpuThresholdPercentage: 75
+  resources:
+    limits:
+      cpu: "1"
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  azure:
+    application:
+      enabled: true
+    sidecar:
+      enabled: true
+  gcp:
+    buckets:
+      - name: my-application-dev
+        cascadingDelete: false
+  accessPolicy:
+    outbound:
+      rules:
+        - application: some-other-application
+          namespace: some-namespace
+  env:
+    - name: JSON_CONFIG
+      value: >
+        {
+          "gcs": {
+            "bucketName": "my-application-dev"
+          },
+          "auth": {
+            "loginProvider": "AZURE_AD"
+          },
+          "proxies": [
+            {
+              "fromPath": "/some-other-application", "toUrl": "http://some-other-application",
+              "toApp": { "name": "some-other-application", "namespace": "some-namespace", "cluster": "dev-gcp" }
+            }
+          ]
+        }
 ```
