@@ -54,28 +54,30 @@ async function startServer() {
 		app.get(routeUrl(redirect.fromPath), redirectRoute({ to: redirect.toUrl, preserveContextPath: redirect.preserveFromPath}));
 	});
 
-	if (auth && proxy.proxies.length > 0) {
+	if (auth) {
 		const oboTokenStore = createTokenStore();
 
 		const tokenValidatorType = mapLoginProviderTypeToValidatorType(auth.loginProviderType);
 
 		const tokenValidator = await createTokenValidator(tokenValidatorType, auth.loginProvider.discoveryUrl, auth.loginProvider.clientId);
 
-		const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
-
-		const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
-
-		proxy.proxies.forEach(p => {
-			const proxyFrom = routeUrl(p.fromPath);
-
-			app.use(
-				proxyFrom,
-				oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
-				proxyMiddleware(proxyFrom, p)
-			);
-		});
-
 		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
+
+		if (proxy.proxies.length > 0) {
+			const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
+
+			const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
+
+			proxy.proxies.forEach(p => {
+				const proxyFrom = routeUrl(p.fromPath);
+
+				app.use(
+					proxyFrom,
+					oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
+					proxyMiddleware(proxyFrom, p)
+				);
+			});
+		}
 	}
 
 	if (gcs) {

@@ -17,7 +17,7 @@ export interface AppConfig {
 	redirect: RedirectConfig;
 }
 
-const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config/config.js';
+const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config.json';
 
 export function createAppConfig(): AppConfig {
 	const jsonConfigStr = resolveJsonConfigStr();
