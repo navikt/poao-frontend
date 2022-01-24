@@ -376,3 +376,61 @@ spec:
           ]
         }
 ```
+
+## Deploy til GCS
+
+For å kunne laste opp filer til GCS så trenger man en service account på GCP med de riktige tilgangene.
+Det er anbefalt å ha 1 service account pr applikasjon slik at det er lettere å rullere service accounten uten at alle aller må oppdateres.
+
+1. Gå til https://console.cloud.google.com/iam-admin/serviceaccounts og velg prosjektet som service accounten skal opprettes i
+2. Opprett en service account (i steg 2 i opprettelsen på GCP så velg rollen "Storage Object Admin", dette vil gi tilgang til skriving og sletting/overskriving)
+3. Velg accounten som ble opprettet -> trykk på "Keys"-tabben -> trykk "Add key" -> trykk "Create new key" (velg JSON)
+4. Opprett en secret på GitHub som heter GCS_SA_KEY_<DEV|PROD> basert på hvilket miljø nøkkelen gjelder sett verdien til hele JSON-nøkkelen
+
+### Eksempel på GH Action worfklow for opplasting til GCS
+
+```yaml
+name: Upload files to dev
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+env:
+  CI: true
+  TZ: Europe/Amsterdam
+
+jobs:
+  upload-files-dev:
+    name: Upload files to dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm run test
+      - name: Build application
+        run: npm run build
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GCS_SA_KEY_DEV }}
+          export_default_credentials: true
+      - name: Upload files to GCS
+        run: gsutil -m rsync -r build gs://my-application-dev
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release/dev@${{ github.sha }}
+          release_name: Release to dev
+          prerelease: true
+```
