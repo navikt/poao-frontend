@@ -380,7 +380,7 @@ spec:
 ## Deploy til GCS
 
 For å kunne laste opp filer til GCS så trenger man en service account på GCP med de riktige tilgangene.
-Det er anbefalt å ha 1 service account pr applikasjon slik at det er lettere å rullere service accounten uten at alle aller må oppdateres.
+Det er anbefalt å ha 1 service account med 1 nøkkel pr applikasjon slik at det er lettere å rullere nøkkelen uten at alle må oppdateres.
 
 1. Gå til https://console.cloud.google.com/iam-admin/serviceaccounts og velg prosjektet som service accounten skal opprettes i
 2. Opprett en service account (i steg 2 i opprettelsen på GCP så velg rollen "Storage Object Admin", dette vil gi tilgang til skriving og sletting/overskriving)
