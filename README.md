@@ -262,10 +262,10 @@ spec:
   ingresses:
     - https://my-application.dev.nav.no
   liveness:
-    path: /internal/isAlive
+    path: /internal/alive
     initialDelay: 10
   readiness:
-    path: /internal/isReady
+    path: /internal/ready
     initialDelay: 10
   replicas:
     min: 1
@@ -328,10 +328,10 @@ spec:
   ingresses:
     - https://my-application.dev.intern.nav.no
   liveness:
-    path: /internal/isAlive
+    path: /internal/alive
     initialDelay: 10
   readiness:
-    path: /internal/isReady
+    path: /internal/ready
     initialDelay: 10
   replicas:
     min: 1

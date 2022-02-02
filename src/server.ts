@@ -42,9 +42,9 @@ async function startServer() {
 
 	app.use(cookieParser());
 
-	app.get(routeUrl('/internal/isReady'), pingRoute());
+	app.get('/internal/ready', pingRoute());
 
-	app.get(routeUrl('/internal/isAlive'), pingRoute());
+	app.get('/internal/alive', pingRoute());
 
 	if (base.enableFrontendEnv) {
 		app.get(routeUrl('/env.js'), frontendEnvRoute());
