@@ -6,7 +6,7 @@ import { Proxy } from '../config/proxy-config';
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware(proxyContextPath, {
 		target: proxy.toUrl,
-		logLevel: 'debug',
+		logLevel: 'error',
 		logProvider: () => logger,
 		changeOrigin: true,
 		pathRewrite: proxy.preserveFromPath
