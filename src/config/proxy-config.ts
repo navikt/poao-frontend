@@ -83,15 +83,15 @@ const validateProxy = (proxy: Partial<Proxy>): Proxy => {
 
 	if (hasAppConfig) {
 		if (!proxy.toApp?.name) {
-			throw new Error(`The field 'toApp.name' is missing from`);
+			throw new Error(`The field 'toApp.name' is missing`);
 		}
 
 		if (!proxy.toApp?.namespace) {
-			throw new Error(`The field 'toApp.namespace' is missing from`);
+			throw new Error(`The field 'toApp.namespace' is missing`);
 		}
 
 		if (!proxy.toApp?.cluster) {
-			throw new Error(`The field 'toApp.cluster' is missing from`);
+			throw new Error(`The field 'toApp.cluster' is missing`);
 		}
 	}
 
