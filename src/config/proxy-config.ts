@@ -42,15 +42,21 @@ export const resolveProxyConfig = (proxiesJsonConfig: JsonConfig.Proxy[] | undef
 };
 
 const toPartialProxy = (proxy: JsonConfig.Proxy): Partial<Proxy> => {
+	// Either none or all of toApp.* should be set
+
+	const hasAppConfig = proxy.toApp?.name || proxy.toApp?.namespace || proxy.toApp?.cluster
+
+	const toApp = hasAppConfig ? {
+		name: proxy.toApp?.name || '',
+		cluster: proxy.toApp?.cluster || '',
+		namespace: proxy.toApp?.namespace || '',
+	} : undefined
+
 	const partialProxy: Partial<Proxy> = {
 		fromPath: proxy.fromPath,
 		toUrl: proxy.toUrl,
 		preserveFromPath: proxy.preserveFromPath,
-		toApp: {
-			name: proxy.toApp?.name || '',
-			cluster: proxy.toApp?.cluster || '',
-			namespace: proxy.toApp?.namespace || '',
-		}
+		toApp: toApp
 	};
 
 	if (proxy.preserveFromPath == null) {
@@ -77,11 +83,7 @@ const validateProxy = (proxy: Partial<Proxy>): Proxy => {
 		throw new Error(`The field 'toUrl' is missing from`);
 	}
 
-	// Either none or all of toApp.* should be set
-
-	const hasAppConfig = proxy.toApp?.name || proxy.toApp?.namespace || proxy.toApp?.cluster
-
-	if (hasAppConfig) {
+	if (proxy.toApp) {
 		if (!proxy.toApp?.name) {
 			throw new Error(`The field 'toApp.name' is missing`);
 		}
