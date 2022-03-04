@@ -23,17 +23,23 @@ interface ProxyOboMiddlewareParams {
 	proxy: Proxy;
 }
 
+function createAppId(isUsingTokenX: boolean, proxy: Proxy): string | null {
+	if (!proxy.toApp) {
+		return null
+	}
+
+	return isUsingTokenX ? createTokenXAppId(proxy.toApp) : createAzureAdAppId(proxy.toApp);
+}
+
 export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 	const { authConfig, proxy, tokenValidator, oboTokenClient, oboTokenStore } = params;
 
 	const isUsingTokenX = authConfig.oboProviderType === OboProviderType.TOKEN_X;
 
-	const appId = isUsingTokenX
-		? createTokenXAppId(proxy.toApp)
-		: createAzureAdAppId(proxy.toApp);
+	const appId = createAppId(isUsingTokenX, proxy)
 
 	return asyncMiddleware(async (req, res, next) => {
-		logger.info(`Proxyer request ${req.path} til applikasjon ${proxy.toApp.name}`);
+		logger.info(`Proxyer request ${req.path} til applikasjon ${proxy.toApp?.name || proxy.toUrl}`);
 
 		const accessToken = getAccessToken(req);
 
@@ -48,6 +54,14 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 		if (!isValid) {
 			logger.error('Access token is not valid');
 			res.sendStatus(401);
+			return;
+		}
+
+		// Proxy route is not configured with token-exchange
+		if (!appId) {
+			req.headers[AUTHORIZATION_HEADER] = '';
+			req.headers[WONDERWALL_ID_TOKEN_HEADER] = '';
+			next();
 			return;
 		}
 

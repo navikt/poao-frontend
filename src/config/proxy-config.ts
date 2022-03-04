@@ -8,7 +8,7 @@ export interface ProxyConfig {
 export interface Proxy {
 	fromPath: string; // Must be a relative path
 	toUrl: string;
-	toApp: ProxyApp;
+	toApp?: ProxyApp;
 	preserveFromPath: boolean; // If true, 'fromPath' will be prepended to the request path before sending to 'toUrl'
 }
 
@@ -23,7 +23,7 @@ const DEFAULT_PRESERVE_FROM_PATH = false;
 export const logProxyConfig = (proxyConfig: ProxyConfig): void => {
 	proxyConfig.proxies.forEach((proxy) => {
 		const { fromPath, toUrl, toApp, preserveFromPath } = proxy;
-		const appId = `${toApp.cluster}.${toApp.namespace}.${toApp.name}`;
+		const appId = toApp ? `${toApp.cluster}.${toApp.namespace}.${toApp.name}` : 'NO_APP';
 
 		logger.info(
 			`Proxy config entry: fromPath=${fromPath} toUrl=${toUrl} app=${appId} preserveFromPath=${preserveFromPath}`

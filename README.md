@@ -238,7 +238,7 @@ For å sende requests fra frontend til backend med scopet token så kan proxy-fu
 `toUrl`: hvilken URL det skal proxies til. Påkrevd felt
 `preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`. Default er **false**
 
-`toApp`: for å kunne veksle ut token fra Wonderwall med scopet tokens, så må det konfigureres hvilken app som skal motta tokenet. Påkrevd felt
+`toApp`: for å kunne veksle ut token fra Wonderwall med scopet tokens, så må det konfigureres hvilken app som skal motta tokenet. Hvis ikke satt så vil requestet sendes videre uten tokens.
 
 `toApp.name`: navnet til applikasjonen. Påkrevd felt
 `toApp.namespace`: namespacet til applikasjonen. Påkrevd felt
