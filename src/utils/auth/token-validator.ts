@@ -3,6 +3,14 @@ import axios from 'axios';
 import { GetPublicKeyOrSecret, JwtHeader, JwtPayload, SigningKeyCallback, verify, VerifyOptions } from 'jsonwebtoken';
 import { logger } from '../logger';
 import { LoginProviderType } from '../../config/auth-config';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+
+const proxyAgent = new HttpsProxyAgent({host: "webproxy.nais", port: "8088"});
+
+const proxiedClient = axios.create({
+	httpsAgent: proxyAgent,
+	proxy: false
+});
 
 const ONE_HOUR_MS = 1000 * 60 * 60;
 
@@ -76,7 +84,7 @@ interface DiscoveryData {
 }
 
 async function getJwksUrlFromDiscoveryEndpoint(discoveryUrl: string): Promise<DiscoveryData> {
-	return axios.get(discoveryUrl)
+	return proxiedClient.get(discoveryUrl)
 		.then(res => {
 			const discoveryData = res.data as DiscoveryData;
 			const jwks_uri = discoveryData.jwks_uri;
