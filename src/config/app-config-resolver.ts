@@ -69,6 +69,7 @@ export namespace JsonConfig {
 		enableFrontendEnv?: boolean;
 		contextPath?: string;
 		serveFromPath?: string;
+		enableSecureLogs?: boolean;
 		auth?: AuthConfig;
 		cors?: CorsConfig;
 		gcs?: GcsConfig;

@@ -2,7 +2,7 @@ import express from 'express';
 import corsMiddleware from 'cors';
 import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
-import { logger } from './utils/logger';
+import { initSecureLog, logger } from './utils/logger';
 import { gcsRoute } from './route/gcs-route';
 import { helmetMiddleware } from './middleware/helmet-middleware';
 import { redirectRoute } from './route/redirect-route';
@@ -29,6 +29,10 @@ async function startServer() {
 	const { base, cors, gcs, auth, proxy, redirect } = appConfig;
 
 	logAppConfig(appConfig);
+
+	if (appConfig.base.enableSecureLogs) {
+		initSecureLog()
+	}
 
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
 

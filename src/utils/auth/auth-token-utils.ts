@@ -3,6 +3,7 @@ import { assert } from '../index';
 import { Request } from 'express';
 import { JsonData } from '../json-utils';
 import { fromBase64 } from '../utils';
+import { secureLog } from '../logger';
 
 export const AUTHORIZATION_HEADER = 'authorization';
 
@@ -48,8 +49,13 @@ export function getAccessToken(req: Request): string | undefined {
 }
 
 export function extractTokenPayload(jwtToken: string): JsonData {
-	const payload = fromBase64(jwtToken.split('.')[1]);
-	return JSON.parse(payload);
+	try {
+		const payload = fromBase64(jwtToken.split('.')[1]);
+		return JSON.parse(payload);
+	} catch (e) {
+		secureLog.error(`Unable to extract token payload from token: ${jwtToken}, error: ${e}`);
+		throw e;
+	}
 }
 
 export function getTokenSubject(jwtToken: string): string | undefined {

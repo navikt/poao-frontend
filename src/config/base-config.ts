@@ -14,6 +14,7 @@ export interface BaseConfig {
 	enableFrontendEnv: boolean;
 	contextPath: string;
 	serveFromPath: string;
+	enableSecureLogs: boolean;
 }
 
 const DEFAULT_PORT = 8080;
@@ -26,9 +27,11 @@ const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.SERVE_INDEX_HTML;
 
 const DEFAULT_ENABLE_FRONTEND_ENV = false;
 
+const DEFAULT_ENABLE_SECURE_LOGS = false;
+
 export function logBaseConfig(config: BaseConfig) {
 	logger.info(
-		`Config: port=${config.port} contextPath=${config.contextPath} serveFromPath=${config.serveFromPath} fallbackStrategy=${config.fallbackStrategy} enableFrontendEnv=${config.enableFrontendEnv}`
+		`Config: port=${config.port} contextPath=${config.contextPath} serveFromPath=${config.serveFromPath} fallbackStrategy=${config.fallbackStrategy} enableFrontendEnv=${config.enableFrontendEnv} enableSecureLogs=${config.enableSecureLogs}`
 	);
 }
 
@@ -38,7 +41,8 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 		fallbackStrategy: toNullableEnumValue(FallbackStrategy, jsonConfig?.fallbackStrategy),
 		enableFrontendEnv: jsonConfig?.enableFrontendEnv,
 		contextPath: jsonConfig?.contextPath,
-		serveFromPath: jsonConfig?.serveFromPath
+		serveFromPath: jsonConfig?.serveFromPath,
+		enableSecureLogs: jsonConfig?.enableSecureLogs
 	}
 
 	if (config.port == null) {
@@ -59,6 +63,10 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 
 	if (config.enableFrontendEnv == null) {
 		config.enableFrontendEnv = DEFAULT_ENABLE_FRONTEND_ENV;
+	}
+
+	if (config.enableSecureLogs == null) {
+		config.enableSecureLogs = DEFAULT_ENABLE_SECURE_LOGS;
 	}
 
 	return validateConfig(config)

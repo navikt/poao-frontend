@@ -8,7 +8,7 @@ import {
 	OboTokenStore, WONDERWALL_ID_TOKEN_HEADER
 } from '../utils/auth/auth-token-utils';
 import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils';
-import { getSecondsUntil } from '../utils/date-utisl';
+import { getSecondsUntil } from '../utils/date-utils';
 import { AuthConfig, OboProviderType } from '../config/auth-config';
 import { Proxy } from '../config/proxy-config';
 import { Client } from 'openid-client';
