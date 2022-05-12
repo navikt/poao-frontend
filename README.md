@@ -20,6 +20,7 @@ miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/ap
   "enableFrontendEnv": false,
   "contextPath": "/",
   "serveFromPath": "/app/public",
+  "enableSecureLogs": false,
   "auth": {
     "loginProvider": "ID_PORTEN"
   },
@@ -139,6 +140,16 @@ Eksempel:
 
 ```json
 { "enableFrontendEnv": false }
+```
+
+### Enable secure logs
+Hvis satt til *true* så vil det logges sensitiv informasjon til secure logs. Kan brukes til f.eks debugging. 
+Husk å sette opp secure logs i NAIS-yamlen i tillegg. Default er *false*.
+
+Eksempel:
+
+```json
+{ "enableSecureLogs": false }
 ```
 
 ### Auth config
