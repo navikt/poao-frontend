@@ -42,5 +42,5 @@ export function stripPrefix(sourceStr: string, prefixToStrip: string): string {
 }
 
 export function fromBase64(base64Str: string): string {
-	return Buffer.from(base64Str, 'base64').toString('ascii');
+	return Buffer.from(base64Str, 'base64').toString('utf8');
 }
