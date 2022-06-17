@@ -40,7 +40,7 @@ async function startServer() {
 		app.use(corsMiddleware({origin: cors.origin, credentials: cors.credentials }));
 	}
 
-	app.use(helmetMiddleware());
+	app.use(helmetMiddleware(appConfig.header));
 
 	app.use(errorHandlerMiddleware());
 

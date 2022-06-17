@@ -34,6 +34,17 @@ miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/ap
     "bucketName": "my-bucket",
     "bucketContextPath": "path/to/assets/inside/bucket"
   },
+  "header": {
+    "csp": {
+      "defaultSrc": ["..."],
+      "connectSrc":["..."],
+      "scriptSrc": ["..."],
+      "styleSrc":["..."],
+      "imgSrc": ["..."],
+      "frameSrc":["..."],
+      "fontSrc": ["..."]
+    }
+  },
   "redirects": [
     {
       "fromPath": "/redirect-path",
@@ -211,6 +222,34 @@ Eksempel:
   "gcs": {
     "bucketName": "my-bucket",
     "bucketContextPath": "path/to/assets/inside/bucket"
+  }
+}
+```
+
+### Header config
+Konfigurering av HTTP headers, i første omgang kan kun CSP kan endres.
+
+Hvis hele eller deler av konfigurasjonen ikke er satt så vil det bli brukt 
+sane defaults (se header-config.ts) tilpasset "vanlige" applikasjoner på NAV.
+
+De delene av CSP konfigen som blir satt vil overskrive defaultsene, 
+så hvis man ønsker å legge til en ny **src** på f.eks `scriptSrc` men fortsatt beholde defaults 
+så blir man nødt til å kopiere over defaultsene og legge til **src** på slutten.
+
+Eksempel:
+
+```json
+{
+  "header": {
+    "csp": {
+      "defaultSrc": ["..."],
+      "connectSrc":["..."],
+      "scriptSrc": ["..."],
+      "styleSrc":["..."],
+      "imgSrc": ["..."],
+      "frameSrc":["..."],
+      "fontSrc": ["..."]
+    }
   }
 }
 ```

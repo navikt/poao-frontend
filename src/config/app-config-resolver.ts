@@ -7,6 +7,7 @@ import { ProxyConfig, logProxyConfig, resolveProxyConfig } from './proxy-config'
 import { RedirectConfig, logRedirectConfig, resolveRedirectConfig } from './redirect-config';
 import { GcsConfig, logGcsConfig, resolveGcsConfig } from './gcs-config';
 import { parseJSONwithSubstitutions } from '../utils/json-utils';
+import { HeaderConfig, logHeaderConfig, resolveHeaderConfig } from './header-config';
 
 export interface AppConfig {
 	base: BaseConfig;
@@ -15,6 +16,7 @@ export interface AppConfig {
 	cors: CorsConfig;
 	proxy: ProxyConfig;
 	redirect: RedirectConfig;
+	header: HeaderConfig;
 }
 
 const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config.json';
@@ -31,6 +33,7 @@ export function createAppConfig(): AppConfig {
 		auth: resolveAuthConfig(jsonData?.auth),
 		cors: resolveCorsConfig(jsonData?.cors),
 		gcs: resolveGcsConfig(jsonData?.gcs),
+		header: resolveHeaderConfig(jsonData?.header),
 		proxy: resolveProxyConfig(jsonData?.proxies),
 		redirect: resolveRedirectConfig(jsonData?.redirects),
 	};
@@ -41,6 +44,7 @@ export function logAppConfig(config: AppConfig): void {
 	logAuthConfig(config.auth);
 	logCorsConfig(config.cors);
 	logGcsConfig(config.gcs);
+	logHeaderConfig(config.header);
 	logProxyConfig(config.proxy);
 	logRedirectConfig(config.redirect);
 }
@@ -73,6 +77,7 @@ export namespace JsonConfig {
 		auth?: AuthConfig;
 		cors?: CorsConfig;
 		gcs?: GcsConfig;
+		header?: HeaderConfig;
 		redirects?: Redirect[];
 		proxies?: Proxy[];
 	}
@@ -91,6 +96,18 @@ export namespace JsonConfig {
 	export interface GcsConfig {
 		bucketName?: string;
 		bucketContextPath?: string;
+	}
+
+	export interface HeaderConfig {
+		csp?: {
+			defaultSrc?: string[],
+			connectSrc?: string[],
+			scriptSrc?: string[]
+			imgSrc?: string[],
+			styleSrc?: string[],
+			frameSrc?: string[],
+			fontSrc?: string[]
+		}
 	}
 
 	export interface Proxy {
