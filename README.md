@@ -262,7 +262,8 @@ Kan f.eks brukes for å ha lenker til forskjellige tjenester som er forskjellig 
 
 `fromPath`: hvilken path det skal redirectes fra. Påkrevd felt
 `toUrl`: hvilken URL det skal redirectes til. Påkrevd felt
-`preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`. Default er **false**
+`preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`. 
+    Hvis wildcard matching (`/*`) brukes i `fromPath` så vil wildcard delen av pathen alltid bli lagt til på `toUrl`. Default er **false**
 
 Eksempel:
 
