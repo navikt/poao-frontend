@@ -40,7 +40,7 @@ async function startServer() {
 		app.use(corsMiddleware({origin: cors.origin, credentials: cors.credentials }));
 	}
 
-	app.use(helmetMiddleware());
+	app.use(helmetMiddleware(appConfig.header));
 
 	app.use(errorHandlerMiddleware());
 
@@ -55,7 +55,11 @@ async function startServer() {
 	}
 
 	redirect.redirects.forEach(redirect => {
-		app.get(routeUrl(redirect.fromPath), redirectRoute({ to: redirect.toUrl, preserveContextPath: redirect.preserveFromPath}));
+		app.get(routeUrl(redirect.fromPath), redirectRoute({
+			fromPath: redirect.fromPath,
+			to: redirect.toUrl,
+			preserveContextPath: redirect.preserveFromPath
+		}));
 	});
 
 	if (auth) {

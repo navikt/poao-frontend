@@ -1,12 +1,5 @@
 import helmet from 'helmet';
-
-const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
-const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";
-const GOOGLE_TAG_MANAGER_DOMAIN = "*.googletagmanager.com";
-const ACCOUNT_PSPLUGIN_DOMAIN = "account.psplugin.com";
-const NAV_PSPLUGIN_DOMAIN = "nav.psplugin.com";
-const HOTJAR_DOMAIN = "*.hotjar.com";
-const VARS_HOTJAR_DOMAIN = "vars.hotjar.com";
+import { HeaderConfig } from '../config/header-config';
 
 /**
  * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.
@@ -16,25 +9,22 @@ const VARS_HOTJAR_DOMAIN = "vars.hotjar.com";
  * unsafe-eval i scriptSrc blir brukt av account.psplugin.com. Hvis vi ikke trenger psplugin så bør dette fjernes.
  */
 
-export function helmetMiddleware() {
+export function helmetMiddleware(headerConfig: HeaderConfig) {
 	return helmet({
 		contentSecurityPolicy: {
 			directives: {
-				defaultSrc: ["'self'"],
-				connectSrc: ["'self'"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN, NAV_PSPLUGIN_DOMAIN),
+				defaultSrc: headerConfig.csp.defaultSrc,
+				connectSrc: headerConfig.csp.connectSrc,
 				baseUri: ["'self'"],
 				blockAllMixedContent: [],
-				fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS),
+				fontSrc: headerConfig.csp.fontSrc,
 				frameAncestors: ["'self'"],
-				frameSrc: [VARS_HOTJAR_DOMAIN],
+				frameSrc: headerConfig.csp.frameSrc,
 				objectSrc: ["'none'"],
-				scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"].concat(
-					ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN,
-					GOOGLE_TAG_MANAGER_DOMAIN, ACCOUNT_PSPLUGIN_DOMAIN, HOTJAR_DOMAIN
-				),
+				scriptSrc: headerConfig.csp.scriptSrc,
 				scriptSrcAttr: ["'none'"],
-				styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
-				imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN), // analytics sends information by loading images with query params
+				styleSrc: headerConfig.csp.styleSrc,
+				imgSrc: headerConfig.csp.imgSrc,
 				upgradeInsecureRequests: []
 			}
 		}
