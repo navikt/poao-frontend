@@ -25,7 +25,7 @@ miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/ap
     "loginProvider": "ID_PORTEN"
   },
   "cors": {
-    "origin": "nav.no",
+    "origin": ["nav.no"],
     "credentials": true,
     "maxAge": 7200,
     "allowedHeaders": ["Nav-Consumer-Id"]
@@ -185,7 +185,7 @@ Konfigurering av funksjoner relatert til CORS.
 Kontrollerer **Access-Control-Allow-Credentials** som bestemmer om klienter får sende med cookies og authorization header.
 Default er **false**
 
-`origin`: hvilket CORS origin som brukes. Hvis ikke satt så vil ikke andre CORS innstillinger bli tatt i bruk. Default er **null**
+`origin(string | string[])`: hvilket CORS origin som brukes. Hvis ikke satt så vil ikke andre CORS innstillinger bli tatt i bruk. Default er **null**
 
 `credentials`: om det er lov å sende med credentials eller ikke. Default er **true**
 
@@ -198,7 +198,7 @@ Eksempel:
 ```json
 {
   "cors": {
-    "origin": "nav.no",
+    "origin": ["nav.no"],
     "credentials": true,
     "maxAge": 7200,
     "allowedHeaders": ["Nav-Consumer-Id"]
