@@ -76,11 +76,15 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 		let oboToken = await oboTokenStore.getUserOboToken(tokenSubject, appId);
 
 		if (!oboToken) {
-			logger.info('Creating new OBO token for application: ' + appId);
+			const now = new Date().getTime()
 
 			oboToken = isUsingTokenX
 				? await createTokenXOnBehalfOfToken(oboTokenClient, appId, accessToken, authConfig.oboProvider.clientId)
 				: await createAzureAdOnBehalfOfToken(oboTokenClient, appId, accessToken);
+
+			const tokenExchangeTimeMs = new Date().getTime() - now
+
+			logger.info(`On-behalf-of token created. application=${appId} issuer=${authConfig.oboProviderType} timeTakenMs=${tokenExchangeTimeMs}`);
 
 			const expiresInSeconds = getSecondsUntil(oboToken.expiresAt * 1000);
 			const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
