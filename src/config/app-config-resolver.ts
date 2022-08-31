@@ -87,7 +87,7 @@ export namespace JsonConfig {
 	}
 
 	export interface CorsConfig {
-		origin?: string;
+		origin?: string | string[];
 		credentials?: boolean;
 		maxAge?: number;
 		allowedHeaders?: string[];

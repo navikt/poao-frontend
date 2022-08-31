@@ -7,7 +7,7 @@ export const DEFAULT_CORS_CREDENTIALS = true;
 export const DEFAULT_CORS_ALLOWED_HEADERS = ['Nav-Consumer-Id'];
 
 export interface CorsConfig {
-	origin?: string;
+	origin?: string | string[];
 	credentials: boolean;
 	maxAge: number;
 	allowedHeaders: string[];
