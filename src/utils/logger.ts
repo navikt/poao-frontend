@@ -13,9 +13,20 @@ const noOpLogger = winston.createLogger({
 	})]
 });
 
+const maskedJsonFormat = winston.format.printf( (logEntry) => {
+	const jsonLog = JSON.stringify({
+		timestamp: new Date(),
+		level: logEntry.level,
+		message: logEntry.message
+	})
+
+	// Masker fødselsnummer
+	return jsonLog.replace(/\d{11}/g, '<fnr>')
+});
+
 export const logger = winston.createLogger({
 	level: 'info',
-	format: winston.format.json(),
+	format: maskedJsonFormat,
 	transports: [new winston.transports.Console()]
 });
 
