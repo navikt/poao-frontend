@@ -4,13 +4,13 @@ import { JsonConfig } from './app-config-resolver';
 
 export const DEFAULT_CORS_MAX_AGE = 7200; // 2 hours. Chrome caps out at this value
 export const DEFAULT_CORS_CREDENTIALS = true;
-export const DEFAULT_CORS_ALLOWED_HEADERS = ['Nav-Consumer-Id'];
+export const DEFAULT_CORS_ALLOWED_HEADERS = undefined; // Allow all headers
 
 export interface CorsConfig {
-	origin?: string | string[];
+	origin: string | string[] | undefined;
 	credentials: boolean;
 	maxAge: number;
-	allowedHeaders: string[];
+	allowedHeaders: string[] | undefined;
 }
 
 export const logCorsConfig = (config: CorsConfig): void => {
@@ -46,6 +46,5 @@ export const resolveCorsConfig = (corsJsonConfig: JsonConfig.CorsConfig | undefi
 const validateConfig = (config: Partial<CorsConfig>): CorsConfig => {
 	assert(config.credentials, `CORS 'credentials' is missing`)
 	assert(config.maxAge, `CORS 'maxAge' is missing`)
-	assert(config.allowedHeaders, `CORS 'allowedHeaders' is missing`)
 	return config as CorsConfig;
 };

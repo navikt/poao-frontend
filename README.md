@@ -191,7 +191,7 @@ Default er **false**
 
 `maxAge`: hvor mange sekunder response fra preflight request kan caches. Default er **7200**
 
-`allowedHeaders`: hvilke headere som det er lov å sende med requestet. Default er **["Nav-Consumer-Id"]**
+`allowedHeaders`: hvilke headere som det er lov å sende med requestet. Default er **undefined** som vil si at alle headere er godkjent.
 
 Eksempel:
 

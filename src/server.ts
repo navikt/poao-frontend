@@ -37,7 +37,12 @@ async function startServer() {
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
 
 	if (cors.origin) {
-		app.use(corsMiddleware({origin: cors.origin, credentials: cors.credentials }));
+		app.use(corsMiddleware({
+			origin: cors.origin,
+			credentials: cors.credentials,
+			maxAge: cors.maxAge,
+			allowedHeaders: cors.allowedHeaders
+		}));
 	}
 
 	app.use(helmetMiddleware(appConfig.header));
