@@ -1,6 +1,5 @@
 import express from 'express';
 import corsMiddleware from 'cors';
-import cookieParser from 'cookie-parser';
 import urlJoin from 'url-join';
 import { initSecureLog, logger } from './utils/logger';
 import { gcsRoute } from './route/gcs-route';
@@ -48,8 +47,6 @@ async function startServer() {
 	app.use(helmetMiddleware(appConfig.header));
 
 	app.use(errorHandlerMiddleware());
-
-	app.use(cookieParser());
 
 	app.get('/internal/ready', pingRoute());
 
