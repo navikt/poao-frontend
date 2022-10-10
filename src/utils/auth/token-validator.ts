@@ -1,12 +1,18 @@
 import jwksRsa, { RsaSigningKey } from 'jwks-rsa';
 import axios from 'axios';
-import { GetPublicKeyOrSecret, JwtHeader, JwtPayload, SigningKeyCallback, verify, VerifyOptions } from 'jsonwebtoken';
+import {
+	GetPublicKeyOrSecret,
+	JwtHeader,
+	JwtPayload,
+	SigningKeyCallback,
+	verify,
+	VerifyOptions
+} from 'jsonwebtoken';
 import { logger } from '../logger';
 import { LoginProviderType } from '../../config/auth-config';
 
 const ONE_HOUR_MS = 1000 * 60 * 60;
 
-// Vi lager en egen enum for validator type siden det er godt mulig at det blir lagt til flere validatorer på sikt som f.eks for TokenX
 export enum TokenValidatorType {
 	ID_PORTEN, AZURE_AD
 }
@@ -126,11 +132,15 @@ function createKeyRetriever(jwksClient: jwksRsa.JwksClient) {
 
 const verifyJwtToken = (token: string, keyRetriever: GetPublicKeyOrSecret, verifyOptions: VerifyOptions): Promise<JwtPayload> => {
 	return new Promise((resolve, reject) => {
-		verify(token, keyRetriever, verifyOptions, function(err, token) {
+		verify(token, keyRetriever, { ...verifyOptions, complete: true }, (err, token) => {
 			if (!token || err) {
 				reject(err);
 			} else {
-				resolve(token);
+				if (typeof token.payload === 'string') {
+					reject(new Error('Expected token.payload to be of type JwtPayload but was string'))
+				} else {
+					resolve(token.payload);
+				}
 			}
 		});
 	});
