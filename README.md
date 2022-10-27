@@ -185,7 +185,7 @@ Konfigurering av funksjoner relatert til CORS.
 Kontrollerer **Access-Control-Allow-Credentials** som bestemmer om klienter får sende med cookies og authorization header.
 Default er **false**
 
-`origin(string | string[])`: hvilket CORS origin som brukes. Hvis ikke satt så vil ikke andre CORS innstillinger bli tatt i bruk. Default er **null**
+`origin(string | string[])`: hvilket CORS origin som brukes. Hvis ikke satt så vil ikke andre CORS innstillinger bli tatt i bruk. Default er **null**. Bruk https://<origin> dersom <origin> uten https ikke fungerer.
 
 `credentials`: om det er lov å sende med credentials eller ikke. Default er **true**
 
