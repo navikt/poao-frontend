@@ -8,7 +8,7 @@ import {
 	verify,
 	VerifyOptions
 } from 'jsonwebtoken';
-import { logger } from '../logger';
+import { logger, secureLog } from '../logger';
 import { LoginProviderType } from '../../config/auth-config';
 
 const ONE_HOUR_MS = 1000 * 60 * 60;
@@ -57,6 +57,7 @@ export async function createTokenValidator(type: TokenValidatorType, discoverUrl
 				return true;
 			} catch (e) {
 				logger.error('Failed to verify token', e);
+				secureLog.error('Failed to verify token', token)
 				return false;
 			}
 		}
