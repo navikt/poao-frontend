@@ -57,7 +57,7 @@ export async function createTokenValidator(type: TokenValidatorType, discoverUrl
 				return true;
 			} catch (e) {
 				logger.error('Failed to verify token', e);
-				secureLog.error('Failed to verify token', token)
+				secureLog.error('Failed to verify token: ' + token)
 				return false;
 			}
 		}
