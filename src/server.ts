@@ -81,7 +81,7 @@ async function startServer() {
 			proxy.proxies.forEach(p => {
 				const proxyFrom = routeUrl(p.fromPath);
 
-				app.use(
+				app.all(
 					proxyFrom,
 					oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
 					proxyMiddleware(proxyFrom, p)
