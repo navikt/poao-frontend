@@ -9,6 +9,7 @@ const ACCOUNT_PSPLUGIN_DOMAIN = "account.psplugin.com";
 const NAV_PSPLUGIN_DOMAIN = "nav.psplugin.com";
 const HOTJAR_DOMAIN = "*.hotjar.com";
 const VARS_HOTJAR_DOMAIN = "vars.hotjar.com";
+const VIDEO_QBRICK_DOMAIN = "video.qbrick.com";
 
 const defaultCspValues = {
 	defaultSrc: ["'self'"],
@@ -19,7 +20,7 @@ const defaultCspValues = {
 	),
 	styleSrc: ["'self'", "https:", "'unsafe-inline'"].concat(ALLOWED_DOMAINS),
 	imgSrc: ["'self'", "data:"].concat(ALLOWED_DOMAINS, GOOGLE_ANALYTICS_DOMAIN), // analytics sends information by loading images with query params
-	frameSrc: [VARS_HOTJAR_DOMAIN],
+	frameSrc: [VARS_HOTJAR_DOMAIN, VIDEO_QBRICK_DOMAIN],
 	fontSrc: ["'self'", "https:", "data:"].concat(ALLOWED_DOMAINS)
 }
 
