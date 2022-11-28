@@ -86,6 +86,7 @@ async function startServer() {
 					oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
 					proxyMiddleware(proxyFrom, p), (req, res) => {
 						logger.info(`ProxyMiddleware. req.path: ${req.path}`)
+						res.end();
 					}
 				);
 			});
