@@ -25,7 +25,7 @@ async function startServer() {
 
 	const appConfig = createAppConfig();
 
-	const { base, cors, gcs, auth, proxy, redirect } = appConfig;
+	const {base, cors, gcs, auth, proxy, redirect} = appConfig;
 
 	logAppConfig(appConfig);
 
@@ -83,11 +83,8 @@ async function startServer() {
 
 				app.use(
 					proxyFrom,
-					oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
-					proxyMiddleware(proxyFrom, p), (req, res) => {
-						logger.info(`ProxyMiddleware. req.path: ${req.path}`)
-						res.end();
-					}
+					oboMiddleware({authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator}),
+					proxyMiddleware(proxyFrom, p)
 				);
 			});
 		}

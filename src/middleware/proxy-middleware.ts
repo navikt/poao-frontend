@@ -8,6 +8,17 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 		target: proxy.toUrl,
 		logLevel: 'error',
 		logProvider: () => logger,
+		onProxyRes: (proxyRes, req, res) => {
+			const chunks: any[] = [];
+			proxyRes.on('data', function (chunk) {
+				chunks.push(chunk);
+			});
+			proxyRes.on('end', function () {
+				const body = Buffer.concat(chunks);
+				logger.info("res from proxied server:", body.toString());
+				res.send(body)
+			});
+		},
 		changeOrigin: true,
 		pathRewrite: proxy.preserveFromPath
 			? undefined
