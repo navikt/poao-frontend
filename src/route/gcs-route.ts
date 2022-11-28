@@ -113,7 +113,7 @@ export function gcsRoute(config: GcsRouterConfig) {
 	return (req: Request, res: Response) => {
 		if (req.method !== 'GET') {
 			// We only serve resources so only GET is allowed
-			res.sendStatus(409); // Method not allowed
+			res.sendStatus(405); // Method not allowed
 			return;
 		}
 
