@@ -1,6 +1,7 @@
 import express from 'express';
 import corsMiddleware from 'cors';
 import urlJoin from 'url-join';
+import compression from 'compression';
 import { initSecureLog, logger } from './utils/logger';
 import { gcsRoute } from './route/gcs-route';
 import { helmetMiddleware } from './middleware/helmet-middleware';
@@ -34,6 +35,8 @@ async function startServer() {
 	}
 
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
+
+	app.use(compression())
 
 	if (cors.origin) {
 		app.use(corsMiddleware({
