@@ -44,7 +44,7 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 		const accessToken = getAccessToken(req);
 
 		if (!accessToken) {
-			logger.warn('Access token is missing from proxy request');
+			logger.warn('Access token is missing from proxy request ' + req.path);
 			res.sendStatus(401);
 			return;
 		}
