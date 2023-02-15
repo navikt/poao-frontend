@@ -314,6 +314,23 @@ Eksempel:
 }
 ```
 
+### Dekorator config
+POAO kan serverside injecte html i index.html-files som beskrevet i [doc-en deres](https://github.com/navikt/nav-dekoratoren#eksempel-1).
+Dette støttes kun hvis index.html-filen ligger i podden. Tanken er at dette skal brukes sammen med statiske filer i en bucket (NAV-CDN) ved at alle lenker i index.html går til CDN istedetfor til samme domene. 
+Config er hentet fra dekoratoren
+
+
+```json
+{
+  "dekorator": {
+    "env": "dev",
+    "simple": true,
+    "chatbot": false
+  }
+}
+```
+
+
 ## Eksempel NAIS-yamler
 
 Eksempel på frontend som leser filer fra GCS og har innlogging med ID-porten og token exchange med TokenX til applikasjonen **some-other-application**

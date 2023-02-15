@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {Response, Request} from 'express';
 import corsMiddleware from 'cors';
 import urlJoin from 'url-join';
 import compression from 'compression';
@@ -26,7 +26,7 @@ async function startServer() {
 
 	const appConfig = createAppConfig();
 
-	const { base, cors, gcs, auth, proxy, redirect } = appConfig;
+	const { base, cors, gcs, auth, proxy, redirect, dekorator } = appConfig;
 
 	logAppConfig(appConfig);
 
@@ -101,9 +101,14 @@ async function startServer() {
 			bucketContextPath: gcs.bucketContextPath
 		}));
 	} else {
+		// For at det skal funke å injecte-dekoratøren på / og /index.html må det inn i en handler og ikke bare
+		// via express.static, fant ikke noen god måte å fange opp hvilken fil som
+		if (dekorator) {
+			app.use(routeUrl("/"), fallbackRoute(base, dekorator))
+			app.use(routeUrl("/index.html"), fallbackRoute(base, dekorator))
+		}
 		app.use(base.contextPath, express.static(base.serveFromPath, {cacheControl: false}));
-
-		app.get(routeUrl('/*'), fallbackRoute(base));
+		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
 
 	app.listen(base.port, () => logger.info('Server started successfully'));

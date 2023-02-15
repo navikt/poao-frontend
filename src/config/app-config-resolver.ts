@@ -8,6 +8,8 @@ import { RedirectConfig, logRedirectConfig, resolveRedirectConfig } from './redi
 import { GcsConfig, logGcsConfig, resolveGcsConfig } from './gcs-config';
 import { parseJSONwithSubstitutions } from '../utils/json-utils';
 import { HeaderConfig, logHeaderConfig, resolveHeaderConfig } from './header-config';
+import DekoratorConfig = JsonConfig.DekoratorConfig;
+import {resolveDekoratorConfig} from "./dekorator-config";
 
 export interface AppConfig {
 	base: BaseConfig;
@@ -17,6 +19,7 @@ export interface AppConfig {
 	proxy: ProxyConfig;
 	redirect: RedirectConfig;
 	header: HeaderConfig;
+	dekorator?: DekoratorConfig
 }
 
 const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config.json';
@@ -36,6 +39,7 @@ export function createAppConfig(): AppConfig {
 		header: resolveHeaderConfig(jsonData?.header),
 		proxy: resolveProxyConfig(jsonData?.proxies),
 		redirect: resolveRedirectConfig(jsonData?.redirects),
+		dekorator: resolveDekoratorConfig(jsonData?.dekorator)
 	};
 }
 
@@ -74,6 +78,7 @@ export namespace JsonConfig {
 		contextPath?: string;
 		serveFromPath?: string;
 		enableSecureLogs?: boolean;
+		dekorator?: DekoratorConfig
 		auth?: AuthConfig;
 		cors?: CorsConfig;
 		gcs?: GcsConfig;
@@ -96,6 +101,12 @@ export namespace JsonConfig {
 	export interface GcsConfig {
 		bucketName?: string;
 		bucketContextPath?: string;
+	}
+
+	export interface DekoratorConfig {
+		env: 'prod' | 'dev'
+		simple: boolean
+		chatbot: boolean
 	}
 
 	export interface HeaderConfig {
