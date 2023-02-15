@@ -42,7 +42,7 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 		enableFrontendEnv: jsonConfig?.enableFrontendEnv,
 		contextPath: jsonConfig?.contextPath,
 		serveFromPath: jsonConfig?.serveFromPath,
-		enableSecureLogs: jsonConfig?.enableSecureLogs
+		enableSecureLogs: jsonConfig?.enableSecureLogs,
 	}
 
 	if (config.port == null) {
