@@ -1,5 +1,4 @@
 import jwksRsa, { RsaSigningKey } from 'jwks-rsa';
-import axios from 'axios';
 import {
 	GetPublicKeyOrSecret,
 	JwtHeader,
@@ -82,26 +81,24 @@ interface DiscoveryData {
 	issuer: string;
 }
 
-async function getJwksUrlFromDiscoveryEndpoint(discoveryUrl: string): Promise<DiscoveryData> {
-	return axios.get(discoveryUrl)
-		.then(res => {
-			const discoveryData = res.data as DiscoveryData;
-			const jwks_uri = discoveryData.jwks_uri;
-			const issuer = discoveryData.issuer;
+export async function getJwksUrlFromDiscoveryEndpoint(discoveryUrl: string): Promise<DiscoveryData> {
+	const res = await fetch(discoveryUrl);
+	if (!res.ok) {
+		throw new Error(`Received unexpected status ${res.status} from ${discoveryUrl}`);
+	}
 
-			if (!jwks_uri) {
-				throw new Error('Could not find "jwks_uri" from discovery endpoint: ' + JSON.stringify(discoveryData));
-			}
+	const data = await res.json() as DiscoveryData;
+	const { jwks_uri, issuer } = data;
 
-			if (!issuer) {
-				throw new Error('Could not find "issuer" from discovery endpoint: ' + JSON.stringify(discoveryData));
-			}
+	if (!jwks_uri) {
+		throw new Error('Could not find "jwks_uri" from discovery endpoint: ' + JSON.stringify(data));
+	}
 
-			return {
-				jwks_uri,
-				issuer
-			};
-		});
+	if (!issuer) {
+		throw new Error('Could not find "issuer" from discovery endpoint: ' + JSON.stringify(data));
+	}
+
+	return { jwks_uri, issuer };
 }
 
 function createVerifyOptions(issuerUrl: string, clientId?: string): VerifyOptions {
@@ -119,7 +116,7 @@ function createKeyRetriever(jwksClient: jwksRsa.JwksClient) {
 			return;
 		}
 
-		jwksClient.getSigningKey(header.kid, function(err, key) {
+		jwksClient.getSigningKey(header.kid, function (err, key) {
 			// The typings says that the key is always defined, but there have been cases where the key is undefined
 			if (!key) {
 				callback(new Error('Unable to find key for kid: ' + header.kid));
