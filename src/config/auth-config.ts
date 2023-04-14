@@ -77,7 +77,7 @@ const resolveAzureAdProvider = (): OAuthProvider => {
 const resolveIdPortenProvider = (): OAuthProvider => {
 	const clientId = assert(process.env.IDPORTEN_CLIENT_ID, 'IDPORTEN_CLIENT_ID is missing');
 	const discoveryUrl = assert(process.env.IDPORTEN_WELL_KNOWN_URL, 'IDPORTEN_WELL_KNOWN_URL is missing');
-	const privateJwk = assert(process.env.IDPORTEN_CLIENT_JWK, 'IDPORTEN_CLIENT_JWK is missing');
+	const privateJwk = "dummyvalue"; // not used for idporten
 
 	return { clientId, discoveryUrl, privateJwk };
 };
