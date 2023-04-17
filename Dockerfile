@@ -9,6 +9,8 @@ RUN npm run build
 
 FROM node:18.15-alpine3.17
 
+LABEL org.opencontainers.image.source="https://github.com/navikt/poao-frontend"
+
 WORKDIR /app
 
 COPY --from=builder /app/node_modules ./node_modules
