@@ -1,4 +1,4 @@
-FROM node:18.15-alpine3.17 as builder
+FROM node:lts-alpine3.17 as builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ COPY . .
 RUN npm ci
 RUN npm run build
 
-FROM node:18.15-alpine3.17
+FROM node:lts-alpine3.17
 
 LABEL org.opencontainers.image.source="https://github.com/navikt/poao-frontend"
 
