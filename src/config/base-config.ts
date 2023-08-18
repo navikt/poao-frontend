@@ -33,7 +33,13 @@ const DEFAULT_ENABLE_SECURE_LOGS = false;
 
 export function logBaseConfig(config: BaseConfig) {
 	logger.info(
-		`Config: port=${config.port} contextPath=${config.contextPath} serveFromPath=${config.serveFromPath} fallbackStrategy=${config.fallbackStrategy} enableFrontendEnv=${config.enableFrontendEnv} enableSecureLogs=${config.enableSecureLogs}`
+		`Config: port=${config.port} 
+		contextPath=${config.contextPath} 
+		serveFromPath=${config.serveFromPath} 
+		fallbackStrategy=${config.fallbackStrategy} 
+		enableFrontendEnv=${config.enableFrontendEnv} 
+		enableSecureLogs=${config.enableSecureLogs} 
+		enableModiaContextUpdater=${config.enableModiaContextUpdater}`
 	);
 }
 

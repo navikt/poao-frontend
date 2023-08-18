@@ -34,12 +34,16 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
     const { authConfig, tokenValidator, tokenStore, oboTokenClient } = await modiacontextHolderConfig
     const error = setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig , config.scope)
     if (error) return error
-    logger.error('Setting modia context before redirecting');
-    return fetch(`${config.url}/api/context`, {
+    logger.info('Setting modia context before redirecting');
+    const result = await fetch(`${config.url}/api/context`, {
         method: "POST",
         body: JSON.stringify({
             eventType: "NY_AKTIV_BRUKER",
             verdi: fnr,
         })
     })
+    if (result.ok) return
+    const failBody = await result.text()
+    logger.error(`Failed to update modiacontextholder status=${result.status}, body=${failBody}`)
+    return { status: result.status }
 }
