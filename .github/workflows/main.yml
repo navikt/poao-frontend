@@ -1,5 +1,7 @@
 name: Build and push to registry
-on: push
+on:
+  push:
+  workflow_dispatch: # Manual trigger
 env:
   IMAGE: ghcr.io/${{ github.repository }}/poao-frontend
 
@@ -24,7 +26,7 @@ jobs:
   test-build-and-push:
     name: Build and push
     runs-on: ubuntu-latest
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
