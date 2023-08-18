@@ -88,7 +88,6 @@ async function startServer() {
 			fallbackStrategy: base.fallbackStrategy,
 			bucketContextPath: gcs.bucketContextPath,
 			enableModiaContextUpdater: base.enableModiaContextUpdater,
-			modiaContextHolderConfig: base.modiaContextHolderConfig,
 		}));
 	} else {
 		// For at det skal funke å injecte-dekoratøren på / og /index.html må det inn i en handler og ikke bare
