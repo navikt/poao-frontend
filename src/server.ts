@@ -23,11 +23,8 @@ const app: express.Application = express();
 
 async function startServer() {
 	logger.info('Starting poao-frontend');
-
 	const appConfig = createAppConfig();
-
 	const { base, cors, gcs, auth, proxy, redirect, dekorator } = appConfig;
-
 	logAppConfig(appConfig);
 
 	if (appConfig.base.enableSecureLogs) {
@@ -48,11 +45,8 @@ async function startServer() {
 	}
 
 	app.use(helmetMiddleware(appConfig.header));
-
 	app.use(errorHandlerMiddleware());
-
 	app.get('/internal/ready', pingRoute());
-
 	app.get('/internal/alive', pingRoute());
 
 	if (base.enableFrontendEnv) {
@@ -69,21 +63,15 @@ async function startServer() {
 
 	if (auth) {
 		const oboTokenStore = createTokenStore();
-
 		const tokenValidatorType = mapLoginProviderTypeToValidatorType(auth.loginProviderType);
-
 		const tokenValidator = await createTokenValidator(tokenValidatorType, auth.loginProvider.discoveryUrl, auth.loginProvider.clientId);
-
 		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
 
 		if (proxy.proxies.length > 0) {
 			const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
-
 			const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
-
 			proxy.proxies.forEach(p => {
 				const proxyFrom = routeUrl(p.fromPath);
-
 				app.use(
 					proxyFrom,
 					oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
@@ -98,7 +86,9 @@ async function startServer() {
 			bucketName: gcs.bucketName,
 			contextPath: base.contextPath,
 			fallbackStrategy: base.fallbackStrategy,
-			bucketContextPath: gcs.bucketContextPath
+			bucketContextPath: gcs.bucketContextPath,
+			enableModiaContextUpdater: base.enableModiaContextUpdater,
+			modiaContextHolderConfig: base.modiaContextHolderConfig,
 		}));
 	} else {
 		// For at det skal funke å injecte-dekoratøren på / og /index.html må det inn i en handler og ikke bare

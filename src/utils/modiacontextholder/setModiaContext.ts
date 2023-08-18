@@ -1,0 +1,45 @@
+import {LoginProviderType, OboProviderType, resolveAzureAdProvider} from "../../config/auth-config";
+import {createTokenValidator, mapLoginProviderTypeToValidatorType} from "../auth/token-validator";
+import {createClient, createIssuer} from "../auth/auth-client-utils";
+import {createJWKS} from "../auth/auth-config-utils";
+import {createTokenStore} from "../auth/in-memory-token-store";
+import {Request} from "express";
+import {setOBOTokenOnRequest} from "../../middleware/obo-middleware";
+import {logger} from "../logger";
+import {JsonConfig} from "../../config/app-config-resolver";
+import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
+
+const azureAdProvider = resolveAzureAdProvider()
+const createModiacontextHolderConfig = async () => {
+    const authConfig = {
+        loginProviderType: LoginProviderType.AZURE_AD,
+        loginProvider: azureAdProvider,
+        oboProviderType: OboProviderType.AZURE_AD,
+        oboProvider: azureAdProvider
+    }
+    const tokenValidatorType = mapLoginProviderTypeToValidatorType(authConfig.loginProviderType);
+    const tokenValidator = await createTokenValidator(tokenValidatorType, authConfig.loginProvider.discoveryUrl, authConfig.loginProvider.clientId);
+    const oboIssuer = await createIssuer(authConfig.oboProvider.discoveryUrl);
+    const oboTokenClient = createClient(oboIssuer, authConfig.oboProvider.clientId, createJWKS(authConfig.oboProvider.privateJwk));
+    return {
+        tokenStore: createTokenStore(),
+        authConfig,
+        tokenValidator,
+        oboTokenClient,
+    }
+}
+const modiacontextHolderConfig = createModiacontextHolderConfig()
+
+export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
+    const { authConfig, tokenValidator, tokenStore, oboTokenClient } = await modiacontextHolderConfig
+    const error = setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig , config.scope)
+    if (error) return error
+    logger.error('Setting modia context before redirecting');
+    return fetch(`${config.url}/api/context`, {
+        method: "POST",
+        body: JSON.stringify({
+            eventType: "NY_AKTIV_BRUKER",
+            verdi: fnr,
+        })
+    })
+}
