@@ -144,10 +144,12 @@ export function gcsRoute(config: GcsRouterConfig) {
 						if (fnr) {
 							const error = await setModiaContext(req, fnr, config.enableModiaContextUpdater)
 							if (error) {
+								logger.error("Failed to set modia context")
 								res.sendStatus(error.status)
 								return
 							}
 							const pathWithoutFnr = getPathWithoutFnr(req, fnr)
+							logger.info("Redirecting to path:" + pathWithoutFnr)
 							res.redirect(pathWithoutFnr);
 							return
 						}
