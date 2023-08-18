@@ -12,6 +12,10 @@ import {
 	stripPrefix
 } from '../utils/utils';
 import { FallbackStrategy } from '../config/base-config';
+import {getFnrFromPath, getPathWithoutFnr} from "../utils/modiacontextholder/modiaContextHolderUtils";
+import {JsonConfig} from "../config/app-config-resolver";
+import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
+import {setModiaContext} from "../utils/modiacontextholder/setModiaContext";
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -29,6 +33,7 @@ interface GcsRouterConfig {
 	bucketContextPath?: string;
 	contextPath: string;
 	fallbackStrategy: FallbackStrategy;
+	enableModiaContextUpdater: ModiaContextHolderConfig;
 }
 
 // All resource inside static/ are considered to be static and can be cached forever
@@ -106,6 +111,7 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 	return stripPrefix(bucketFilePath, '/');
 }
 
+
 export function gcsRoute(config: GcsRouterConfig) {
 	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
@@ -123,7 +129,7 @@ export function gcsRoute(config: GcsRouterConfig) {
 			.then(fileContent => {
 				sendContent(res, bucketFilePath, fileContent);
 			})
-			.catch(err => {
+			.catch(async err => {
 				// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
 				if (config.fallbackStrategy === FallbackStrategy.NONE || isRequestingFile(bucketFilePath)) {
 					logger.warn('Fant ikke fil med path: ' + bucketFilePath, err);
@@ -132,6 +138,20 @@ export function gcsRoute(config: GcsRouterConfig) {
 					res.redirect(config.contextPath);
 				} else if (config.fallbackStrategy === FallbackStrategy.SERVE_INDEX_HTML) {
 					const defaultFilePath = defaultBucketFilePath(config);
+
+					if (config.enableModiaContextUpdater) {
+						const fnr = getFnrFromPath(req)
+						if (fnr) {
+							const error = await setModiaContext(req, fnr, config.enableModiaContextUpdater)
+							if (error) {
+								res.sendStatus(error.status)
+								return
+							}
+							const pathWithoutFnr = getPathWithoutFnr(req, fnr)
+							res.redirect(pathWithoutFnr);
+							return
+						}
+					}
 
 					getFileFromCacheOrBucket(bucket, defaultFilePath)
 						.then(content => {

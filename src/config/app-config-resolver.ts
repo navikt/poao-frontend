@@ -79,6 +79,7 @@ export namespace JsonConfig {
 		serveFromPath?: string;
 		enableSecureLogs?: boolean;
 		dekorator?: DekoratorConfig
+		enableModiaContextUpdater: ModiaContextHolderConfig;
 		auth?: AuthConfig;
 		cors?: CorsConfig;
 		gcs?: GcsConfig;
@@ -107,6 +108,11 @@ export namespace JsonConfig {
 		env: 'prod' | 'dev'
 		simple: boolean
 		chatbot: boolean
+	}
+
+	export interface ModiaContextHolderConfig {
+		url: string
+		scope: string
 	}
 
 	export interface HeaderConfig {

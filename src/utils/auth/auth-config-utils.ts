@@ -12,11 +12,11 @@ interface NaisApp {
 	name: string;
 }
 
-export const createAzureAdAppId = (app: NaisApp): string => {
+export const createAzureAdScope = (app: NaisApp): string => {
 	return `api://${app.cluster}.${app.namespace}.${app.name}/.default`;
 };
 
-export const createTokenXAppId = (app: NaisApp): string => {
+export const createTokenXScope = (app: NaisApp): string => {
 	return `${app.cluster}:${app.namespace}:${app.name}`;
 };
 

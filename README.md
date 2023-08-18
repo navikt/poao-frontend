@@ -329,6 +329,16 @@ Config er hentet fra dekoratoren
   }
 }
 ```
+### ModiaContextHolderUpdater config
+POAO-frontend kan settes til å sette aktivt fnr i modia-context (POST kall på /context på modiacontextholder) ved henting av index.html hvis url-en inneholder et FNR som første del av pathen, feks `/:fnr/vis/aktivitet/123`. Dette kan kun brukes sammen med GCP config og fallback strategy SERVE_INDEX_HTML. Fnr blir fjernet fra pathen på vei inn til appen fordi MAN SKAL IKKE HA FNR I URLER!
+```json
+{
+  "enableModiaContextUpdater": {
+    "url": "https://modiacontextholder-q1.dev-fss-pub.nais.io",
+    "scope": "api://dev-fss.personoversikt.modiacontextholder-q1/.default"
+  }
+}
+```
 
 
 ## Eksempel NAIS-yamler
