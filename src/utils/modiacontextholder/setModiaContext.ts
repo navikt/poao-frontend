@@ -32,7 +32,7 @@ const modiacontextHolderConfig = createModiacontextHolderConfig()
 
 export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
     const { authConfig, tokenValidator, tokenStore, oboTokenClient } = await modiacontextHolderConfig
-    const error = setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig , config.scope)
+    const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig , config.scope)
     if (error) return error
     logger.info('Setting modia context before redirecting');
     const result = await fetch(`${config.url}/api/context`, {
