@@ -8,6 +8,7 @@ import {setOBOTokenOnRequest} from "../../middleware/obo-middleware";
 import {logger} from "../logger";
 import {JsonConfig} from "../../config/app-config-resolver";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
+import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
 
 const azureAdProvider = resolveAzureAdProvider()
 const createModiacontextHolderConfig = async () => {
@@ -37,6 +38,11 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
     logger.info('Setting modia context before redirecting');
     const result = await fetch(`${config.url}/api/context`, {
         method: "POST",
+        headers: {
+            ['x_consumerId']: process.env['NAIS_APP_NAME'],
+            ['x_callId']: req.headers['x_callId'],
+            [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
+        } as HeadersInit,
         body: JSON.stringify({
             eventType: "NY_AKTIV_BRUKER",
             verdi: fnr,
