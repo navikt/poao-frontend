@@ -31,6 +31,7 @@ const createModiacontextHolderConfig = async () => {
 }
 const modiacontextHolderConfig = createModiacontextHolderConfig()
 
+const appName = process.env['NAIS_APP_NAME']
 export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
     const { authConfig, tokenValidator, tokenStore, oboTokenClient } = await modiacontextHolderConfig
     const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig , config.scope)
@@ -39,7 +40,7 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
     const result = await fetch(`${config.url}/api/context`, {
         method: "POST",
         headers: {
-            ['x_consumerId']: process.env['NAIS_APP_NAME'],
+            ['x_consumerId']: appName,
             ['x_callId']: req.headers['x_callId'],
             [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
         } as HeadersInit,
