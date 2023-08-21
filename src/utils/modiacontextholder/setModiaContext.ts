@@ -40,6 +40,7 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
     const result = await fetch(`${config.url}/api/context`, {
         method: "POST",
         headers: {
+            ['Content-Type']: 'application/json',
             ['x_consumerId']: appName,
             ['x_callId']: req.headers['x_callId'],
             [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
