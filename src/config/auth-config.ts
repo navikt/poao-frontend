@@ -66,7 +66,7 @@ export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefi
 	throw new Error('Unable to resolve auth config, login provider is missing');
 };
 
-const resolveAzureAdProvider = (): OAuthProvider => {
+export const resolveAzureAdProvider = (): OAuthProvider => {
 	const clientId = assert(process.env.AZURE_APP_CLIENT_ID, 'AZURE_APP_CLIENT_ID is missing');
 	const discoveryUrl = assert(process.env.AZURE_APP_WELL_KNOWN_URL, 'AZURE_APP_WELL_KNOWN_URL is missing');
 	const privateJwk = assert(process.env.AZURE_APP_JWK, 'AZURE_APP_JWK is missing');

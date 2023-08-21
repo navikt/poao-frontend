@@ -1,6 +1,7 @@
 import { logger } from '../utils/logger';
 import { JsonConfig } from './app-config-resolver';
 import { toNullableEnumValue } from '../utils';
+import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 
 export enum FallbackStrategy {
 	REDIRECT_TO_ROOT = 'REDIRECT_TO_ROOT',
@@ -15,6 +16,7 @@ export interface BaseConfig {
 	contextPath: string;
 	serveFromPath: string;
 	enableSecureLogs: boolean;
+	enableModiaContextUpdater: ModiaContextHolderConfig
 }
 
 const DEFAULT_PORT = 8080;
@@ -31,7 +33,13 @@ const DEFAULT_ENABLE_SECURE_LOGS = false;
 
 export function logBaseConfig(config: BaseConfig) {
 	logger.info(
-		`Config: port=${config.port} contextPath=${config.contextPath} serveFromPath=${config.serveFromPath} fallbackStrategy=${config.fallbackStrategy} enableFrontendEnv=${config.enableFrontendEnv} enableSecureLogs=${config.enableSecureLogs}`
+		`Config: port=${config.port} 
+		contextPath=${config.contextPath} 
+		serveFromPath=${config.serveFromPath} 
+		fallbackStrategy=${config.fallbackStrategy} 
+		enableFrontendEnv=${config.enableFrontendEnv} 
+		enableSecureLogs=${config.enableSecureLogs} 
+		enableModiaContextUpdater=${config.enableModiaContextUpdater}`
 	);
 }
 
@@ -43,6 +51,7 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 		contextPath: jsonConfig?.contextPath,
 		serveFromPath: jsonConfig?.serveFromPath,
 		enableSecureLogs: jsonConfig?.enableSecureLogs,
+		enableModiaContextUpdater: jsonConfig?.enableModiaContextUpdater,
 	}
 
 	if (config.port == null) {
@@ -74,5 +83,12 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 
 function validateConfig(partialConfig: Partial<BaseConfig>): BaseConfig {
 	// TODO: Validate
+	const enableModiaContextUpdater = partialConfig.enableModiaContextUpdater
+	if (enableModiaContextUpdater) {
+		if (!enableModiaContextUpdater.url || !enableModiaContextUpdater.scope) {
+			throw new Error("Both url and scope must be set in enableModiaContextUpdater-config but was: " + JSON.stringify(enableModiaContextUpdater))
+		}
+	}
+
 	return partialConfig as BaseConfig
 }
