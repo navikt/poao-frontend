@@ -41,13 +41,13 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 	
 	const accessToken = getAccessToken(req);
 	if (!accessToken) {
-		logger.warn('Access token is missing from proxy request', { [CALL_ID]: req.headers[CALL_ID] });
+		logger.warn({ message: 'Access token is missing from proxy request', callId: req.headers[CALL_ID] });
 		return { status: 401 }
 	}
 
 	const isValid = await tokenValidator.isValid(accessToken);
 	if (!isValid) {
-		logger.error('Access token is not valid', { [CALL_ID]: req.headers[CALL_ID] });
+		logger.error({ message: 'Access token is not valid', callId: req.headers[CALL_ID] });
 		return { status: 401 }
 	}
 
@@ -60,7 +60,7 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 
 	const tokenSubject = getTokenSubject(accessToken);
 	if (!tokenSubject) {
-		logger.error('Unable to get subject from token', { [CALL_ID]: req.headers[CALL_ID] });
+		logger.error({ message: 'Unable to get subject from token', callId: req.headers[CALL_ID] });
 		return { status: 401 }
 	}
 
@@ -74,7 +74,7 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 
 		const tokenExchangeTimeMs = new Date().getTime() - now
 
-		logger.info(`On-behalf-of token created. application=${scope} issuer=${authConfig.oboProviderType} timeTakenMs=${tokenExchangeTimeMs}`, { [CALL_ID]: req.headers[CALL_ID] });
+		logger.info({ message: `On-behalf-of token created. application=${scope} issuer=${authConfig.oboProviderType} timeTakenMs=${tokenExchangeTimeMs}`, callId: req.headers[CALL_ID] });
 
 		const expiresInSeconds = getSecondsUntil(oboToken.expiresAt * 1000);
 		const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);

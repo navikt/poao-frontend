@@ -25,7 +25,7 @@ export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfi
 					.then((html) => {
 						res.send(html);
 					})
-					.catch((e) => logger.error(e, { [CALL_ID]: req.headers[CALL_ID] }))
+					.catch((e) => logger.error({ message: e, callId: req.headers[CALL_ID] }))
 			} else {
 				res.sendFile(join(baseConfig.serveFromPath, 'index.html'));
 			}

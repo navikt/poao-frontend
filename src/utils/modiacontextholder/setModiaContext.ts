@@ -54,7 +54,7 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
         })
         if (result.ok) return
         const failBody = await result.text()
-        logger.error(`Failed to update modiacontextholder status=${result.status}, body=${failBody}`, { [CALL_ID]: req.headers[CALL_ID] })
+        logger.error({ message: `Failed to update modiacontextholder status=${result.status}, body=${failBody}`, callId: req.headers[CALL_ID] })
         return {status: result.status}
     } catch (err) {
         return { status: 500, message: JSON.stringify(err) }

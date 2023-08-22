@@ -14,7 +14,7 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 			? undefined
 			: { [`^${proxyContextPath}`]: '' },
 		onError: (error, _request, _response) => {
-			logger.error(`onError, error=${error.message}, ${{ [CALL_ID]: _request.headers[CALL_ID] }}`);
+			logger.error({ message: `onError, error=${error.message}`, callId: _request.headers[CALL_ID] });
 		},
 	})
 };

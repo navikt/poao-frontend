@@ -9,6 +9,6 @@ export const errorHandlerMiddleware = () => {
 };
 
 export const handleError = (err: Error, req: Request, res: Response, next?: NextFunction) => {
-	logger.error(`Caught error for req: ${req.path}`, err, { [CALL_ID]: req.headers[CALL_ID] });
+	logger.error({ message: `Caught error for req: ${req.path}, ${err}}`, callId: req.headers[CALL_ID] });
 	res.sendStatus(500);
 }
