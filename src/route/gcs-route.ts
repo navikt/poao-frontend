@@ -16,6 +16,7 @@ import {getFnrFromPath, getPathWithoutFnr} from "../utils/modiacontextholder/mod
 import {JsonConfig} from "../config/app-config-resolver";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import {setModiaContext} from "../utils/modiacontextholder/setModiaContext";
+import {CALL_ID} from "../middleware/callIdMiddleware";
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -144,7 +145,7 @@ export function gcsRoute(config: GcsRouterConfig) {
 						if (fnr) {
 							const error = await setModiaContext(req, fnr, config.enableModiaContextUpdater)
 							if (error) {
-								logger.error("Failed to set modia context" + (error.message || ''))
+								logger.error("Failed to set modia context"+ (error.message || ''), { [CALL_ID]: req.headers[CALL_ID] })
 								res.sendStatus(error.status)
 								return
 							}
