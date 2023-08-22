@@ -144,7 +144,7 @@ export function gcsRoute(config: GcsRouterConfig) {
 						if (fnr) {
 							const error = await setModiaContext(req, fnr, config.enableModiaContextUpdater)
 							if (error) {
-								logger.error("Failed to set modia context")
+								logger.error("Failed to set modia context" + (error.message || ''))
 								res.sendStatus(error.status)
 								return
 							}

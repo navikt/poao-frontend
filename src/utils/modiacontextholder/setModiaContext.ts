@@ -33,25 +33,29 @@ const modiacontextHolderConfig = createModiacontextHolderConfig()
 
 const appName = process.env['NAIS_APP_NAME']
 export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
-    const { authConfig, tokenValidator, tokenStore, oboTokenClient } = await modiacontextHolderConfig
-    const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig , config.scope)
-    if (error) return error
-    logger.info('Setting modia context before redirecting');
-    const result = await fetch(`${config.url}/api/context`, {
-        method: "POST",
-        headers: {
-            ['Content-Type']: 'application/json',
-            ['x_consumerId']: appName,
-            ['x_callId']: req.headers['x_callId'],
-            [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
-        } as HeadersInit,
-        body: JSON.stringify({
-            eventType: "NY_AKTIV_BRUKER",
-            verdi: fnr,
+    try {
+        const {authConfig, tokenValidator, tokenStore, oboTokenClient} = await modiacontextHolderConfig
+        const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig, config.scope)
+        if (error) return error
+        logger.info('Setting modia context before redirecting');
+        const result = await fetch(`${config.url}/api/context`, {
+            method: "POST",
+            headers: {
+                ['Content-Type']: 'application/json',
+                ['x_consumerId']: appName,
+                ['x_callId']: req.headers['x_callId'],
+                [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
+            } as HeadersInit,
+            body: JSON.stringify({
+                eventType: "NY_AKTIV_BRUKER",
+                verdi: fnr,
+            })
         })
-    })
-    if (result.ok) return
-    const failBody = await result.text()
-    logger.error(`Failed to update modiacontextholder status=${result.status}, body=${failBody}`)
-    return { status: result.status }
+        if (result.ok) return
+        const failBody = await result.text()
+        logger.error(`Failed to update modiacontextholder status=${result.status}, body=${failBody}`)
+        return {status: result.status}
+    } catch (err) {
+        return { status: 500, message: JSON.stringify(err) }
+    }
 }

@@ -32,7 +32,7 @@ function createAppScope(isUsingTokenX: boolean, proxy: Proxy): string | null {
 	return isUsingTokenX ? createTokenXScope(proxy.toApp) : createAzureAdScope(proxy.toApp);
 }
 
-interface Error { status: number }
+interface Error { status: number, message?: string | undefined }
 export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenValidator,
 	 oboTokenClient: BaseClient, oboTokenStore: OboTokenStore, authConfig: AuthConfig, scope: string | null
 ): Promise<Error | undefined> => {
