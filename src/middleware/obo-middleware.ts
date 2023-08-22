@@ -92,7 +92,7 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 	const scope = createAppScope(isUsingTokenX, proxy)
 
 	return asyncMiddleware(async (req, res, next) => {
-		logger.info(`Proxyer request ${req.path} til applikasjon ${proxy.toApp?.name || proxy.toUrl}`);
+		logger.info({ message: `Proxyer request ${req.path} til applikasjon ${proxy.toApp?.name || proxy.toUrl}`, callId: req.headers[CALL_ID] });
 		const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, oboTokenStore, authConfig, scope)
 		if (!error) {
 			next();
