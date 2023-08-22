@@ -16,8 +16,7 @@ const noOpLogger = winston.createLogger({
 const maskedJsonFormat = winston.format.printf( (logEntry) => {
 	const jsonLog = JSON.stringify({
 		timestamp: new Date(),
-		level: logEntry.level,
-		message: logEntry.message
+		...logEntry,
 	})
 
 	// Masker fødselsnummer
