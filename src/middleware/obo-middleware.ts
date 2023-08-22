@@ -15,6 +15,7 @@ import {BaseClient, Client} from 'openid-client';
 import { TokenValidator } from '../utils/auth/token-validator';
 import { createAzureAdScope, createTokenXScope } from '../utils/auth/auth-config-utils';
 import { Request } from "express";
+import {CALL_ID} from "./callIdMiddleware";
 
 interface ProxyOboMiddlewareParams {
 	authConfig: AuthConfig;
@@ -40,13 +41,13 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 	
 	const accessToken = getAccessToken(req);
 	if (!accessToken) {
-		logger.warn('Access token is missing from proxy request');
+		logger.warn({ message: 'Access token is missing from proxy request', callId: req.headers[CALL_ID] });
 		return { status: 401 }
 	}
 
 	const isValid = await tokenValidator.isValid(accessToken);
 	if (!isValid) {
-		logger.error('Access token is not valid');
+		logger.error({ message: 'Access token is not valid', callId: req.headers[CALL_ID] });
 		return { status: 401 }
 	}
 
@@ -59,7 +60,7 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 
 	const tokenSubject = getTokenSubject(accessToken);
 	if (!tokenSubject) {
-		logger.error('Unable to get subject from token');
+		logger.error({ message: 'Unable to get subject from token', callId: req.headers[CALL_ID] });
 		return { status: 401 }
 	}
 
@@ -73,7 +74,7 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 
 		const tokenExchangeTimeMs = new Date().getTime() - now
 
-		logger.info(`On-behalf-of token created. application=${scope} issuer=${authConfig.oboProviderType} timeTakenMs=${tokenExchangeTimeMs}`);
+		logger.info({ message: `On-behalf-of token created. application=${scope} issuer=${authConfig.oboProviderType} timeTakenMs=${tokenExchangeTimeMs}`, callId: req.headers[CALL_ID] });
 
 		const expiresInSeconds = getSecondsUntil(oboToken.expiresAt * 1000);
 		const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
@@ -91,7 +92,7 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 	const scope = createAppScope(isUsingTokenX, proxy)
 
 	return asyncMiddleware(async (req, res, next) => {
-		logger.info(`Proxyer request ${req.path} til applikasjon ${proxy.toApp?.name || proxy.toUrl}`);
+		logger.info({ message: `Proxyer request ${req.path} til applikasjon ${proxy.toApp?.name || proxy.toUrl}`, callId: req.headers[CALL_ID] });
 		const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, oboTokenStore, authConfig, scope)
 		if (!error) {
 			next();

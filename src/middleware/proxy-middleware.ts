@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { logger } from '../utils/logger';
 import { Proxy } from '../config/proxy-config';
+import {CALL_ID} from "./callIdMiddleware";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware(proxyContextPath, {
@@ -13,7 +14,7 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 			? undefined
 			: { [`^${proxyContextPath}`]: '' },
 		onError: (error, _request, _response) => {
-			logger.error(`onError, error=${error.message}`);
+			logger.error({ message: `onError, error=${error.message}`, callId: _request.headers[CALL_ID] });
 		},
 	})
 };

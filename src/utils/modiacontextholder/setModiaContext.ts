@@ -9,6 +9,9 @@ import {logger} from "../logger";
 import {JsonConfig} from "../../config/app-config-resolver";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
+import {CALL_ID} from "../../middleware/callIdMiddleware";
+import {APP_NAME} from "../../config/base-config";
+import {getPathWithoutFnr} from "./modiaContextHolderUtils";
 
 const azureAdProvider = resolveAzureAdProvider()
 const createModiacontextHolderConfig = async () => {
@@ -31,19 +34,23 @@ const createModiacontextHolderConfig = async () => {
 }
 const modiacontextHolderConfig = createModiacontextHolderConfig()
 
-const appName = process.env['NAIS_APP_NAME']
+
 export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
     try {
         const {authConfig, tokenValidator, tokenStore, oboTokenClient} = await modiacontextHolderConfig
         const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig, config.scope)
         if (error) return error
-        logger.info('Setting modia context before redirecting');
+        logger.info({
+            message: 'Setting modia context before redirecting',
+            redirectedOrigin: req.headers["origin"],
+            redirectedReferer: req.headers["referer"]?.replace(/\d{11}/g, '<fnr>')
+        });
         const result = await fetch(`${config.url}/api/context`, {
             method: "POST",
             headers: {
                 ['Content-Type']: 'application/json',
-                ['x_consumerId']: appName,
-                ['x_callId']: req.headers['x_callId'],
+                ['x_consumerId']: APP_NAME,
+                [CALL_ID]: req.headers[CALL_ID],
                 [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
             } as HeadersInit,
             body: JSON.stringify({
@@ -53,7 +60,7 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
         })
         if (result.ok) return
         const failBody = await result.text()
-        logger.error(`Failed to update modiacontextholder status=${result.status}, body=${failBody}`)
+        logger.error({ message: `Failed to update modiacontextholder status=${result.status}, body=${failBody}`, callId: req.headers[CALL_ID] })
         return {status: result.status}
     } catch (err) {
         return { status: 500, message: JSON.stringify(err) }

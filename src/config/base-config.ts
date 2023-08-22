@@ -19,6 +19,8 @@ export interface BaseConfig {
 	enableModiaContextUpdater: ModiaContextHolderConfig
 }
 
+export const APP_NAME = process.env['NAIS_APP_NAME']
+
 const DEFAULT_PORT = 8080;
 
 const DEFAULT_SERVE_FROM_PATH = '/app/public';
