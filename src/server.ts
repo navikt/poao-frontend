@@ -1,4 +1,4 @@
-import express, {Response, Request} from 'express';
+import express from 'express';
 import corsMiddleware from 'cors';
 import urlJoin from 'url-join';
 import compression from 'compression';
