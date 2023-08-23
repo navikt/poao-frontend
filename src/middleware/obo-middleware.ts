@@ -15,8 +15,7 @@ import {BaseClient, Client} from 'openid-client';
 import { TokenValidator } from '../utils/auth/token-validator';
 import { createAzureAdScope, createTokenXScope } from '../utils/auth/auth-config-utils';
 import { Request } from "express";
-import {CALL_ID} from "./callIdMiddleware";
-import {CONSUMER_ID} from "./consumerIdWarningMIddleware";
+import {CALL_ID, CONSUMER_ID} from "./tracingMiddleware";
 
 interface ProxyOboMiddlewareParams {
 	authConfig: AuthConfig;

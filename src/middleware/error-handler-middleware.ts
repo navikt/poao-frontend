@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
-import {CALL_ID} from "./callIdMiddleware";
-import {CONSUMER_ID} from "./consumerIdWarningMIddleware";
+import {CALL_ID, CONSUMER_ID} from "./tracingMiddleware";
 
 // Error handler that logs to stdout and swallows any errors instead of passing it along to the next handler
 

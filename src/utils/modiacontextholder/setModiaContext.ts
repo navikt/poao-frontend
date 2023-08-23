@@ -9,9 +9,8 @@ import {logger} from "../logger";
 import {JsonConfig} from "../../config/app-config-resolver";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
-import {CALL_ID} from "../../middleware/callIdMiddleware";
+import {CALL_ID, CONSUMER_ID} from "../../middleware/tracingMiddleware";
 import {APP_NAME} from "../../config/base-config";
-import {CONSUMER_ID} from "../../middleware/consumerIdWarningMIddleware";
 
 const azureAdProvider = resolveAzureAdProvider()
 const createModiacontextHolderConfig = async () => {

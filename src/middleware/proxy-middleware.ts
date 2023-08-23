@@ -2,8 +2,7 @@ import { RequestHandler } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { logger } from '../utils/logger';
 import { Proxy } from '../config/proxy-config';
-import {CALL_ID} from "./callIdMiddleware";
-import {CONSUMER_ID} from "./consumerIdWarningMIddleware";
+import {CALL_ID, CONSUMER_ID} from "./tracingMiddleware";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware(proxyContextPath, {

@@ -1,11 +1,11 @@
 import {NextFunction, Request, Response} from "express";
 import { v4 as uuidv4 } from 'uuid';
-import {APP_NAME} from "../config/base-config";
 import {logger} from "../utils/logger";
-import {CALL_ID} from "./callIdMiddleware";
 
+/* Express seems to lowercase all headers  */
+export const CALL_ID = "nav-call-id"
 export const CONSUMER_ID = "nav-consumer-id"
-export const consumerIdWarningMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const tracingMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const consumerId = req.headers[CONSUMER_ID]
     if (!consumerId) {
         logger.warn({
@@ -15,6 +15,10 @@ export const consumerIdWarningMiddleware = (req: Request, res: Response, next: N
             origin: req.headers["origin"],
             referer: req.headers["referer"]?.replace(/\d{11}/g, '<fnr>')
         })
+    }
+    const callId = req.headers[CALL_ID]
+    if (!callId) {
+        req.headers[CALL_ID] = uuidv4()
     }
     next()
 }

@@ -6,8 +6,7 @@ import { injectDecoratorServerSide } from "@navikt/nav-dekoratoren-moduler/ssr";
 import { JsonConfig } from "../config/app-config-resolver";
 import DekoratorConfig = JsonConfig.DekoratorConfig;
 import { logger } from "../utils/logger";
-import {CALL_ID} from "../middleware/callIdMiddleware";
-import {CONSUMER_ID} from "../middleware/consumerIdWarningMIddleware";
+import {CALL_ID, CONSUMER_ID} from "../middleware/tracingMiddleware";
 
 export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfig) {
 	return (req: Request, res: Response) => {
@@ -26,7 +25,10 @@ export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfi
 					.then((html) => {
 						res.send(html);
 					})
-					.catch((e) => logger.error({ message: e, callId: req.headers[CALL_ID], consumerId: req.headers[CONSUMER_ID] }))
+					.catch((e) => logger.error({
+						message: e,
+						callId: req.headers[CALL_ID],
+						consumerId: req.headers[CONSUMER_ID] }))
 			} else {
 				res.sendFile(join(baseConfig.serveFromPath, 'index.html'));
 			}

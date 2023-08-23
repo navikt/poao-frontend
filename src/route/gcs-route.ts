@@ -16,8 +16,7 @@ import {getFnrFromPath, getPathWithoutFnr} from "../utils/modiacontextholder/mod
 import {JsonConfig} from "../config/app-config-resolver";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import {setModiaContext} from "../utils/modiacontextholder/setModiaContext";
-import {CALL_ID} from "../middleware/callIdMiddleware";
-import {CONSUMER_ID} from "../middleware/consumerIdWarningMIddleware";
+import {CALL_ID, CONSUMER_ID} from "../middleware/tracingMiddleware";
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
