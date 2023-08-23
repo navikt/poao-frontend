@@ -1,4 +1,4 @@
-import express, {Response, Request} from 'express';
+import express from 'express';
 import corsMiddleware from 'cors';
 import urlJoin from 'url-join';
 import compression from 'compression';
@@ -31,6 +31,8 @@ async function startServer() {
 	if (appConfig.base.enableSecureLogs) {
 		initSecureLog()
 	}
+	app.get('/internal/ready', pingRoute());
+	app.get('/internal/alive', pingRoute());
 
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
 
@@ -48,8 +50,6 @@ async function startServer() {
 	app.use(tracingMiddleware)
 	app.use(helmetMiddleware(appConfig.header));
 	app.use(errorHandlerMiddleware());
-	app.get('/internal/ready', pingRoute());
-	app.get('/internal/alive', pingRoute());
 
 	if (base.enableFrontendEnv) {
 		app.get(routeUrl('/env.js'), frontendEnvRoute());
