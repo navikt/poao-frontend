@@ -11,6 +11,7 @@ export const consumerIdWarningMiddleware = (req: Request, res: Response, next: N
         logger.warn({
             message: "Request missing consumerId",
             callId: req.headers[CALL_ID],
+            consumerId: req.headers[CONSUMER_ID],
             origin: req.headers["origin"],
             referer: req.headers["referer"]?.replace(/\d{11}/g, '<fnr>')
         })

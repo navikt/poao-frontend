@@ -11,7 +11,6 @@ import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
 import {CALL_ID} from "../../middleware/callIdMiddleware";
 import {APP_NAME} from "../../config/base-config";
-import {getPathWithoutFnr} from "./modiaContextHolderUtils";
 import {CONSUMER_ID} from "../../middleware/consumerIdWarningMIddleware";
 
 const azureAdProvider = resolveAzureAdProvider()
@@ -61,7 +60,10 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
         })
         if (result.ok) return
         const failBody = await result.text()
-        logger.error({ message: `Failed to update modiacontextholder status=${result.status}, body=${failBody}`, callId: req.headers[CALL_ID] })
+        logger.error({
+            message: `Failed to update modiacontextholder status=${result.status}, body=${failBody}`,
+            callId: req.headers[CALL_ID],
+            consumerId: req.headers[CONSUMER_ID] })
         return {status: result.status}
     } catch (err) {
         return { status: 500, message: JSON.stringify(err) }

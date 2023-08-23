@@ -3,6 +3,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { logger } from '../utils/logger';
 import { Proxy } from '../config/proxy-config';
 import {CALL_ID} from "./callIdMiddleware";
+import {CONSUMER_ID} from "./consumerIdWarningMIddleware";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware(proxyContextPath, {
@@ -14,7 +15,10 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 			? undefined
 			: { [`^${proxyContextPath}`]: '' },
 		onError: (error, _request, _response) => {
-			logger.error({ message: `onError, error=${error.message}`, callId: _request.headers[CALL_ID] });
+			logger.error({
+				message: `onError, error=${error.message}`,
+				callId: _request.headers[CALL_ID],
+				consumerId: _request.headers[CONSUMER_ID] });
 		},
 	})
 };
