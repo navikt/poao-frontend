@@ -8,7 +8,7 @@ export const CONSUMER_ID = "nav-consumer-id"
 
 const assetFileEnding = [".ico", ".map", ".js", ".css", ".html"]
 const assetRequest = (req: Request) => {
-    if (req.path === "/") return false
+    if (req.path === "/") return true
     return assetFileEnding
         .some(fileEnding => req.path.endsWith(fileEnding))
 }
