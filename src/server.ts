@@ -19,6 +19,7 @@ import { oboMiddleware } from './middleware/obo-middleware';
 import { authInfoRoute } from './route/auth-info-route';
 import { proxyMiddleware } from './middleware/proxy-middleware';
 import {callIdMiddleware} from "./middleware/callIdMiddleware";
+import {consumerIdWarningMiddleware} from "./middleware/consumerIdWarningMIddleware";
 
 const app: express.Application = express();
 
@@ -46,6 +47,7 @@ async function startServer() {
 	}
 
 	app.use(callIdMiddleware)
+	app.use(consumerIdWarningMiddleware)
 	app.use(helmetMiddleware(appConfig.header));
 	app.use(errorHandlerMiddleware());
 	app.get('/internal/ready', pingRoute());

@@ -12,6 +12,7 @@ import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
 import {CALL_ID} from "../../middleware/callIdMiddleware";
 import {APP_NAME} from "../../config/base-config";
 import {getPathWithoutFnr} from "./modiaContextHolderUtils";
+import {CONSUMER_ID} from "../../middleware/consumerIdWarningMIddleware";
 
 const azureAdProvider = resolveAzureAdProvider()
 const createModiacontextHolderConfig = async () => {
@@ -49,7 +50,7 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
             method: "POST",
             headers: {
                 ['Content-Type']: 'application/json',
-                ['x_consumerId']: APP_NAME,
+                [CONSUMER_ID]: APP_NAME,
                 [CALL_ID]: req.headers[CALL_ID],
                 [AUTHORIZATION_HEADER]: req.headers[AUTHORIZATION_HEADER],
             } as HeadersInit,
