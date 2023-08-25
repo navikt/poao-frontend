@@ -83,6 +83,11 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 		const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
 
 		await oboTokenStore.setUserOboToken(tokenSubject, scope, expiresInSecondWithClockSkew, oboToken);
+	} else {
+		logger.info({
+			message: `On-behalf-of fetched from in-memory cache`,
+			callId: req.headers[CALL_ID],
+			consumerId: req.headers[CONSUMER_ID] });
 	}
 
 	req.headers[AUTHORIZATION_HEADER] = `Bearer ${oboToken.accessToken}`;
