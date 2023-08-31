@@ -31,12 +31,20 @@ const createModiacontextHolderConfig = async () => {
         oboTokenClient,
     }
 }
-const modiacontextHolderConfig = createModiacontextHolderConfig()
+type ModiaContextConfig = Awaited<ReturnType<typeof createModiacontextHolderConfig>>
+
+let _config: ModiaContextConfig | undefined = undefined
+const modiacontextHolderConfig = async () => {
+    if (_config === undefined) {
+        _config = await createModiacontextHolderConfig()
+    }
+    return _config
+}
 
 
 export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
     try {
-        const {authConfig, tokenValidator, tokenStore, oboTokenClient} = await modiacontextHolderConfig
+        const {authConfig, tokenValidator, tokenStore, oboTokenClient} = await modiacontextHolderConfig()
         const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig, config.scope)
         if (error) return error
         logger.info({
