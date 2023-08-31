@@ -12,8 +12,8 @@ import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
 import {CALL_ID, CONSUMER_ID} from "../../middleware/tracingMiddleware";
 import {APP_NAME} from "../../config/base-config";
 
-const azureAdProvider = resolveAzureAdProvider()
 const createModiacontextHolderConfig = async () => {
+    const azureAdProvider = resolveAzureAdProvider()
     const authConfig = {
         loginProviderType: LoginProviderType.AZURE_AD,
         loginProvider: azureAdProvider,
