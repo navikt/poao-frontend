@@ -29,6 +29,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      security-events: write # push sarif to github security
     if: github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
@@ -58,3 +59,16 @@ jobs:
           tag_name: ${{ env.IMAGE_TAG }}
           target_commitish: main
           prerelease: false
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.IMAGE }}:${{ env.IMAGE_TAG }}'
+          format: 'sarif'
+          output: 'trivy.sarif'
+          severity: 'HIGH,CRITICAL'
+          limit-severities-for-sarif: true
+      - name: Upload results to GitHub Security
+        if: inputs.upload-sarif
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy.sarif'
