@@ -9,7 +9,7 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 	return createProxyMiddleware(proxyContextPath, {
 		target: proxy.toUrl,
 		logLevel: 'error',
-		headers: {
+		headers:  {
 			[CONSUMER_ID]: APP_NAME,
 		},
 		logProvider: () => logger,
