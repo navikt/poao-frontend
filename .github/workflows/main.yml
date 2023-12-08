@@ -28,6 +28,7 @@ jobs:
       contents: write
       packages: write
       security-events: write # push sarif to github security
+      id-token: "write"
     if: github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
