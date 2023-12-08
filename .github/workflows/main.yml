@@ -74,6 +74,8 @@ jobs:
       security-events: write # push sarif to github security
       id-token: "write"
     steps:
+      - name: Pull docker image
+        run: docker pull ${{ needs.test-build-and-push.outputs.image }}
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
