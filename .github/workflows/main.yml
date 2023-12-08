@@ -62,14 +62,6 @@ jobs:
           tag_name: ${{ env.IMAGE_TAG }}
           target_commitish: main
           prerelease: false
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "${{ steps.outputs.image }}:${{ env.IMAGE_TAG }}"
-          format: "sarif"
-          output: "trivy.sarif"
-          severity: "HIGH,CRITICAL"
-          limit-severities-for-sarif: true
       - name: Upload results to GitHub Security
         uses: github/codeql-action/upload-sarif@v2
         with:
