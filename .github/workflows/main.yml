@@ -32,7 +32,6 @@ jobs:
     if: github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
-      image_tag: ${{ env.IMAGE_TAG }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
