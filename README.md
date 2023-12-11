@@ -227,7 +227,7 @@ Eksempel:
 ```
 
 ### Header config
-Konfigurering av HTTP headers, i første omgang kan kun CSP kan endres.
+Konfigurering av HTTP headers. Man kan endre csp og corp (Cross-Origin Resource Policy).
 
 Hvis hele eller deler av konfigurasjonen ikke er satt så vil det bli brukt 
 sane defaults (se header-config.ts) tilpasset "vanlige" applikasjoner på NAV.
@@ -249,6 +249,9 @@ Eksempel:
       "imgSrc": ["..."],
       "frameSrc":["..."],
       "fontSrc": ["..."]
+    },
+    "corp": {
+      "policy": "same-origin | same-site | cross-origin"
     }
   }
 }
