@@ -1,147 +1,158 @@
-import { existsSync, readFileSync } from 'fs';
+import {existsSync, readFileSync} from "fs";
 
-import { AuthConfig, logAuthConfig, resolveAuthConfig } from './auth-config';
-import { BaseConfig, logBaseConfig, resolveBaseConfig } from './base-config';
-import { CorsConfig, logCorsConfig, resolveCorsConfig } from './cors-config';
-import { ProxyConfig, logProxyConfig, resolveProxyConfig } from './proxy-config';
-import { RedirectConfig, logRedirectConfig, resolveRedirectConfig } from './redirect-config';
-import { GcsConfig, logGcsConfig, resolveGcsConfig } from './gcs-config';
-import { parseJSONwithSubstitutions } from '../utils/json-utils';
-import { HeaderConfig, logHeaderConfig, resolveHeaderConfig } from './header-config';
+import {AuthConfig, logAuthConfig, resolveAuthConfig} from "./auth-config";
+import {BaseConfig, logBaseConfig, resolveBaseConfig} from "./base-config";
+import {CorsConfig, logCorsConfig, resolveCorsConfig} from "./cors-config";
+import {ProxyConfig, logProxyConfig, resolveProxyConfig} from "./proxy-config";
+import {
+  RedirectConfig,
+  logRedirectConfig,
+  resolveRedirectConfig,
+} from "./redirect-config";
+import {GcsConfig, logGcsConfig, resolveGcsConfig} from "./gcs-config";
+import {parseJSONwithSubstitutions} from "../utils/json-utils";
+import {
+  HeaderConfig,
+  logHeaderConfig,
+  resolveHeaderConfig,
+} from "./header-config";
 import DekoratorConfig = JsonConfig.DekoratorConfig;
 import {resolveDekoratorConfig} from "./dekorator-config";
 
 export interface AppConfig {
-	base: BaseConfig;
-	auth?: AuthConfig;
-	gcs?: GcsConfig;
-	cors: CorsConfig;
-	proxy: ProxyConfig;
-	redirect: RedirectConfig;
-	header: HeaderConfig;
-	dekorator?: DekoratorConfig
+  base: BaseConfig;
+  auth?: AuthConfig;
+  gcs?: GcsConfig;
+  cors: CorsConfig;
+  proxy: ProxyConfig;
+  redirect: RedirectConfig;
+  header: HeaderConfig;
+  dekorator?: DekoratorConfig;
 }
 
-const DEFAULT_JSON_CONFIG_FILE_PATH = '/app/config.json';
+const DEFAULT_JSON_CONFIG_FILE_PATH = "/app/config.json";
 
 export function createAppConfig(): AppConfig {
-	const jsonConfigStr = resolveJsonConfigStr();
+  const jsonConfigStr = resolveJsonConfigStr();
 
-	const jsonData = jsonConfigStr
-		? parseJSONwithSubstitutions(jsonConfigStr) as JsonConfig.Config
-		: undefined;
+  const jsonData = jsonConfigStr
+    ? (parseJSONwithSubstitutions(jsonConfigStr) as JsonConfig.Config)
+    : undefined;
 
-	return {
-		base: resolveBaseConfig(jsonData),
-		auth: resolveAuthConfig(jsonData?.auth),
-		cors: resolveCorsConfig(jsonData?.cors),
-		gcs: resolveGcsConfig(jsonData?.gcs),
-		header: resolveHeaderConfig(jsonData?.header),
-		proxy: resolveProxyConfig(jsonData?.proxies),
-		redirect: resolveRedirectConfig(jsonData?.redirects),
-		dekorator: resolveDekoratorConfig(jsonData?.dekorator)
-	};
+  return {
+    base: resolveBaseConfig(jsonData),
+    auth: resolveAuthConfig(jsonData?.auth),
+    cors: resolveCorsConfig(jsonData?.cors),
+    gcs: resolveGcsConfig(jsonData?.gcs),
+    header: resolveHeaderConfig(jsonData?.header),
+    proxy: resolveProxyConfig(jsonData?.proxies),
+    redirect: resolveRedirectConfig(jsonData?.redirects),
+    dekorator: resolveDekoratorConfig(jsonData?.dekorator),
+  };
 }
 
 export function logAppConfig(config: AppConfig): void {
-	logBaseConfig(config.base);
-	logAuthConfig(config.auth);
-	logCorsConfig(config.cors);
-	logGcsConfig(config.gcs);
-	logHeaderConfig(config.header);
-	logProxyConfig(config.proxy);
-	logRedirectConfig(config.redirect);
+  logBaseConfig(config.base);
+  logAuthConfig(config.auth);
+  logCorsConfig(config.cors);
+  logGcsConfig(config.gcs);
+  logHeaderConfig(config.header);
+  logProxyConfig(config.proxy);
+  logRedirectConfig(config.redirect);
 }
 
 function resolveJsonConfigStr(): string | undefined {
-	const jsonConfigEnv = process.env.JSON_CONFIG;
+  const jsonConfigEnv = process.env.JSON_CONFIG;
 
-	if (jsonConfigEnv) {
-		return jsonConfigEnv
-	}
+  if (jsonConfigEnv) {
+    return jsonConfigEnv;
+  }
 
-	const jsonConfigFilePath = process.env.JSON_CONFIG_FILE_PATH || DEFAULT_JSON_CONFIG_FILE_PATH;
+  const jsonConfigFilePath =
+    process.env.JSON_CONFIG_FILE_PATH || DEFAULT_JSON_CONFIG_FILE_PATH;
 
-	return readConfigFile(jsonConfigFilePath)
+  return readConfigFile(jsonConfigFilePath);
 }
 
 function readConfigFile(configFilePath: string): string | undefined {
-	if (!existsSync(configFilePath)) return undefined;
-	return readFileSync(configFilePath).toString();
+  if (!existsSync(configFilePath)) return undefined;
+  return readFileSync(configFilePath).toString();
 }
 
 export namespace JsonConfig {
-	export interface Config {
-		port?: number;
-		fallbackStrategy?: string;
-		enableFrontendEnv?: boolean;
-		contextPath?: string;
-		serveFromPath?: string;
-		enableSecureLogs?: boolean;
-		dekorator?: DekoratorConfig
-		enableModiaContextUpdater: ModiaContextHolderConfig;
-		auth?: AuthConfig;
-		cors?: CorsConfig;
-		gcs?: GcsConfig;
-		header?: HeaderConfig;
-		redirects?: Redirect[];
-		proxies?: Proxy[];
-	}
+  export interface Config {
+    port?: number;
+    fallbackStrategy?: string;
+    enableFrontendEnv?: boolean;
+    contextPath?: string;
+    serveFromPath?: string;
+    enableSecureLogs?: boolean;
+    dekorator?: DekoratorConfig;
+    enableModiaContextUpdater: ModiaContextHolderConfig;
+    auth?: AuthConfig;
+    cors?: CorsConfig;
+    gcs?: GcsConfig;
+    header?: HeaderConfig;
+    redirects?: Redirect[];
+    proxies?: Proxy[];
+  }
 
-	export interface AuthConfig {
-		loginProvider?: string;
-	}
+  export interface AuthConfig {
+    loginProvider?: string;
+  }
 
-	export interface CorsConfig {
-		origin?: string | string[];
-		credentials?: boolean;
-		maxAge?: number;
-		allowedHeaders?: string[];
-	}
+  export interface CorsConfig {
+    origin?: string | string[];
+    credentials?: boolean;
+    maxAge?: number;
+    allowedHeaders?: string[];
+  }
 
-	export interface GcsConfig {
-		bucketName?: string;
-		bucketContextPath?: string;
-	}
+  export interface GcsConfig {
+    bucketName?: string;
+    bucketContextPath?: string;
+  }
 
-	export interface DekoratorConfig {
-		env: 'prod' | 'dev'
-		simple: boolean
-		chatbot: boolean
-	}
+  export interface DekoratorConfig {
+    env: "prod" | "dev";
+    simple: boolean;
+    chatbot: boolean;
+  }
 
-	export interface ModiaContextHolderConfig {
-		url: string
-		scope: string
-	}
+  export interface ModiaContextHolderConfig {
+    url: string;
+    scope: string;
+  }
 
-	export interface HeaderConfig {
-		csp?: {
-			defaultSrc?: string[],
-			connectSrc?: string[],
-			scriptSrc?: string[]
-			imgSrc?: string[],
-			styleSrc?: string[],
-			frameSrc?: string[],
-			fontSrc?: string[]
-		}
-	}
+  export interface HeaderConfig {
+    csp?: {
+      defaultSrc?: string[];
+      connectSrc?: string[];
+      scriptSrc?: string[];
+      imgSrc?: string[];
+      styleSrc?: string[];
+      frameSrc?: string[];
+      fontSrc?: string[];
+    };
+    corp?: {
+      policy?: "same-origin" | "same-site" | "cross-origin";
+    };
+  }
 
-	export interface Proxy {
-		fromPath?: string;
-		toUrl?: string;
-		preserveFromPath?: boolean;
-		toApp?: {
-			name?: string;
-			namespace?: string;
-			cluster?: string;
-		}
-	}
+  export interface Proxy {
+    fromPath?: string;
+    toUrl?: string;
+    preserveFromPath?: boolean;
+    toApp?: {
+      name?: string;
+      namespace?: string;
+      cluster?: string;
+    };
+  }
 
-	export interface Redirect {
-		fromPath?: string;
-		toUrl?: string;
-		preserveFromPath?: boolean;
-	}
+  export interface Redirect {
+    fromPath?: string;
+    toUrl?: string;
+    preserveFromPath?: boolean;
+  }
 }
-

@@ -1,5 +1,5 @@
-import helmet from 'helmet';
-import { HeaderConfig } from '../config/header-config';
+import helmet from "helmet";
+import {HeaderConfig} from "../config/header-config";
 
 /**
  * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.
@@ -10,24 +10,26 @@ import { HeaderConfig } from '../config/header-config';
  */
 
 export function helmetMiddleware(headerConfig: HeaderConfig) {
-	return helmet({
-		contentSecurityPolicy: {
-			directives: {
-				defaultSrc: headerConfig.csp.defaultSrc,
-				connectSrc: headerConfig.csp.connectSrc,
-				baseUri: ["'self'"],
-				blockAllMixedContent: [],
-				fontSrc: headerConfig.csp.fontSrc,
-				frameAncestors: ["'self'"],
-				frameSrc: headerConfig.csp.frameSrc,
-				objectSrc: ["'none'"],
-				scriptSrc: headerConfig.csp.scriptSrc,
-				scriptSrcAttr: ["'none'"],
-				styleSrc: headerConfig.csp.styleSrc,
-				imgSrc: headerConfig.csp.imgSrc,
-				upgradeInsecureRequests: []
-			}
-		}
-	});
+  return helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: headerConfig.csp.defaultSrc,
+        connectSrc: headerConfig.csp.connectSrc,
+        baseUri: ["'self'"],
+        blockAllMixedContent: [],
+        fontSrc: headerConfig.csp.fontSrc,
+        frameAncestors: ["'self'"],
+        frameSrc: headerConfig.csp.frameSrc,
+        objectSrc: ["'none'"],
+        scriptSrc: headerConfig.csp.scriptSrc,
+        scriptSrcAttr: ["'none'"],
+        styleSrc: headerConfig.csp.styleSrc,
+        imgSrc: headerConfig.csp.imgSrc,
+        upgradeInsecureRequests: [],
+      },
+    },
+    crossOriginResourcePolicy: {
+      policy: headerConfig.corp.policy,
+    },
+  });
 }
-
