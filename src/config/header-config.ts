@@ -82,5 +82,6 @@ export const resolveHeaderConfig = (
 
 const validateConfig = (config: Partial<HeaderConfig>): HeaderConfig => {
   assert(config.csp, `Header CSP config is missing`);
+  assert(config.corp, `Header CORP config is missing`);
   return config as HeaderConfig;
 };
