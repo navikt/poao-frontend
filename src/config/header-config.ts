@@ -53,7 +53,11 @@ export interface HeaderConfig {
 export function logHeaderConfig(config: HeaderConfig | undefined) {
   if (!config) return;
 
-  logger.info(`Header config: CSP=${JSON.stringify(config.csp)}`);
+  logger.info(
+    `Header config: CSP=${JSON.stringify(config.csp)}, CORP=${JSON.stringify(
+      config.corp
+    )}`
+  );
 }
 
 export const resolveHeaderConfig = (
