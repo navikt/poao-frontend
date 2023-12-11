@@ -477,12 +477,18 @@ spec:
 ## Deploy til GCS
 
 For å kunne laste opp filer til GCS så trenger man en service account på GCP med de riktige tilgangene.
-Det er anbefalt å ha 1 service account med 1 nøkkel pr applikasjon slik at det er lettere å rullere nøkkelen uten at alle må oppdateres.
 
 1. Gå til https://console.cloud.google.com/iam-admin/serviceaccounts og velg prosjektet som service accounten skal opprettes i
-2. Opprett en service account (i steg 2 i opprettelsen på GCP så velg rollen "Storage Object Admin", dette vil gi tilgang til skriving og sletting/overskriving)
-3. Velg accounten som ble opprettet -> trykk på "Keys"-tabben -> trykk "Add key" -> trykk "Create new key" (velg JSON)
-4. Opprett en secret på GitHub som heter GCS_SA_KEY_<DEV|PROD> basert på hvilket miljø nøkkelen gjelder sett verdien til hele JSON-nøkkelen
+2. Opprett en service account (i steg 2 i opprettelsen på GCP så velg rollen "GitHubActionGCS", dette vil gi tilgang til skriving og sletting/overskriving)
+    - merk deg id'en til service accounten (noe liknende `amt-deltaker-flate-gcs@amt-prod-d4dd.iam.gserviceaccount.com`)
+3. logg på gcloud `gcloud auth login`
+4. Kjør følgende kommando. (bytt ut service-account id, projekt og prosjektiden i principalsettet)
+    ```
+   gcloud iam service-accounts add-iam-policy-binding amt-deltaker-flate-gcs@amt-prod-d4dd.iam.gserviceaccount.com \
+    --project=amt-prod-d4dd \
+    --role="roles/iam.workloadIdentityUser" \
+    --member="principalSet://iam.googleapis.com/projects/337368476147/locations/global/workloadIdentityPools/github/attribute.repository/navikt/amt-deltaker-flate"
+   ```
 
 ### Eksempel på GH Action worfklow for opplasting til GCS
 
