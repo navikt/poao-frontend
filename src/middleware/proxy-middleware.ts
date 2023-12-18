@@ -7,16 +7,10 @@ import {APP_NAME} from "../config/base-config";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware({
-		target: proxy.toUrl,
-
-		headers:  {
-			[CONSUMER_ID]: APP_NAME,
-		},
+		target:  `${proxy.toUrl}${proxy.preserveFromPath ? proxyContextPath : ''}`,
+		headers:  { [CONSUMER_ID]: APP_NAME },
 		logger: logger,
 		changeOrigin: true,
-		pathRewrite: proxy.preserveFromPath
-			? undefined
-			: { [`^${proxyContextPath}`]: '' },
 		on: {
 			error: (error, _request, _response) => {
 				logger.error({
