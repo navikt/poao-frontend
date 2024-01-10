@@ -64,23 +64,31 @@ async function startServer() {
 	});
 
 	if (auth) {
-		const oboTokenStore = createTokenStore();
 		const tokenValidatorType = mapLoginProviderTypeToValidatorType(auth.loginProviderType);
 		const tokenValidator = await createTokenValidator(tokenValidatorType, auth.loginProvider.discoveryUrl, auth.loginProvider.clientId);
 		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
 
 		if (proxy.proxies.length > 0) {
+			const oboTokenStore = createTokenStore();
 			const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
 			const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
-			proxy.proxies.forEach(p => {
-				const proxyFrom = routeUrl(p.fromPath);
+			proxy.proxies.forEach(proxy => {
+				const proxyFrom = routeUrl(proxy.fromPath);
 				app.use(
 					proxyFrom,
-					oboMiddleware({ authConfig: auth, proxy: p, oboTokenStore, oboTokenClient, tokenValidator }),
-					proxyMiddleware(proxyFrom, p)
+					oboMiddleware({ authConfig: auth, proxy, oboTokenStore, oboTokenClient, tokenValidator }),
+					proxyMiddleware(proxyFrom, proxy)
 				);
 			});
 		}
+	} else {
+		proxy.proxies.forEach(proxy => {
+			const proxyFrom = routeUrl(proxy.fromPath);
+			app.use(
+				proxyFrom,
+				proxyMiddleware(proxyFrom, proxy)
+			);
+		});
 	}
 
 	if (gcs) {
