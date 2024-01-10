@@ -1,4 +1,4 @@
-import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, removeQueryParams, stripPrefix } from './utils';
+import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, removeQueryParams, stripPrefix } from './utils.js';
 
 describe('hoursToMs', () => {
 	it('should convert hours to milliseconds', () => {

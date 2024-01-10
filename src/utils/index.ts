@@ -1,4 +1,4 @@
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 export const assert = <T extends any>(value: T | undefined | null, msg?: string): T => {
 	if (!value) {

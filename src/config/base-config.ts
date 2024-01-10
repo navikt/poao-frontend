@@ -1,7 +1,6 @@
-import { logger } from '../utils/logger';
-import { JsonConfig } from './app-config-resolver';
-import { toNullableEnumValue } from '../utils';
-import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
+import { logger } from '../utils/logger.js';
+import { JsonConfig } from './app-config-resolver.js';
+import { toNullableEnumValue } from '../utils/index.js';
 
 export enum FallbackStrategy {
 	REDIRECT_TO_ROOT = 'REDIRECT_TO_ROOT',
@@ -16,7 +15,7 @@ export interface BaseConfig {
 	contextPath: string;
 	serveFromPath: string;
 	enableSecureLogs: boolean;
-	enableModiaContextUpdater: ModiaContextHolderConfig
+	enableModiaContextUpdater: JsonConfig.ModiaContextHolderConfig;
 }
 
 export const APP_NAME = process.env['NAIS_APP_NAME'] as string

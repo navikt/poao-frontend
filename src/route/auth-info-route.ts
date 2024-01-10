@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { TokenValidator } from '../utils/auth/token-validator';
-import { extractTokenPayload, getAccessToken } from '../utils/auth/auth-token-utils';
+import { TokenValidator } from '../utils/auth/token-validator.js';
+import { extractTokenPayload, getAccessToken } from '../utils/auth/auth-token-utils.js';
 
 interface AuthInfoResponse {
 	loggedIn: boolean,

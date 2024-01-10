@@ -2,23 +2,23 @@ import express from 'express';
 import corsMiddleware from 'cors';
 import urlJoin from 'url-join';
 import compression from 'compression';
-import { initSecureLog, logger } from './utils/logger';
-import { gcsRoute } from './route/gcs-route';
-import { helmetMiddleware } from './middleware/helmet-middleware';
-import { redirectRoute } from './route/redirect-route';
-import { createAppConfig, logAppConfig } from './config/app-config-resolver';
-import { fallbackRoute } from './route/fallback-route';
-import { pingRoute } from './route/ping-route';
-import { errorHandlerMiddleware } from './middleware/error-handler-middleware';
-import { createTokenStore } from './utils/auth/in-memory-token-store';
-import { createTokenValidator, mapLoginProviderTypeToValidatorType } from './utils/auth/token-validator';
-import { createClient, createIssuer } from './utils/auth/auth-client-utils';
-import { createJWKS } from './utils/auth/auth-config-utils';
-import { frontendEnvRoute } from './route/frontend-env-route';
-import { oboMiddleware } from './middleware/obo-middleware';
-import { authInfoRoute } from './route/auth-info-route';
-import { proxyMiddleware } from './middleware/proxy-middleware';
-import {tracingMiddleware} from "./middleware/tracingMiddleware";
+import { initSecureLog, logger } from './utils/logger.js';
+import { gcsRoute } from './route/gcs-route.js';
+import { helmetMiddleware } from './middleware/helmet-middleware.js';
+import { redirectRoute } from './route/redirect-route.js';
+import { createAppConfig, logAppConfig } from './config/app-config-resolver.js';
+import { fallbackRoute } from './route/fallback-route.js';
+import { pingRoute } from './route/ping-route.js';
+import { errorHandlerMiddleware } from './middleware/error-handler-middleware.js';
+import { createTokenStore } from './utils/auth/in-memory-token-store.js';
+import { createTokenValidator, mapLoginProviderTypeToValidatorType } from './utils/auth/token-validator.js';
+import { createClient, createIssuer } from './utils/auth/auth-client-utils.js';
+import { createJWKS } from './utils/auth/auth-config-utils.js';
+import { frontendEnvRoute } from './route/frontend-env-route.js';
+import { oboMiddleware } from './middleware/obo-middleware.js';
+import { authInfoRoute } from './route/auth-info-route.js';
+import { proxyMiddleware } from './middleware/proxy-middleware.js';
+import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
 
 const app: express.Application = express();
 
@@ -31,6 +31,7 @@ async function startServer() {
 	if (appConfig.base.enableSecureLogs) {
 		initSecureLog()
 	}
+
 	app.get('/internal/ready', pingRoute());
 	app.get('/internal/alive', pingRoute());
 
@@ -106,7 +107,7 @@ async function startServer() {
 			app.use(routeUrl("/"), fallbackRoute(base, dekorator))
 			app.use(routeUrl("/index.html"), fallbackRoute(base, dekorator))
 		}
-		app.use(base.contextPath, express.static(base.serveFromPath, {cacheControl: false}));
+		app.use(base.contextPath, express.static(base.serveFromPath, { cacheControl: false }));
 		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
 

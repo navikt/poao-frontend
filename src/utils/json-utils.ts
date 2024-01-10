@@ -2,7 +2,7 @@ export interface JsonData {
     [key: string]: any;
 }
 
-const substituteEnvVariables = (key: string, value: any): any => {
+const substituteEnvVariables = (_key: string, value: any): any => {
     if (typeof value !== "string") return value;
     const matches = value.match('{{(.*?)}}');
     if (!matches) return value;

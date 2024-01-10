@@ -1,12 +1,12 @@
-import { BaseConfig, FallbackStrategy } from '../config/base-config';
-import { isRequestingFile } from '../utils/utils';
+import { BaseConfig, FallbackStrategy } from '../config/base-config.js';
+import { isRequestingFile } from '../utils/utils.js';
 import { join } from 'path';
 import { Request, Response } from 'express';
-import { injectDecoratorServerSide } from "@navikt/nav-dekoratoren-moduler/ssr";
-import { JsonConfig } from "../config/app-config-resolver";
+import { injectDecoratorServerSide } from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
+import { JsonConfig } from "../config/app-config-resolver.js";
 import DekoratorConfig = JsonConfig.DekoratorConfig;
-import { logger } from "../utils/logger";
-import {CALL_ID, CONSUMER_ID} from "../middleware/tracingMiddleware";
+import { logger } from "../utils/logger.js";
+import { CALL_ID, CONSUMER_ID } from "../middleware/tracingMiddleware.js";
 
 export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfig) {
 	return (req: Request, res: Response) => {
@@ -21,14 +21,16 @@ export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfi
 					env: dekorator.env,
 					filePath: join(baseConfig.serveFromPath, "index.html"),
 					simple: dekorator.simple,
-					chatbot: dekorator.chatbot })
+					chatbot: dekorator.chatbot
+				})
 					.then((html) => {
 						res.send(html);
 					})
 					.catch((e) => logger.error({
 						message: e,
 						callId: req.headers[CALL_ID],
-						consumerId: req.headers[CONSUMER_ID] }))
+						consumerId: req.headers[CONSUMER_ID]
+					}))
 			} else {
 				res.sendFile(join(baseConfig.serveFromPath, 'index.html'));
 			}

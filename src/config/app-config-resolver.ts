@@ -1,23 +1,22 @@
-import {existsSync, readFileSync} from "fs";
+import { existsSync, readFileSync } from "fs";
 
-import {AuthConfig, logAuthConfig, resolveAuthConfig} from "./auth-config";
-import {BaseConfig, logBaseConfig, resolveBaseConfig} from "./base-config";
-import {CorsConfig, logCorsConfig, resolveCorsConfig} from "./cors-config";
-import {ProxyConfig, logProxyConfig, resolveProxyConfig} from "./proxy-config";
+import { AuthConfig, logAuthConfig, resolveAuthConfig } from "./auth-config.js";
+import { BaseConfig, logBaseConfig, resolveBaseConfig } from "./base-config.js";
+import { CorsConfig, logCorsConfig, resolveCorsConfig } from "./cors-config.js";
+import { ProxyConfig, logProxyConfig, resolveProxyConfig } from "./proxy-config.js";
 import {
   RedirectConfig,
   logRedirectConfig,
   resolveRedirectConfig,
-} from "./redirect-config";
-import {GcsConfig, logGcsConfig, resolveGcsConfig} from "./gcs-config";
-import {parseJSONwithSubstitutions} from "../utils/json-utils";
+} from "./redirect-config.js";
+import { GcsConfig, logGcsConfig, resolveGcsConfig } from "./gcs-config.js";
+import { parseJSONwithSubstitutions } from "../utils/json-utils.js";
 import {
   HeaderConfig,
   logHeaderConfig,
   resolveHeaderConfig,
-} from "./header-config";
-import DekoratorConfig = JsonConfig.DekoratorConfig;
-import {resolveDekoratorConfig} from "./dekorator-config";
+} from "./header-config.js";
+import { resolveDekoratorConfig } from "./dekorator-config.js";
 
 export interface AppConfig {
   base: BaseConfig;
@@ -27,7 +26,7 @@ export interface AppConfig {
   proxy: ProxyConfig;
   redirect: RedirectConfig;
   header: HeaderConfig;
-  dekorator?: DekoratorConfig;
+  dekorator?: JsonConfig.DekoratorConfig;
 }
 
 const DEFAULT_JSON_CONFIG_FILE_PATH = "/app/config.json";

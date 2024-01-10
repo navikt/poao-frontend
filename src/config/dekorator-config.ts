@@ -1,7 +1,6 @@
-import {JsonConfig} from "./app-config-resolver";
-import DekoratorConfig = JsonConfig.DekoratorConfig;
+import { JsonConfig } from "./app-config-resolver.js";
 
-export const resolveDekoratorConfig = (dekoratorConfig: JsonConfig.DekoratorConfig | undefined): DekoratorConfig | undefined => {
+export const resolveDekoratorConfig = (dekoratorConfig: JsonConfig.DekoratorConfig | undefined): JsonConfig.DekoratorConfig | undefined => {
     if (!dekoratorConfig) return undefined
     validateDekoratorConfig(dekoratorConfig);
     return {
@@ -11,7 +10,7 @@ export const resolveDekoratorConfig = (dekoratorConfig: JsonConfig.DekoratorConf
     }
 };
 
-const validateDekoratorConfig = (config: Partial<DekoratorConfig>) => {
+const validateDekoratorConfig = (config: Partial<JsonConfig.DekoratorConfig>) => {
     if (config.env !== 'prod' && config.env !== 'dev')
         throw new Error(`The field 'env' must be either prod or dev: ${JSON.stringify(config)}`);
 }
