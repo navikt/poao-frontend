@@ -1,4 +1,4 @@
-import { assert } from "../utils/index.js";
+import { assert } from "../utils/assert.js";
 import { logger } from "../utils/logger.js";
 import { JsonConfig } from "./app-config-resolver.js";
 

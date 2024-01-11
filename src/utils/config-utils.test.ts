@@ -1,4 +1,4 @@
-import { parseJSONwithSubstitutions } from "./json-utils.js";
+import { parseJSONwithSubstitutions } from "./config-utils.js";
 
 describe('parseJSONwithSubstitutions', () => {
     it('json parse with substituteEnvVariables', () => {

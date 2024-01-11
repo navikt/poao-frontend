@@ -10,7 +10,7 @@ import {
   resolveRedirectConfig,
 } from "./redirect-config.js";
 import { GcsConfig, logGcsConfig, resolveGcsConfig } from "./gcs-config.js";
-import { parseJSONwithSubstitutions } from "../utils/json-utils.js";
+import { parseJSONwithSubstitutions } from "../utils/config-utils.js";
 import {
   HeaderConfig,
   logHeaderConfig,

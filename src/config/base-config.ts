@@ -1,6 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { JsonConfig } from './app-config-resolver.js';
-import { toNullableEnumValue } from '../utils/index.js';
+import { toNullableEnumValue } from '../utils/config-utils.js';
 
 export enum FallbackStrategy {
 	REDIRECT_TO_ROOT = 'REDIRECT_TO_ROOT',

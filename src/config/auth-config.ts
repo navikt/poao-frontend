@@ -1,4 +1,5 @@
-import { assert, toNullableEnumValue } from '../utils/index.js';
+import { assert } from '../utils/assert.js';
+import { toNullableEnumValue } from '../utils/config-utils.js';
 import { logger } from '../utils/logger.js';
 import { JsonConfig } from './app-config-resolver.js';
 
