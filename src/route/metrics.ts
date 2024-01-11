@@ -1,5 +1,6 @@
 import client, { register }  from 'prom-client';
 import express from "express";
+import {logger} from "../utils/logger.js";
 
 export const errorCounter = new client.Counter({
     name: "network_errors",
@@ -14,7 +15,8 @@ export const configureMetrics = (app: express.Application) => {
             res.set('Content-Type', register.contentType);
             res.end(await register.metrics());
         } catch (err) {
-            res.status(500).end(err);
+            logger.warn(err)
+            res.status(500).end();
         }
     });
 }
