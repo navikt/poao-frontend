@@ -102,10 +102,6 @@ async function startServer() {
 		app.use(base.contextPath, express.static(base.serveFromPath, {cacheControl: false}));
 		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
-
-	app.get('lol', (req, res) => {
-
-	})
 	configureMetrics(app)
 
 	app.listen(base.port, () => logger.info('Server started successfully'));
