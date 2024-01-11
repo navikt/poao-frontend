@@ -1,16 +1,15 @@
-import {LoginProviderType, OboProviderType, resolveAzureAdProvider} from "../../config/auth-config";
-import {createTokenValidator, mapLoginProviderTypeToValidatorType} from "../auth/token-validator";
-import {createClient, createIssuer} from "../auth/auth-client-utils";
-import {createJWKS} from "../auth/auth-config-utils";
-import {createTokenStore} from "../auth/in-memory-token-store";
-import {Request} from "express";
-import {setOBOTokenOnRequest} from "../../middleware/obo-middleware";
-import {logger} from "../logger";
-import {JsonConfig} from "../../config/app-config-resolver";
-import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
-import {AUTHORIZATION_HEADER} from "../auth/auth-token-utils";
-import {CALL_ID, CONSUMER_ID} from "../../middleware/tracingMiddleware";
-import {APP_NAME} from "../../config/base-config";
+import { LoginProviderType, OboProviderType, resolveAzureAdProvider } from "../../config/auth-config.js";
+import { createTokenValidator, mapLoginProviderTypeToValidatorType } from "../auth/token-validator.js";
+import { createClient, createIssuer } from "../auth/auth-client-utils.js";
+import { createJWKS } from "../auth/auth-config-utils.js";
+import { createTokenStore } from "../auth/in-memory-token-store.js";
+import { Request } from "express";
+import { setOBOTokenOnRequest } from "../../middleware/obo-middleware.js";
+import { logger } from "../logger.js";
+import { JsonConfig } from "../../config/app-config-resolver.js";
+import { AUTHORIZATION_HEADER } from "../auth/auth-token-utils.js";
+import { CALL_ID, CONSUMER_ID } from "../../middleware/tracingMiddleware.js";
+import { APP_NAME } from "../../config/base-config.js";
 
 const createModiacontextHolderConfig = async () => {
     const azureAdProvider = resolveAzureAdProvider()
@@ -42,9 +41,9 @@ const modiacontextHolderConfig = async () => {
 }
 
 
-export const setModiaContext = async (req: Request, fnr: string, config: ModiaContextHolderConfig) => {
+export const setModiaContext = async (req: Request, fnr: string, config: JsonConfig.ModiaContextHolderConfig) => {
     try {
-        const {authConfig, tokenValidator, tokenStore, oboTokenClient} = await modiacontextHolderConfig()
+        const { authConfig, tokenValidator, tokenStore, oboTokenClient } = await modiacontextHolderConfig()
         const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, tokenStore, authConfig, config.scope)
         if (error) return error
         logger.info({
@@ -70,8 +69,9 @@ export const setModiaContext = async (req: Request, fnr: string, config: ModiaCo
         logger.error({
             message: `Failed to update modiacontextholder status=${result.status}, body=${failBody}`,
             callId: req.headers[CALL_ID],
-            consumerId: req.headers[CONSUMER_ID] })
-        return {status: result.status}
+            consumerId: req.headers[CONSUMER_ID]
+        })
+        return { status: result.status }
     } catch (err) {
         return { status: 500, message: JSON.stringify(err) }
     }

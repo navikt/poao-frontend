@@ -1,6 +1,7 @@
-import { assert, toNullableEnumValue } from '../utils';
-import { logger } from '../utils/logger';
-import { JsonConfig } from './app-config-resolver';
+import { assert } from '../utils/assert.js';
+import { toNullableEnumValue } from '../utils/config-utils.js';
+import { logger } from '../utils/logger.js';
+import { JsonConfig } from './app-config-resolver.js';
 
 export enum LoginProviderType {
 	ID_PORTEN = 'ID_PORTEN',

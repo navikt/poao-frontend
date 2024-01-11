@@ -1,6 +1,6 @@
-import {logger} from "../utils/logger";
-import {JsonConfig} from "./app-config-resolver";
-import {assert} from "../utils";
+import { logger } from "../utils/logger.js";
+import { JsonConfig } from "./app-config-resolver.js";
+import { assert } from "../utils/assert.js";
 
 const ALLOWED_DOMAINS = ["*.nav.no", "*.adeo.no"];
 const GOOGLE_ANALYTICS_DOMAIN = "*.google-analytics.com";

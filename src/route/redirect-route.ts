@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import urljoin from "url-join";
-import {stringify, unescape} from "querystring";
+import { stringify, unescape } from "querystring";
 
 export interface RedirectRouterConfig {
 	fromPath: string

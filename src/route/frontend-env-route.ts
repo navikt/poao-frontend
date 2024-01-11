@@ -5,7 +5,7 @@ const PUBLIC_ENV_PREFIX = 'PUBLIC_';
 export function frontendEnvRoute() {
 	const envJsFileContent = createEnvJsContent(PUBLIC_ENV_PREFIX, process.env);
 
-	return (req: Request, res: Response) => {
+	return (_req: Request, res: Response) => {
 		res.contentType('application/javascript');
 		res.setHeader('Cache-Control', 'no-cache');
 		res.send(envJsFileContent);

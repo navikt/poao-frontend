@@ -1,6 +1,6 @@
 import { Client, Issuer } from 'openid-client';
-import { JWKS } from './auth-config-utils';
-import { createNbf, OboToken, tokenSetToOboToken } from './auth-token-utils';
+import { JWKS } from './auth-config-utils.js';
+import { createNbf, OboToken, tokenSetToOboToken } from './auth-token-utils.js';
 
 export async function createIssuer(discoveryUrl: string): Promise<Issuer<Client>> {
 	return Issuer.discover(discoveryUrl);

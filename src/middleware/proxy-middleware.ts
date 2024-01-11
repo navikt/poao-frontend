@@ -1,9 +1,9 @@
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { logger } from '../utils/logger';
-import { Proxy } from '../config/proxy-config';
-import {CALL_ID, CONSUMER_ID} from "./tracingMiddleware";
-import {APP_NAME} from "../config/base-config";
+import { logger } from '../utils/logger.js';
+import { Proxy } from '../config/proxy-config.js';
+import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
+import { APP_NAME } from "../config/base-config.js";
 import winston, {LeveledLogMethod} from "winston";
 
 const loggerProxy: winston.Logger = logger

@@ -1,4 +1,4 @@
-import { getFnrFromPath, getPathWithoutFnr } from "../utils/modiacontextholder/modiaContextHolderUtils";
+import { getFnrFromPath, getPathWithoutFnr } from "../utils/modiacontextholder/modiaContextHolderUtils.js";
 
 const testFnr = "12345678901"
 describe('getFnrFromPath', () => {
