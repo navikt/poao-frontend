@@ -7,8 +7,8 @@ import {APP_NAME} from "../config/base-config";
 import winston, {LeveledLogMethod} from "winston";
 
 const loggerProxy: winston.Logger = logger
-const proxyWrapperWithRequestLogging = (proxyContextPath: string, proxy: Proxy) => {
-	const middleware = proxyMiddleware(proxyContextPath, proxy)
+export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy) => {
+	const middleware = _proxyMiddleware(proxyContextPath, proxy)
 	return (req: Request, res: Response, next: NextFunction) => {
 		const logError: LeveledLogMethod = (message: any) => {
 			logger.error(
@@ -21,12 +21,14 @@ const proxyWrapperWithRequestLogging = (proxyContextPath: string, proxy: Proxy) 
 			)
 			return logger
 		}
+		// Hack to add callId and consumerId to error-log entries by http-proxy-middleware
+		// which are not catched by the onError callback, for example socket-hang up and ECONNRESET
 		loggerProxy['error'] = logError
 		middleware(req, res, next)
 	}
 }
 
-export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
+const _proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware({
 		target: proxy.toUrl,
 		logLevel: 'error',
