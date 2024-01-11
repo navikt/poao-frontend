@@ -1,9 +1,9 @@
 import { TokenSet } from 'openid-client';
-import { assert } from '../index';
+import { assert } from '../assert.js';
 import { Request } from 'express';
-import { JsonData } from '../json-utils';
-import { fromBase64 } from '../utils';
-import { secureLog } from '../logger';
+import { JsonData } from '../config-utils.js';
+import { fromBase64 } from '../utils.js';
+import { secureLog } from '../logger.js';
 
 export const AUTHORIZATION_HEADER = 'authorization';
 

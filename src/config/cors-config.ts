@@ -1,6 +1,6 @@
-import {assert} from "../utils";
-import {logger} from "../utils/logger";
-import {JsonConfig} from "./app-config-resolver";
+import { assert } from "../utils/assert.js";
+import { logger } from "../utils/logger.js";
+import { JsonConfig } from "./app-config-resolver.js";
 
 export const DEFAULT_CORS_MAX_AGE = 7200; // 2 hours. Chrome caps out at this value
 export const DEFAULT_CORS_CREDENTIALS = true;
@@ -14,7 +14,7 @@ export interface CorsConfig {
 }
 
 export const logCorsConfig = (config: CorsConfig): void => {
-  const {origin, credentials, allowedHeaders, maxAge} = config;
+  const { origin, credentials, allowedHeaders, maxAge } = config;
   logger.info(
     `Cors config: origin=${origin} credentials=${credentials} maxAge=${maxAge} allowedHeaders=${allowedHeaders}`
   );

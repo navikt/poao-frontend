@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 import {
 	getMimeType,
 	hoursToSeconds,
@@ -10,13 +10,13 @@ import {
 	minutesToSeconds,
 	removeQueryParams,
 	stripPrefix
-} from '../utils/utils';
-import { FallbackStrategy } from '../config/base-config';
-import {getFnrFromPath, getPathWithoutFnr} from "../utils/modiacontextholder/modiaContextHolderUtils";
-import {JsonConfig} from "../config/app-config-resolver";
+} from '../utils/utils.js';
+import { FallbackStrategy } from '../config/base-config.js';
+import { getFnrFromPath, getPathWithoutFnr } from "../utils/modiacontextholder/modiaContextHolderUtils.js";
+import { JsonConfig } from "../config/app-config-resolver.js";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
-import {setModiaContext} from "../utils/modiacontextholder/setModiaContext";
-import {CALL_ID, CONSUMER_ID} from "../middleware/tracingMiddleware";
+import { setModiaContext } from "../utils/modiacontextholder/setModiaContext.js";
+import { CALL_ID, CONSUMER_ID } from "../middleware/tracingMiddleware.js";
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -78,7 +78,7 @@ function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string): Promi
 
 		const file = bucket.file(bucketFilePath);
 
-		file.download(function(err, content) {
+		file.download(function (err, content) {
 			if (err) {
 				reject(err);
 			} else {
@@ -146,9 +146,10 @@ export function gcsRoute(config: GcsRouterConfig) {
 							const error = await setModiaContext(req, fnr, config.enableModiaContextUpdater)
 							if (error) {
 								logger.error({
-									message: "Failed to set modia context"+ (error.message || ''),
+									message: "Failed to set modia context" + (error.message || ''),
 									callId: req.headers[CALL_ID],
-									consumerId: req.headers[CONSUMER_ID] })
+									consumerId: req.headers[CONSUMER_ID]
+								})
 								res.sendStatus(error.status)
 								return
 							}

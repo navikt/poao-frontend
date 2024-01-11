@@ -1,6 +1,6 @@
-import { OboToken, OboTokenStore } from './auth-token-utils';
+import { OboToken, OboTokenStore } from './auth-token-utils.js';
 import NodeCache from 'node-cache';
-import { minutesToSeconds } from '../utils';
+import { minutesToSeconds } from '../utils.js';
 
 function createOboTokenKey(userId: string, appIdentifier: string): string {
 	return `${userId}_${appIdentifier}`;

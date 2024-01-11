@@ -1,5 +1,5 @@
 import helmet from "helmet";
-import {HeaderConfig} from "../config/header-config";
+import { HeaderConfig } from "../config/header-config.js";
 
 /**
  * Det hadde vært best å fjerne 'unsafe-inline' fra scriptSrc, men NAV dekoratøren kjører inline scripts som ikke vil fungere uten dette.

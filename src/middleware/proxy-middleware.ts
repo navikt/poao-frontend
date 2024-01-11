@@ -1,9 +1,9 @@
 import { RequestHandler } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { logger } from '../utils/logger';
-import { Proxy } from '../config/proxy-config';
-import {CALL_ID, CONSUMER_ID} from "./tracingMiddleware";
-import {APP_NAME} from "../config/base-config";
+import { logger } from '../utils/logger.js';
+import { Proxy } from '../config/proxy-config.js';
+import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
+import { APP_NAME } from "../config/base-config.js";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware(proxyContextPath, {
@@ -23,7 +23,8 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 				stack_trace: error.stack,
 				message: `onError, error=${error.message}`,
 				callId: _request.headers[CALL_ID],
-				consumerId: _request.headers[CONSUMER_ID] });
+				consumerId: _request.headers[CONSUMER_ID]
+			});
 		},
 	})
 };

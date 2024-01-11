@@ -13,7 +13,7 @@ const noOpLogger = createLogger({
 	})]
 });
 
-const maskedJsonFormat = format.printf( (logEntry) => {
+const maskedJsonFormat = format.printf((logEntry) => {
 	const jsonLog = JSON.stringify({
 		timestamp: new Date(),
 		...logEntry,
