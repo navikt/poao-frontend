@@ -19,6 +19,7 @@ import { oboMiddleware } from './middleware/obo-middleware.js';
 import { authInfoRoute } from './route/auth-info-route.js';
 import { proxyMiddleware } from './middleware/proxy-middleware.js';
 import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
+import { configureMetrics } from "./route/metrics.js";
 
 const app: express.Application = express();
 
@@ -110,6 +111,7 @@ async function startServer() {
 		app.use(base.contextPath, express.static(base.serveFromPath, { cacheControl: false }));
 		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
+	configureMetrics(app)
 
 	app.listen(base.port, () => logger.info('Server started successfully'));
 }
