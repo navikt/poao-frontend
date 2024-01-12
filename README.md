@@ -6,6 +6,12 @@ POAO Frontend integrerer med https://github.com/nais/wonderwall og er avhengig a
 
 Forket fra https://github.com/navikt/pto-frontend.
 
+## Hvordan ta i bruk
+
+POAO Frontend blir publisert som et Docker image til [Google Artifact Registry](europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend), nyeste versjon finnes der.
+
+Se [konfigurasjon](#konfigurering) og [eksempler](#eksempel-nais-yamler) for hvordan man setter opp egen instans av POAO Frontend.
+
 ## Konfigurering
 
 Konfigurering av poao-frontend gjøres med JSON. JSON konfigurasjonen kan enten gjøres ved å sette
@@ -357,7 +363,7 @@ metadata:
   labels:
     team: my-team
 spec:
-  image: ghcr.io/navikt/poao-frontend/poao-frontend:<latest-version>
+  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend:<latest-version>
   port: 8080
   ingresses:
     - https://my-application.dev.nav.no
@@ -423,7 +429,7 @@ metadata:
   labels:
     team: my-team
 spec:
-  image: ghcr.io/navikt/poao-frontend/poao-frontend:<latest-version>
+  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend:<latest-version>
   port: 8080
   ingresses:
     - https://my-application.dev.intern.nav.no
