@@ -8,7 +8,7 @@ Forket fra https://github.com/navikt/pto-frontend.
 
 ## Hvordan ta i bruk
 
-POAO Frontend blir publisert som et Docker image til [Google Artifact Registry](europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend), nyeste versjon finnes der.
+POAO Frontend blir publisert som et Docker image til [Google Artifact Registry](https://europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend), nyeste versjon finnes der.
 
 Se [konfigurasjon](#konfigurering) og [eksempler](#eksempel-nais-yamler) for hvordan man setter opp egen instans av POAO Frontend.
 
