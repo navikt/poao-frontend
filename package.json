@@ -45,7 +45,7 @@
     "@types/jsonwebtoken": "9.0.5",
     "@types/lodash.merge": "4.6.9",
     "@types/mime-types": "2.1.4",
-    "@types/node": "20.11.20",
+    "@types/node": "20.11.28",
     "@types/uuid": "9.0.8",
     "cross-env": "7.0.3",
     "dotenv-cli": "7.3.0",
