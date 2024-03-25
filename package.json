@@ -23,7 +23,7 @@
     "@navikt/nav-dekoratoren-moduler": "1.6.9",
     "compression": "1.7.4",
     "cors": "2.8.5",
-    "express": "4.18.2",
+    "express": "4.19.1",
     "helmet": "7.1.0",
     "http-proxy-middleware": "2.0.6",
     "jsdom": "24.0.0",
