@@ -6,7 +6,7 @@ import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
 import { APP_NAME } from "../config/base-config.js";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
-	return createProxyMiddleware(proxyContextPath, {
+	return createProxyMiddleware({
 		target: proxy.toUrl,
 		logLevel: 'error',
 		headers: {
