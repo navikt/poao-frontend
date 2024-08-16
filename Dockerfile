@@ -4,9 +4,11 @@ WORKDIR /app
 
 COPY . .
 
-RUN --mount=type=secret,id=npm_auth_token \
-    NODE_AUTH_TOKEN=$(cat /run/secrets/npm_auth_token) \
-    npm ci
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN \
+    npm config set //npm.pkg.github.com/:_authToken=$(cat /run/secrets/NODE_AUTH_TOKEN)
+RUN npm config set @navikt:registry=https://npm.pkg.github.com
+
+RUN npm ci
 RUN npm run build
 
 FROM node:20-alpine3.20

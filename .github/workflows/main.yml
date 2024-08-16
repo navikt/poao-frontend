@@ -31,7 +31,7 @@ jobs:
       contents: write
       packages: write
       security-events: write # push sarif to github security
-      id-token: "write"
+      id-token: write
     if: github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
@@ -61,8 +61,7 @@ jobs:
           tag: ${{ env.IMAGE_TAG }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          build_secrets: |
-            npm_auth_token=${{ secrets.READER_TOKEN }}
+          build_secrets: NODE_AUTH_TOKEN=${{ secrets.READER_TOKEN }}
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
