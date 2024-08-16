@@ -4,7 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm ci
+RUN --mount=type=secret,id=npm_auth_token \
+    NODE_AUTH_TOKEN=$(cat /run/secrets/npm_auth_token) \
+    npm ci
 RUN npm run build
 
 FROM node:20-alpine3.20

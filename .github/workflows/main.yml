@@ -61,6 +61,8 @@ jobs:
           tag: ${{ env.IMAGE_TAG }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          build_secrets: |
+            npm_auth_token=${{ secrets.READER_TOKEN }}
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
