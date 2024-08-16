@@ -63,7 +63,7 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           build_secrets: NODE_AUTH_TOKEN=${{ secrets.READER_TOKEN }}
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Release poao-frontend
           tag_name: ${{ env.IMAGE_TAG }}
