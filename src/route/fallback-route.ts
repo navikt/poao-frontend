@@ -20,8 +20,10 @@ export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfi
 				injectDecoratorServerSide({
 					env: dekorator.env,
 					filePath: join(baseConfig.serveFromPath, "index.html"),
-					simple: dekorator.simple,
-					chatbot: dekorator.chatbot
+					params: {
+						simple: dekorator.simple,
+						chatbot: dekorator.chatbot
+					}
 				})
 					.then((html) => {
 						res.send(html);
