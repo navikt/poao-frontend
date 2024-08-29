@@ -29,6 +29,12 @@ const maskedJsonFormat = format.printf((logEntry) => {
 	return jsonLog.replace(/(?<!\w|-)\d{11}(?!\w|-)/g, '<fnr>')
 });
 
+export function normalizePathParams(path: string) : string {
+	return path
+		?.replace(/((?<!\w|-)\d+(?!\w|-))/g, '<id>')
+		?.replace(/[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/g, '<uuid>')
+}
+
 export const logger = createLogger({
 	level: 'info',
 	format: maskedJsonFormat,

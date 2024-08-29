@@ -4,6 +4,7 @@ import { logger } from '../utils/logger.js';
 import { Proxy } from '../config/proxy-config.js';
 import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
 import { APP_NAME } from "../config/base-config.js";
+import {normalizePathParams} from "../utils/logger.js";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware({
@@ -19,7 +20,7 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 			: { [`^${proxyContextPath}`]: '' },
 		onError: (error, _request, _response) => {
 			logger.error({
-				path: _request.path?.replace(/\d{11}/g, '<fnr>'),
+				path: normalizePathParams(_request.path?.replace(/\d{11}/g, '<fnr>')),
 				stack_trace: error.stack,
 				message: `onError, error=${error.message}`,
 				callId: _request.headers[CALL_ID],
