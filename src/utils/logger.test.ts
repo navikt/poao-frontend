@@ -20,6 +20,12 @@ describe('normalizePathParams', () => {
 	it('should handle mixed ids', () => {
 		expect(normalizePathParams('/path1/080f0f35-d8ab-47c0-b919-fe744361f39a/path2/12345')).toBe('/path1/<uuid>/path2/<id>');
 	})
+	it('should handle undefined path', () => {
+		expect(normalizePathParams(undefined)).toBe(undefined);
+	})
+	it('should handle null path', () => {
+		expect(normalizePathParams(null)).toBe(undefined);
+	})
 
 });
 
