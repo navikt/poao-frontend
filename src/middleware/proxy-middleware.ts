@@ -12,7 +12,7 @@ export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): Request
 		headers: {
 			[CONSUMER_ID]: APP_NAME,
 		},
-		logger,
+		// logger, // Enable this to log each proxied call
 		changeOrigin: true,
 		on: {
 			error: (error, _request, _response) => {
