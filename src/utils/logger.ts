@@ -37,7 +37,10 @@ export function normalizePathParams(path: string) : string {
 
 export const logger = createLogger({
 	level: 'info',
-	format: maskedJsonFormat,
+	format: format.combine(
+		format.splat(),
+		maskedJsonFormat,
+	),
 	transports: [new transports.Console()]
 });
 
