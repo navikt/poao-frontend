@@ -8,15 +8,12 @@ import {normalizePathParams} from "../utils/logger.js";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware({
-		target: proxy.toUrl,
+		target: `${proxy.toUrl}${proxy.preserveFromPath ? proxyContextPath : ''}` ,
 		headers: {
 			[CONSUMER_ID]: APP_NAME,
 		},
 		logger,
 		changeOrigin: true,
-		pathRewrite: proxy.preserveFromPath
-			? undefined
-			: { [`^${proxyContextPath}`]: '' },
 		on: {
 			error: (error, _request, _response) => {
 				logger.error({
