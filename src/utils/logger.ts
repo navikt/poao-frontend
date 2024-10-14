@@ -20,12 +20,27 @@ const maskedJsonFormat = format.printf((logEntry) => {
 	})
 
 	// Masker fødselsnummer
-	return jsonLog.replace(/\d{11}/g, '<fnr>')
+	/*
+	Avoid false positives on GUIDs.
+	(?<!\w|-) Negative lookbehing - there is no word character [a-zA-Z0-9] or a minus sign before the 11 digits
+	\d{11}     Eleven digits
+	(?!\w|-)   Negative lookahead - there is no word character or a minus sign after the 11 digits.
+	 */
+	return jsonLog.replace(/(?<!\w|-)\d{11}(?!\w|-)/g, '<fnr>')
 });
+
+export function normalizePathParams(path: string) : string {
+	return path
+		.replace(/((?<!\w|-)\d+(?!\w|-))/g, '<id>')  // numerid id in path
+		.replace(/[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/g, '<uuid>') // uuid in path
+}
 
 export const logger = createLogger({
 	level: 'info',
-	format: maskedJsonFormat,
+	format: format.combine(
+		format.splat(),
+		maskedJsonFormat,
+	),
 	transports: [new transports.Console()]
 });
 
