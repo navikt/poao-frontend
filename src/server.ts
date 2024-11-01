@@ -37,7 +37,15 @@ async function startServer() {
 
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
 
-	app.use(compression())
+	app.use(compression({
+    filter: (req: express.Request, res: express.Response) => {
+      // Don't compress server sent events.
+      if (req.headers["accept"] === "text/event-stream") {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+  }));
 
 	if (cors.origin) {
 		app.use(corsMiddleware({
