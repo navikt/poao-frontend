@@ -1,5 +1,5 @@
 {
-  "name": "poao-frontend",
+  "name": "nks-bob-frontend-server",
   "version": "1.0.0",
   "description": "Express app som håndterer diverse funksjoner som er påkrevd av de fleste frontend applikasjoner",
   "type": "module",
@@ -11,13 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/navikt/poao-frontend.git"
+    "url": "git+https://github.com/navikt/nks-bob-frontend-server.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/navikt/poao-frontend/issues"
+    "url": "https://github.com/navikt/nks-bob-frontend-server/issues"
   },
-  "homepage": "https://github.com/navikt/poao-frontend#readme",
+  "homepage": "https://github.com/navikt/nks-bob-frontend-server#readme",
   "dependencies": {
     "@google-cloud/storage": "^7.13.0",
     "@navikt/nav-dekoratoren-moduler": "2.1.6",

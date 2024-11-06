@@ -13,7 +13,7 @@ RUN npm run build
 
 FROM node:20-alpine3.20
 
-LABEL org.opencontainers.image.source="https://github.com/navikt/poao-frontend"
+LABEL org.opencontainers.image.source="https://github.com/navikt/nks-bob-frontend-server"
 
 WORKDIR /app
 

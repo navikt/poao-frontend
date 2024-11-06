@@ -1,20 +1,24 @@
-# POAO Frontend
+# NKS Bob Frontend Server
+
+**Forket fra https://github.com/navikt/poao-frontend for å gjøre det lettere for oss å gjøre vår egen greie.**
+
+--------
 
 Node.js Express app som håndterer diverse funksjoner som er påkrevd av de fleste frontend applikasjoner.
 
-POAO Frontend integrerer med https://github.com/nais/wonderwall og er avhengig av Wonderwall sidecaren for funksjoner relatert til autentisering.
+NKS Bob Frontend Server integrerer med https://github.com/nais/wonderwall og er avhengig av Wonderwall sidecaren for funksjoner relatert til autentisering.
 
 Forket fra https://github.com/navikt/pto-frontend.
 
 ## Hvordan ta i bruk
 
-POAO Frontend blir publisert som et Docker image til [Google Artifact Registry](https://europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend), nyeste versjon finnes der.
+NKS Bob Frontend Server blir publisert som et Docker image til [Google Artifact Registry](https://europe-north1-docker.pkg.dev/nais-management-233d/nks-aiautomatisering/nks-bob-frontend-server), nyeste versjon finnes der.
 
-Se [konfigurasjon](#konfigurering) og [eksempler](#eksempel-nais-yamler) for hvordan man setter opp egen instans av POAO Frontend.
+Se [konfigurasjon](#konfigurering) og [eksempler](#eksempel-nais-yamler) for hvordan man setter opp egen instans av nks-bob-frontend-server.
 
 ## Konfigurering
 
-Konfigurering av poao-frontend gjøres med JSON. JSON konfigurasjonen kan enten gjøres ved å sette
+Konfigurering av nks-bob-frontend-server gjøres med JSON. JSON konfigurasjonen kan enten gjøres ved å sette
 miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/app/config.json** (kan overskrives med miljøvariablen **JSON_CONFIG_FILE_PATH**).
 
 ### Fullt eksempel JSON config
@@ -77,7 +81,7 @@ miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/ap
 
 ### Port
 
-Setter hvilken port poao-frontend skal kjøre på. Default er **8080**.
+Setter hvilken port nks-bob-frontend-server skal kjøre på. Default er **8080**.
 
 Eksempel:
 
@@ -117,7 +121,7 @@ Eksempel:
 
 ### Serve from path
 
-Setter hvor poao-frontend skal lete etter statiske filer å serve. Default er **/app/public**.
+Setter hvor nks-bob-frontend-server skal lete etter statiske filer å serve. Default er **/app/public**.
 
 Eksempel:
 
@@ -127,7 +131,7 @@ Eksempel:
 
 ### Context path
 
-Setter context path for alle paths i poao-frontend. Default er ingen context path ("/").
+Setter context path for alle paths i nks-bob-frontend-server. Default er ingen context path ("/").
 
 Eksempel:
 
@@ -137,7 +141,7 @@ Eksempel:
 
 ### Enable frontend env
 
-Hvis satt til **true** så vil poao-frontend sette opp et endepunkt som returnerer JavaScript.
+Hvis satt til **true** så vil nks-bob-frontend-server sette opp et endepunkt som returnerer JavaScript.
 Scriptet vil inneholde alle miljø variabler som starter med **PUBLIC** og sette det på window-objektet.
 F.eks hvis man har en miljøvariabel som heter PUBLIC_MY_APP_URL så vil dette produsere følgende script.
 
@@ -216,7 +220,7 @@ Eksempel:
 
 Konfigurering av funksjoner relatert til GCS (Google Cloud Storage).
 
-`bucketName`: hvis satt så vil poao-frontend servere statiske filer fra GCS.
+`bucketName`: hvis satt så vil nks-bob-frontend-server servere statiske filer fra GCS.
 OBS: Navnet her må være unikt på tvers av GCP. Anbefalt navnekonvensjon er: `<my-app-name>-<dev|prod>`. Default er **null**
 
 `bucketContextPath`: setter context path for hvor filene i GCS skal lastes fra. Default er ingen context path
@@ -324,7 +328,7 @@ Eksempel:
 ```
 
 ### Dekorator config
-POAO kan serverside injecte html i index.html-files som beskrevet i [doc-en deres](https://github.com/navikt/nav-dekoratoren#eksempel-1).
+nks-bob-frontend-server kan serverside injecte html i index.html-files som beskrevet i [doc-en deres](https://github.com/navikt/nav-dekoratoren#eksempel-1).
 Dette støttes kun hvis index.html-filen ligger i podden. Tanken er at dette skal brukes sammen med statiske filer i en bucket (NAV-CDN) ved at alle lenker i index.html går til CDN istedetfor til samme domene. 
 Config er hentet fra dekoratoren
 
@@ -339,7 +343,7 @@ Config er hentet fra dekoratoren
 }
 ```
 ### ModiaContextHolderUpdater config
-POAO-frontend kan settes til å sette aktivt fnr i modia-context (POST kall på /context på modiacontextholder) ved henting av index.html hvis url-en inneholder et FNR som første del av pathen, feks `/:fnr/vis/aktivitet/123`. Dette kan kun brukes sammen med GCP config og fallback strategy SERVE_INDEX_HTML. Fnr blir fjernet fra pathen på vei inn til appen fordi MAN SKAL IKKE HA FNR I URLER!
+nks-bob-frontend-server kan settes til å sette aktivt fnr i modia-context (POST kall på /context på modiacontextholder) ved henting av index.html hvis url-en inneholder et FNR som første del av pathen, feks `/:fnr/vis/aktivitet/123`. Dette kan kun brukes sammen med GCP config og fallback strategy SERVE_INDEX_HTML. Fnr blir fjernet fra pathen på vei inn til appen fordi MAN SKAL IKKE HA FNR I URLER!
 ```json
 {
   "enableModiaContextUpdater": {
@@ -363,7 +367,7 @@ metadata:
   labels:
     team: my-team
 spec:
-  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend:<latest-version>
+  image: europe-north1-docker.pkg.dev/nais-management-233d/nks-aiautomatisering/nks-bob-frontend-server:<latest-version>
   port: 8080
   ingresses:
     - https://my-application.dev.nav.no
@@ -429,7 +433,7 @@ metadata:
   labels:
     team: my-team
 spec:
-  image: europe-north1-docker.pkg.dev/nais-management-233d/poao/poao-frontend:<latest-version>
+  image: europe-north1-docker.pkg.dev/nais-management-233d/nks-aiautomatisering/nks-bob-frontend-server:<latest-version>
   port: 8080
   ingresses:
     - https://my-application.dev.intern.nav.no

@@ -23,7 +23,7 @@ import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
 const app: express.Application = express();
 
 async function startServer() {
-	logger.info('Starting poao-frontend');
+	logger.info('Starting nks-bob-frontend-server');
 	const appConfig = createAppConfig();
 	const { base, cors, gcs, auth, proxy, redirect, dekorator } = appConfig;
 	logAppConfig(appConfig);
@@ -38,14 +38,14 @@ async function startServer() {
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
 
 	app.use(compression({
-    filter: (req: express.Request, res: express.Response) => {
-      // Don't compress server sent events.
-      if (req.headers["accept"] === "text/event-stream") {
-        return false;
-      }
-      return compression.filter(req, res);
-    },
-  }));
+		filter: (req: express.Request, res: express.Response) => {
+			// Don't compress server sent events.
+			if (req.headers["accept"] === "text/event-stream") {
+				return false;
+			}
+			return compression.filter(req, res);
+		},
+	}));
 
 	if (cors.origin) {
 		app.use(corsMiddleware({
