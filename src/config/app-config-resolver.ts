@@ -147,6 +147,7 @@ export namespace JsonConfig {
       namespace?: string;
       cluster?: string;
     };
+    ws?: boolean;
   }
 
   export interface Redirect {

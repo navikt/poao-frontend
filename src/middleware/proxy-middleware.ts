@@ -4,16 +4,17 @@ import { logger } from '../utils/logger.js';
 import { Proxy } from '../config/proxy-config.js';
 import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
 import { APP_NAME } from "../config/base-config.js";
-import {normalizePathParams} from "../utils/logger.js";
+import { normalizePathParams } from "../utils/logger.js";
 
 export const proxyMiddleware = (proxyContextPath: string, proxy: Proxy): RequestHandler => {
 	return createProxyMiddleware({
-		target: `${proxy.toUrl}${proxy.preserveFromPath ? proxyContextPath : ''}` ,
+		target: `${proxy.toUrl}${proxy.preserveFromPath ? proxyContextPath : ''}`,
 		headers: {
 			[CONSUMER_ID]: APP_NAME,
 		},
 		// logger, // Enable this to log each proxied call
 		changeOrigin: true,
+		ws: proxy.ws,
 		on: {
 			error: (error, _request, _response) => {
 				logger.error({

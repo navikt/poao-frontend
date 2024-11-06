@@ -10,6 +10,7 @@ export interface Proxy {
 	toUrl: string;
 	toApp?: ProxyApp;
 	preserveFromPath: boolean; // If true, 'fromPath' will be prepended to the request path before sending to 'toUrl'
+	ws?: boolean;
 }
 
 export interface ProxyApp {
@@ -56,7 +57,8 @@ const toPartialProxy = (proxy: JsonConfig.Proxy): Partial<Proxy> => {
 		fromPath: proxy.fromPath,
 		toUrl: proxy.toUrl,
 		preserveFromPath: proxy.preserveFromPath,
-		toApp: toApp
+		toApp: toApp,
+		ws: proxy.ws
 	};
 
 	if (proxy.preserveFromPath == null) {
