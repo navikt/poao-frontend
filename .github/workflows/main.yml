@@ -2,6 +2,7 @@ name: Build and push to registry
 on:
   push:
   workflow_dispatch: # Manual trigger
+  pull_request:
 
 jobs:
   test:
