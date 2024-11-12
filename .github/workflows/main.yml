@@ -90,6 +90,8 @@ jobs:
         run: docker pull ${{ needs.test-build-and-push.outputs.image }}
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
+        env: # Workaround for rate limiting inntil denne er fikset: https://github.com/aquasecurity/trivy-action/issues/389
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
         with:
           image-ref: "${{ needs.test-build-and-push.outputs.image }}"
           format: "sarif"
