@@ -21,7 +21,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.13.0",
     "@navikt/nav-dekoratoren-moduler": "2.1.6",
-    "compression": "1.7.4",
+    "compression": "1.7.5",
     "cors": "2.8.5",
     "express": "4.21.1",
     "helmet": "7.1.0",
