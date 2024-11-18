@@ -34,7 +34,7 @@
     "openid-client": "5.6.5",
     "url-join": "5.0.0",
     "uuid": "9.0.1",
-    "winston": "3.15.0"
+    "winston": "3.17.0"
   },
   "devDependencies": {
     "@types/compression": "1.7.5",
