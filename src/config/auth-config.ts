@@ -112,11 +112,11 @@ const resolveRedisConfig = (redisConfig: JsonConfig.AuthConfig['tokenCacheConfig
 
 	const redisInstanceName = redisConfig.valkeyInstanceName;
 
-	const uri	 = assert('REDIS_URI_' + redisInstanceName) // The URI for the instance
-	const host	 = assert('REDIS_HOST_' + redisInstanceName) // The host for the instance
-	const port	 = assert('REDIS_PORT_' + redisInstanceName) // The port for the instance
-	const username	 = assert('REDIS_USERNAME_' + redisInstanceName) // The username to use when connecting.
-	const password	 = assert('REDIS_PASSWORD_' + redisInstanceName) // The password to use when connecting.
+	const uri	 = assert(process.env['REDIS_URI_' + redisInstanceName]) // The URI for the instance
+	const host	 = assert(process.env['REDIS_HOST_' + redisInstanceName]) // The host for the instance
+	const port	 = assert(process.env['REDIS_PORT_' + redisInstanceName]) // The port for the instance
+	const username	 = assert(process.env['REDIS_USERNAME_' + redisInstanceName]) // The username to use when connecting.
+	const password	 = assert(process.env['REDIS_PASSWORD_' + redisInstanceName]) // The password to use when connecting.
 
 	return {
 		uri,
