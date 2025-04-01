@@ -1,4 +1,4 @@
-FROM node:20-alpine3.20 AS builder
+FROM node:22-alpine3.21 AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN npm config set @navikt:registry=https://npm.pkg.github.com
 RUN npm ci
 RUN npm run build
 
-FROM node:20-alpine3.20
+FROM node:22-alpine3.21
 
 LABEL org.opencontainers.image.source="https://github.com/navikt/poao-frontend"
 
