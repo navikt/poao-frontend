@@ -19,6 +19,16 @@ export interface AuthConfig {
 
 	oboProviderType: OboProviderType;
 	oboProvider: OAuthProvider;
+
+	redisConfig?: RedisConfig
+}
+
+export interface RedisConfig {
+	username: string,
+	password: string,
+	host: string,
+	uri: string,
+	port: string
 }
 
 export interface OAuthProvider {
@@ -45,22 +55,26 @@ export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefi
 
 	if (loginProvider === LoginProviderType.AZURE_AD) {
 		const azureAdProvider = resolveAzureAdProvider();
+		const redisConfig = resolveRedisConfig(authJsonConfig?.tokenCacheConfig)
 
 		return {
 			loginProviderType: LoginProviderType.AZURE_AD,
 			loginProvider: azureAdProvider,
 			oboProviderType: OboProviderType.AZURE_AD,
-			oboProvider: azureAdProvider
+			oboProvider: azureAdProvider,
+			redisConfig,
 		}
 	} else if (loginProvider === LoginProviderType.ID_PORTEN) {
 		const idPortenProvider = resolveIdPortenProvider();
 		const tokenXProvider = resolveTokenXProvider();
+		const redisConfig = resolveRedisConfig(authJsonConfig?.tokenCacheConfig)
 
 		return {
 			loginProviderType: LoginProviderType.ID_PORTEN,
 			loginProvider: idPortenProvider,
 			oboProviderType: OboProviderType.TOKEN_X,
-			oboProvider: tokenXProvider
+			oboProvider: tokenXProvider,
+			redisConfig
 		}
 	}
 
@@ -90,3 +104,25 @@ const resolveTokenXProvider = (): OAuthProvider => {
 
 	return { clientId, discoveryUrl, privateJwk };
 };
+
+const resolveRedisConfig = (redisConfig: JsonConfig.AuthConfig['tokenCacheConfig'] | undefined) => {
+	if (!redisConfig) {
+		return undefined;
+	}
+
+	const redisInstanceName = redisConfig.valkeyInstanceName;
+
+	const uri	 = assert('REDIS_URI_' + redisInstanceName) // The URI for the instance
+	const host	 = assert('REDIS_HOST_' + redisInstanceName) // The host for the instance
+	const port	 = assert('REDIS_PORT_' + redisInstanceName) // The port for the instance
+	const username	 = assert('REDIS_USERNAME_' + redisInstanceName) // The username to use when connecting.
+	const password	 = assert('REDIS_PASSWORD_' + redisInstanceName) // The password to use when connecting.
+
+	return {
+		uri,
+		host,
+		port,
+		username,
+		password
+	}
+}
