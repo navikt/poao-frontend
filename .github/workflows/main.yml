@@ -45,11 +45,13 @@ jobs:
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
-        run: npm ci --omit=dev
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
       - name: Run tests
         run: npm test
+      - name: npm prune
+        run: npm prune
       - name: Push docker image to GAR
         if: github.event_name == 'push' && github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
         uses: nais/docker-build-push@v0
