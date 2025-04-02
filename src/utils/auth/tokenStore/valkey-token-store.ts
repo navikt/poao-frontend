@@ -25,7 +25,7 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
                 .then(result => {
                     try {
                         if (result) {
-                            return JSON.parse(result) as OboToken
+                            return { accessToken: result } as OboToken
                         } else {
                             return undefined
                         }
@@ -41,7 +41,7 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
         },
         setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
             try {
-                await valkey.setex(createOboTokenKey(userId, appIdentifier), expiresInSeconds, JSON.stringify(oboToken))
+                await valkey.setex(createOboTokenKey(userId, appIdentifier), expiresInSeconds, oboToken.accessToken)
             } catch (e) {
                 logger.error("Error setting OboToken in Valkey", e)
             }
