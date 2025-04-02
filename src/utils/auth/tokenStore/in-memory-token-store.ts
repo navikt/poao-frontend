@@ -8,7 +8,7 @@ function createOboTokenKey(userId: string, appIdentifier: string): string {
 }
 
 export const createInMemoryCache = () => {
-	const cache = new NodeCache<string, OboToken>({
+	const cache = new NodeCache({
 		stdTTL: minutesToSeconds(55)
 	});
 
