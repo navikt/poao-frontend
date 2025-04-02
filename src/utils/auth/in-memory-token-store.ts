@@ -29,10 +29,13 @@ const createInMemoryCache = () => {
 
 const configureValkey = (valkeyConfig: ValkeyConfig) => {
 	const options: RedisOptions = {
-		host: valkeyConfig.host,
-		port: Number(valkeyConfig.port),
+		tls: {
+			host: valkeyConfig.host,
+			port: Number(valkeyConfig.port),
+		},
 		password: valkeyConfig.password,
 		username: valkeyConfig.username,
+		maxRetriesPerRequest: 3
 	}
 	return new Redis(options)
 }
