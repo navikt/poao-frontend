@@ -1,25 +1,39 @@
 import {OboToken} from '../auth-token-utils.js';
 import NodeCache from 'node-cache';
 import {minutesToSeconds} from '../../utils.js';
+import {logger} from "../../logger.js";
 
 function createOboTokenKey(userId: string, appIdentifier: string): string {
 	return `${userId}_${appIdentifier}`;
 }
 
 export const createInMemoryCache = () => {
-	const cache = new NodeCache({
+	const cache = new NodeCache<string, OboToken>({
 		stdTTL: minutesToSeconds(55)
 	});
 
 	return {
 		getUserOboToken: async (userId: string, appIdentifier: string): Promise<OboToken | undefined> => {
-			return cache.get(createOboTokenKey(userId, appIdentifier))
+			try {
+				return cache.get(createOboTokenKey(userId, appIdentifier))
+			} catch (e) {
+				logger.warn("Failed to get OboToken from in-memory cache", e)
+				return undefined
+			}
 		},
 		setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
-			cache.set(createOboTokenKey(userId, appIdentifier), oboToken, expiresInSeconds)
+			try {
+				cache.set(createOboTokenKey(userId, appIdentifier), oboToken, expiresInSeconds)
+			} catch (e) {
+				logger.warn("Failed to set OboToken in in-memory cache", e)
+			}
 		},
 		deleteUserOboToken: async (userId: string, appIdentifier: string) => {
-			cache.del(createOboTokenKey(userId, appIdentifier))
+			try {
+				cache.del(createOboTokenKey(userId, appIdentifier))
+			} catch (e) {
+				logger.warn("Failed to delete OboToken from in-memory cache", e)
+			}
 		}
 	}
 }
