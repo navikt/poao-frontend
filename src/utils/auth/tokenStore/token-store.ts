@@ -19,4 +19,5 @@ export interface OboTokenStore {
     getUserOboToken: (userId: string, appIdentifier: string) => Promise<OboToken | undefined>;
     setUserOboToken: (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
     deleteUserOboToken: (userId: string, appIdentifier: string) => Promise<void>;
+    close: () => Promise<void>;
 }

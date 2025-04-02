@@ -89,6 +89,11 @@ async function startServer() {
 					proxyMiddleware(proxyFrom, proxy)
 				);
 			});
+			process.on('SIGTERM', async () => {
+				logger.info('SIGTERM signal received: closing Valkey connection');
+				await oboTokenStore.close();
+				logger.info('Valkey connection closed');
+			});
 		}
 	} else {
 		proxy.proxies.forEach(proxy => {

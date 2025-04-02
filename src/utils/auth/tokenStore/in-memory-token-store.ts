@@ -34,6 +34,7 @@ export const createInMemoryCache = () => {
 			} catch (e) {
 				logger.warn("Failed to delete OboToken from in-memory cache", e)
 			}
-		}
+		},
+		close: async () => {}
 	}
 }

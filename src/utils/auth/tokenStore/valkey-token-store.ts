@@ -53,5 +53,12 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
                 logger.error("Error deleting OboToken from Valkey", e)
             }
         },
+        close: async () => {
+            try {
+                await valkey.quit()
+            } catch (e) {
+                logger.error("Error closing Valkey connection", e)
+            }
+        }
     }
 }
