@@ -110,7 +110,7 @@ const resolveRedisConfig = (redisConfig: JsonConfig.AuthConfig['tokenCacheConfig
 		return undefined;
 	}
 
-	const redisInstanceName = redisConfig.valkeyInstanceName;
+	const redisInstanceName = redisConfig.valkeyInstanceName.toLocaleUpperCase();
 
 	const uri	 = assert(process.env['REDIS_URI_' + redisInstanceName]) // The URI for the instance
 	const host	 = assert(process.env['REDIS_HOST_' + redisInstanceName]) // The host for the instance
