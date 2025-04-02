@@ -2,12 +2,13 @@ import {OboToken} from '../auth-token-utils.js';
 import NodeCache from 'node-cache';
 import {minutesToSeconds} from '../../utils.js';
 import {logger} from "../../logger.js";
+import {OboTokenStore} from "./token-store.js";
 
 function createOboTokenKey(userId: string, appIdentifier: string): string {
 	return `${userId}_${appIdentifier}`;
 }
 
-export const createInMemoryCache = () => {
+export const createInMemoryCache = (): OboTokenStore => {
 	const cache = new NodeCache({
 		stdTTL: minutesToSeconds(55)
 	});
@@ -35,6 +36,8 @@ export const createInMemoryCache = () => {
 				logger.warn("Failed to delete OboToken from in-memory cache", e)
 			}
 		},
-		close: async () => {}
+
+		close: async () => {},
+		cacheType: 'in-memory'
 	}
 }

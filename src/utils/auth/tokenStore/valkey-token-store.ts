@@ -59,6 +59,7 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
             } catch (e) {
                 logger.error("Error closing Valkey connection", e)
             }
-        }
+        },
+        cacheType: 'valkey'
     }
 }

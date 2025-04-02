@@ -87,7 +87,7 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 		await oboTokenStore.setUserOboToken(tokenSubject, scope, expiresInSecondWithClockSkew, oboToken);
 	} else {
 		logger.info({
-			message: `On-behalf-of fetched from in-memory cache`,
+			message: `On-behalf-of fetched from ${oboTokenStore.cacheType} cache`,
 			callId: req.headers[CALL_ID],
 			consumerId: req.headers[CONSUMER_ID]
 		});
