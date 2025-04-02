@@ -10,7 +10,6 @@ import { createAppConfig, logAppConfig } from './config/app-config-resolver.js';
 import { fallbackRoute } from './route/fallback-route.js';
 import { pingRoute } from './route/ping-route.js';
 import { errorHandlerMiddleware } from './middleware/error-handler-middleware.js';
-import { createTokenStore } from './utils/auth/in-memory-token-store.js';
 import { createTokenValidator, mapLoginProviderTypeToValidatorType } from './utils/auth/token-validator.js';
 import { createClient, createIssuer } from './utils/auth/auth-client-utils.js';
 import { createJWKS } from './utils/auth/auth-config-utils.js';
@@ -19,6 +18,7 @@ import { oboMiddleware } from './middleware/obo-middleware.js';
 import { authInfoRoute } from './route/auth-info-route.js';
 import { proxyMiddleware } from './middleware/proxy-middleware.js';
 import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
+import {createTokenStore} from "./utils/auth/tokenStore/token-store.js";
 
 const app: express.Application = express();
 

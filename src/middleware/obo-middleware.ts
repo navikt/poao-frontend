@@ -5,7 +5,7 @@ import {
 	getAccessToken,
 	getExpiresInSecondWithClockSkew,
 	getTokenSubject,
-	OboTokenStore, WONDERWALL_ID_TOKEN_HEADER
+	WONDERWALL_ID_TOKEN_HEADER
 } from '../utils/auth/auth-token-utils.js';
 import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils.js';
 import { getSecondsUntil } from '../utils/date-utils.js';
@@ -16,6 +16,7 @@ import { TokenValidator } from '../utils/auth/token-validator.js';
 import { createAzureAdScope, createTokenXScope } from '../utils/auth/auth-config-utils.js';
 import { Request } from "express";
 import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
+import {OboTokenStore} from "../utils/auth/tokenStore/token-store.js";
 
 interface ProxyOboMiddlewareParams {
 	authConfig: AuthConfig;

@@ -2,7 +2,6 @@ import { LoginProviderType, OboProviderType, resolveAzureAdProvider } from "../.
 import { createTokenValidator, mapLoginProviderTypeToValidatorType } from "../auth/token-validator.js";
 import { createClient, createIssuer } from "../auth/auth-client-utils.js";
 import { createJWKS } from "../auth/auth-config-utils.js";
-import { createTokenStore } from "../auth/in-memory-token-store.js";
 import { Request } from "express";
 import { setOBOTokenOnRequest } from "../../middleware/obo-middleware.js";
 import { logger } from "../logger.js";
@@ -10,6 +9,7 @@ import { JsonConfig } from "../../config/app-config-resolver.js";
 import { AUTHORIZATION_HEADER } from "../auth/auth-token-utils.js";
 import { CALL_ID, CONSUMER_ID } from "../../middleware/tracingMiddleware.js";
 import { APP_NAME } from "../../config/base-config.js";
+import {createTokenStore} from "../auth/tokenStore/token-store.js";
 
 const createModiacontextHolderConfig = async () => {
     const azureAdProvider = resolveAzureAdProvider()
