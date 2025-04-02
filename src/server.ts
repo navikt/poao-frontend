@@ -119,7 +119,15 @@ async function startServer() {
 		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
 
-	app.listen(base.port, () => logger.info('Server started successfully'));
+	const server = app.listen(base.port, () => logger.info('Server started successfully'));
+
+	process.on('SIGTERM', () => {
+		logger.info('SIGTERM signal received: closing HTTP server');
+		server.close(() => {
+			logger.info('HTTP server closed');
+		});
+	});
+
 }
 
 startServer()
