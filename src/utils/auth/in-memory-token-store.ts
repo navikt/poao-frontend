@@ -21,24 +21,27 @@ const createInMemoryCache = () => {
 		setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
 			cache.set(createOboTokenKey(userId, appIdentifier), oboToken, expiresInSeconds)
 		},
+		deleteUserOboToken: async (userId: string, appIdentifier: string) => {
+			cache.del(createOboTokenKey(userId, appIdentifier))
+		}
 	}
 }
 
-const configureRedis = (redisConfig: ValkeyConfig) => {
+const configureValkey = (valkeyConfig: ValkeyConfig) => {
 	const options: RedisOptions = {
-		host: redisConfig.host,
-		port: Number(redisConfig.port),
-		password: redisConfig.password,
-		username: redisConfig.username,
+		host: valkeyConfig.host,
+		port: Number(valkeyConfig.port),
+		password: valkeyConfig.password,
+		username: valkeyConfig.username,
 	}
 	return new Redis(options)
 }
 
-const createRedisCache = (redisConfig: ValkeyConfig): OboTokenStore => {
-	const redis = configureRedis(redisConfig)
+const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => {
+	const valkey = configureValkey(valkeyConfig)
 	return {
 		getUserOboToken: async (userId: string, appIdentifier: string): Promise<OboToken | undefined> => {
-			return redis.get(createOboTokenKey(userId, appIdentifier))
+			return valkey.get(createOboTokenKey(userId, appIdentifier))
 				.then(result => {
 					try {
 						if (result) {
@@ -57,14 +60,25 @@ const createRedisCache = (redisConfig: ValkeyConfig): OboTokenStore => {
 				})
 		},
 		setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
-			await redis.setex(createOboTokenKey(userId, appIdentifier), JSON.stringify(oboToken), expiresInSeconds)
+			try {
+				await valkey.setex(createOboTokenKey(userId, appIdentifier), JSON.stringify(oboToken), expiresInSeconds)
+			} catch (e) {
+				logger.error("Error setting OboToken in Valkey", e)
+			}
+		},
+		deleteUserOboToken: async (userId: string, appIdentifier: string) => {
+			try {
+				await valkey.del(createOboTokenKey(userId, appIdentifier))
+			} catch (e) {
+				logger.error("Error deleting OboToken from Valkey", e)
+			}
 		},
 	}
 }
 
-export function createTokenStore(redisConfig: ValkeyConfig | undefined): OboTokenStore {
-	if (redisConfig) {
-		return createRedisCache(redisConfig)
+export function createTokenStore(valkeyConfig: ValkeyConfig | undefined): OboTokenStore {
+	if (valkeyConfig) {
+		return createValkeyCache(valkeyConfig)
 	} else {
 		return createInMemoryCache()
 	}

@@ -55,14 +55,14 @@ export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefi
 
 	if (loginProvider === LoginProviderType.AZURE_AD) {
 		const azureAdProvider = resolveAzureAdProvider();
-		const redisConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
+		const valkeyConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
 
 		return {
 			loginProviderType: LoginProviderType.AZURE_AD,
 			loginProvider: azureAdProvider,
 			oboProviderType: OboProviderType.AZURE_AD,
 			oboProvider: azureAdProvider,
-			valkeyConfig: redisConfig,
+			valkeyConfig,
 		}
 	} else if (loginProvider === LoginProviderType.ID_PORTEN) {
 		const idPortenProvider = resolveIdPortenProvider();
