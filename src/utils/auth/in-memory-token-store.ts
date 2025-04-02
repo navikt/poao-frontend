@@ -64,6 +64,7 @@ const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => {
 		},
 		setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
 			try {
+				logger.debug(`Setting OboToken in Valkey with expiry seconds ${expiresInSeconds}`)
 				await valkey.setex(createOboTokenKey(userId, appIdentifier), JSON.stringify(oboToken), expiresInSeconds)
 			} catch (e) {
 				logger.error("Error setting OboToken in Valkey", e)
