@@ -24,7 +24,7 @@ const createModiacontextHolderConfig = async () => {
     const oboIssuer = await createIssuer(authConfig.oboProvider.discoveryUrl);
     const oboTokenClient = createClient(oboIssuer, authConfig.oboProvider.clientId, createJWKS(authConfig.oboProvider.privateJwk));
     return {
-        tokenStore: createTokenStore(),
+        tokenStore: createTokenStore(undefined),
         authConfig,
         tokenValidator,
         oboTokenClient,

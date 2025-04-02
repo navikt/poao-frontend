@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN --mount=type=secret,id=NODE_AUTH_TOKEN \
-    npm config set //npm.pkg.github.com/:_authToken=$(cat /run/secrets/NODE_AUTH_TOKEN)
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN \
+    npm config set //npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN
 RUN npm config set @navikt:registry=https://npm.pkg.github.com
 
 RUN npm ci

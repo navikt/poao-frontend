@@ -51,8 +51,11 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Push docker image to GAR
+        if: github.event_name == 'push' && github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
         uses: nais/docker-build-push@v0
         id: docker-build-push
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
         with:
           team: poao
       - name: Create release
