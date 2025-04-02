@@ -78,7 +78,7 @@ async function startServer() {
 		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
 
 		if (proxy.proxies.length > 0) {
-			const oboTokenStore = createTokenStore(auth.redisConfig);
+			const oboTokenStore = createTokenStore(auth.valkeyConfig);
 			const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
 			const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
 			proxy.proxies.forEach(proxy => {

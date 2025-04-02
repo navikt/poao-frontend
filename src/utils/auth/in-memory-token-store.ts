@@ -1,8 +1,9 @@
 import {OboToken, OboTokenStore} from './auth-token-utils.js';
 import NodeCache from 'node-cache';
 import {minutesToSeconds} from '../utils.js';
-import {RedisConfig} from "../../config/auth-config.js";
+import {ValkeyConfig} from "../../config/auth-config.js";
 import {Redis, RedisOptions} from 'iovalkey'
+import {logger} from "../logger.js";
 
 function createOboTokenKey(userId: string, appIdentifier: string): string {
 	return `${userId}_${appIdentifier}`;
@@ -23,7 +24,7 @@ const createInMemoryCache = () => {
 	}
 }
 
-const configureRedis = (redisConfig: RedisConfig) => {
+const configureRedis = (redisConfig: ValkeyConfig) => {
 	const options: RedisOptions = {
 		host: redisConfig.host,
 		port: Number(redisConfig.port),
@@ -33,15 +34,25 @@ const configureRedis = (redisConfig: RedisConfig) => {
 	return new Redis(options)
 }
 
-const createRedisCache = (redisConfig: RedisConfig): OboTokenStore => {
+const createRedisCache = (redisConfig: ValkeyConfig): OboTokenStore => {
 	const redis = configureRedis(redisConfig)
 	return {
 		getUserOboToken: async (userId: string, appIdentifier: string): Promise<OboToken | undefined> => {
 			return redis.get(createOboTokenKey(userId, appIdentifier))
 				.then(result => {
-					if (result) {
-						return JSON.parse(result) as OboToken
+					try {
+						if (result) {
+							return JSON.parse(result) as OboToken
+						} else {
+							return undefined
+						}
+					} catch (e) {
+						logger.error("Error parsing OboToken from Valkey", e)
+						return undefined
 					}
+				})
+				.catch((error) => {
+					logger.error("Error getting OboToken from Valkey", error)
 					return undefined
 				})
 		},
@@ -51,7 +62,7 @@ const createRedisCache = (redisConfig: RedisConfig): OboTokenStore => {
 	}
 }
 
-export function createTokenStore(redisConfig: RedisConfig | undefined): OboTokenStore {
+export function createTokenStore(redisConfig: ValkeyConfig | undefined): OboTokenStore {
 	if (redisConfig) {
 		return createRedisCache(redisConfig)
 	} else {
