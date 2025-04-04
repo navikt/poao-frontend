@@ -20,11 +20,6 @@ export interface OboToken {
 	accessToken: string; // The OBO token
 }
 
-export interface OboTokenStore {
-	getUserOboToken: (userId: string, appIdentifier: string) => Promise<OboToken | undefined>;
-	setUserOboToken: (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
-}
-
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {
 	return expiresInSeconds - EXPIRE_BEFORE_SECONDS;
 };

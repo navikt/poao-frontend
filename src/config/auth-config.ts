@@ -19,6 +19,16 @@ export interface AuthConfig {
 
 	oboProviderType: OboProviderType;
 	oboProvider: OAuthProvider;
+
+	valkeyConfig?: ValkeyConfig
+}
+
+export interface ValkeyConfig {
+	username: string,
+	password: string,
+	host: string,
+	uri: string,
+	port: string
 }
 
 export interface OAuthProvider {
@@ -45,22 +55,26 @@ export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefi
 
 	if (loginProvider === LoginProviderType.AZURE_AD) {
 		const azureAdProvider = resolveAzureAdProvider();
+		const valkeyConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
 
 		return {
 			loginProviderType: LoginProviderType.AZURE_AD,
 			loginProvider: azureAdProvider,
 			oboProviderType: OboProviderType.AZURE_AD,
-			oboProvider: azureAdProvider
+			oboProvider: azureAdProvider,
+			valkeyConfig,
 		}
 	} else if (loginProvider === LoginProviderType.ID_PORTEN) {
 		const idPortenProvider = resolveIdPortenProvider();
 		const tokenXProvider = resolveTokenXProvider();
+		const valkeyConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
 
 		return {
 			loginProviderType: LoginProviderType.ID_PORTEN,
 			loginProvider: idPortenProvider,
 			oboProviderType: OboProviderType.TOKEN_X,
-			oboProvider: tokenXProvider
+			oboProvider: tokenXProvider,
+			valkeyConfig
 		}
 	}
 
@@ -90,3 +104,25 @@ const resolveTokenXProvider = (): OAuthProvider => {
 
 	return { clientId, discoveryUrl, privateJwk };
 };
+
+const resolveValkeyConfig = (valkeyConfig: JsonConfig.AuthConfig['tokenCacheConfig'] | undefined) => {
+	if (!valkeyConfig) {
+		return undefined;
+	}
+
+	const redisInstanceName = valkeyConfig.valkeyInstanceName.toLocaleUpperCase();
+
+	const uri	 = assert(process.env['VALKEY_URI_' + redisInstanceName]) // The URI for the instance
+	const host	 = assert(process.env['VALKEY_HOST_' + redisInstanceName]) // The host for the instance
+	const port	 = assert(process.env['VALKEY_PORT_' + redisInstanceName]) // The port for the instance
+	const username	 = assert(process.env['VALKEY_USERNAME_' + redisInstanceName]) // The username to use when connecting.
+	const password	 = assert(process.env['VALKEY_PASSWORD_' + redisInstanceName]) // The password to use when connecting.
+
+	return {
+		uri,
+		host,
+		port,
+		username,
+		password
+	}
+}

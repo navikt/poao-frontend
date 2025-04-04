@@ -98,6 +98,9 @@ export namespace JsonConfig {
 
   export interface AuthConfig {
     loginProvider?: string;
+    tokenCacheConfig?: {
+      valkeyInstanceName: string
+    }
   }
 
   export interface CorsConfig {

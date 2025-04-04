@@ -14,7 +14,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
@@ -41,7 +41,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
@@ -50,18 +50,19 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
       - name: Run tests
         run: npm test
+      - name: npm prune
+        run: npm prune
+      - name: Build application
+        run: npm run build
       - name: Create image tag
         run: echo "IMAGE_TAG=$(TZ=\"Europe/Oslo\" date +%Y.%m.%d_%H.%M)-$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
-      - name: Push docker image to GAR and sign image
+      - name: Push docker image to GAR
         if: github.event_name == 'push' && github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
         uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
           team: poao
           tag: ${{ env.IMAGE_TAG }}
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          build_secrets: NODE_AUTH_TOKEN=${{ secrets.READER_TOKEN }}
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
@@ -69,36 +70,3 @@ jobs:
           tag_name: ${{ env.IMAGE_TAG }}
           target_commitish: main
           prerelease: false
-
-  trivy-scan:
-    name: Vulnerability scan with Trivy
-    runs-on: ubuntu-latest
-    needs: test-build-and-push
-    permissions:
-      contents: write # to write sarif
-      security-events: write # push sarif to github security
-      id-token: write # for nais/login
-      actions: read # for private repositories
-    steps:
-      - uses: actions/checkout@v4
-      - uses: nais/login@v0
-        with:
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
-          team: poao
-      - name: Pull docker image
-        run: docker pull ${{ needs.test-build-and-push.outputs.image }}
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        env: # Workaround for rate limiting inntil denne er fikset: https://github.com/aquasecurity/trivy-action/issues/389
-          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
-        with:
-          image-ref: "${{ needs.test-build-and-push.outputs.image }}"
-          format: "sarif"
-          output: "trivy.sarif"
-          severity: "HIGH,CRITICAL"
-          limit-severities-for-sarif: true
-      - name: Upload results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: "trivy.sarif"

@@ -10,7 +10,6 @@ import { createAppConfig, logAppConfig } from './config/app-config-resolver.js';
 import { fallbackRoute } from './route/fallback-route.js';
 import { pingRoute } from './route/ping-route.js';
 import { errorHandlerMiddleware } from './middleware/error-handler-middleware.js';
-import { createTokenStore } from './utils/auth/in-memory-token-store.js';
 import { createTokenValidator, mapLoginProviderTypeToValidatorType } from './utils/auth/token-validator.js';
 import { createClient, createIssuer } from './utils/auth/auth-client-utils.js';
 import { createJWKS } from './utils/auth/auth-config-utils.js';
@@ -19,6 +18,7 @@ import { oboMiddleware } from './middleware/obo-middleware.js';
 import { authInfoRoute } from './route/auth-info-route.js';
 import { proxyMiddleware } from './middleware/proxy-middleware.js';
 import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
+import {createTokenStore} from "./utils/auth/tokenStore/token-store.js";
 
 const app: express.Application = express();
 
@@ -78,7 +78,7 @@ async function startServer() {
 		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
 
 		if (proxy.proxies.length > 0) {
-			const oboTokenStore = createTokenStore();
+			const oboTokenStore = createTokenStore(auth.valkeyConfig);
 			const oboIssuer = await createIssuer(auth.oboProvider.discoveryUrl);
 			const oboTokenClient = createClient(oboIssuer, auth.oboProvider.clientId, createJWKS(auth.oboProvider.privateJwk));
 			proxy.proxies.forEach(proxy => {
@@ -88,6 +88,11 @@ async function startServer() {
 					oboMiddleware({ authConfig: auth, proxy, oboTokenStore, oboTokenClient, tokenValidator }),
 					proxyMiddleware(proxyFrom, proxy)
 				);
+			});
+			process.on('SIGTERM', async () => {
+				logger.info('SIGTERM signal received: closing Valkey connection');
+				await oboTokenStore.close();
+				logger.info('Valkey connection closed');
 			});
 		}
 	} else {
@@ -119,7 +124,15 @@ async function startServer() {
 		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
 
-	app.listen(base.port, () => logger.info('Server started successfully'));
+	const server = app.listen(base.port, () => logger.info('Server started successfully'));
+
+	process.on('SIGTERM', () => {
+		logger.info('SIGTERM signal received: closing HTTP server');
+		server.close(() => {
+			logger.info('HTTP server closed');
+		});
+	});
+
 }
 
 startServer()

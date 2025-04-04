@@ -28,7 +28,10 @@ miljøvariablen **JSON_CONFIG** eller ved å lagre konfigurasjonen i filen **/ap
   "serveFromPath": "/app/public",
   "enableSecureLogs": false,
   "auth": {
-    "loginProvider": "ID_PORTEN"
+    "loginProvider": "ID_PORTEN",
+    "tokenCacheConfig": {
+      "valkeyInstanceName": "veilarbpersonflate"
+    }
   },
   "cors": {
     "origin": ["nav.no"],
@@ -345,6 +348,20 @@ POAO-frontend kan settes til å sette aktivt fnr i modia-context (POST kall på 
   "enableModiaContextUpdater": {
     "url": "https://modiacontextholder-q1.dev-fss-pub.nais.io",
     "scope": "api://dev-fss.personoversikt.modiacontextholder-q1/.default"
+  }
+}
+```
+
+### Token cache config (Valkey)
+Default er at obo-tokens caches for hver userId+app i en in-memory store via node-cache bibloteket, men dette gjør at tokens ikke caches på tvers av podder. POAO-frontend støtter global-cachnig på tvers av podder via Valkey (tidligere Redis), ved å sette valkeyInstanceName i tokenCacheConfig. Husk også å opprette en instans av Valkey via nais-fila. Dette støttes både for ID-porten og Azure login.
+
+```json
+{
+  "auth": {
+    "loginProvider": "ID_PORTEN",
+    "tokenCacheConfig": {
+      "valkeyInstanceName": "veilarbpersonflate"
+    }
   }
 }
 ```
