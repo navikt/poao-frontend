@@ -112,11 +112,11 @@ const resolveValkeyConfig = (valkeyConfig: JsonConfig.AuthConfig['tokenCacheConf
 
 	const redisInstanceName = valkeyConfig.valkeyInstanceName.toLocaleUpperCase();
 
-	const uri	 = assert(process.env['VALKEY_URI_' + redisInstanceName]) // The URI for the instance
-	const host	 = assert(process.env['VALKEY_HOST_' + redisInstanceName]) // The host for the instance
-	const port	 = assert(process.env['VALKEY_PORT_' + redisInstanceName]) // The port for the instance
-	const username	 = assert(process.env['VALKEY_USERNAME_' + redisInstanceName]) // The username to use when connecting.
-	const password	 = assert(process.env['VALKEY_PASSWORD_' + redisInstanceName]) // The password to use when connecting.
+	const uri = assert(process.env['VALKEY_URI_' + redisInstanceName]) // The URI for the instance
+	const host = assert(process.env['VALKEY_HOST_' + redisInstanceName]) // The host for the instance
+	const port = assert(process.env['VALKEY_PORT_' + redisInstanceName]) // The port for the instance
+	const username = assert(process.env['VALKEY_USERNAME_' + redisInstanceName]) // The username to use when connecting.
+	const password = assert(process.env['VALKEY_PASSWORD_' + redisInstanceName]) // The password to use when connecting.
 
 	return {
 		uri,

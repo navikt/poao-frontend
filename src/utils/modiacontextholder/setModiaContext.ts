@@ -9,7 +9,7 @@ import { JsonConfig } from "../../config/app-config-resolver.js";
 import { AUTHORIZATION_HEADER } from "../auth/auth-token-utils.js";
 import { CALL_ID, CONSUMER_ID } from "../../middleware/tracingMiddleware.js";
 import { APP_NAME } from "../../config/base-config.js";
-import {createTokenStore} from "../auth/tokenStore/token-store.js";
+import { createTokenStore } from "../auth/tokenStore/token-store.js";
 
 const createModiacontextHolderConfig = async () => {
     const azureAdProvider = resolveAzureAdProvider()

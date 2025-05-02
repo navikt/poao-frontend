@@ -1,8 +1,8 @@
-import {ValkeyConfig} from "../../../config/auth-config.js";
-import {Redis, RedisOptions} from "iovalkey";
-import {OboToken} from "../auth-token-utils.js";
-import {logger} from "../../logger.js";
-import {createOboTokenKey, OboTokenStore} from "./token-store.js";
+import { ValkeyConfig } from "../../../config/auth-config.js";
+import { Redis, RedisOptions } from "iovalkey";
+import { OboToken } from "../auth-token-utils.js";
+import { logger } from "../../logger.js";
+import { createOboTokenKey, OboTokenStore } from "./token-store.js";
 
 export const configureValkey = (valkeyConfig: ValkeyConfig) => {
     const options: RedisOptions = {

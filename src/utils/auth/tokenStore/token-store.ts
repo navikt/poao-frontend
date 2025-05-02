@@ -1,7 +1,7 @@
-import {ValkeyConfig} from "../../../config/auth-config.js";
-import {OboToken} from "../auth-token-utils.js";
-import {createValkeyCache} from "./valkey-token-store.js";
-import {createInMemoryCache} from "./in-memory-token-store.js";
+import { ValkeyConfig } from "../../../config/auth-config.js";
+import { OboToken } from "../auth-token-utils.js";
+import { createValkeyCache } from "./valkey-token-store.js";
+import { createInMemoryCache } from "./in-memory-token-store.js";
 
 export function createTokenStore(valkeyConfig: ValkeyConfig | undefined): OboTokenStore {
     if (valkeyConfig) {
@@ -11,7 +11,7 @@ export function createTokenStore(valkeyConfig: ValkeyConfig | undefined): OboTok
     }
 }
 
-export  function createOboTokenKey(userId: string, appIdentifier: string): string {
+export function createOboTokenKey(userId: string, appIdentifier: string): string {
     return `${userId}_${appIdentifier}`;
 }
 

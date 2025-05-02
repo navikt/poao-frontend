@@ -16,7 +16,7 @@ import { TokenValidator } from '../utils/auth/token-validator.js';
 import { createAzureAdScope, createTokenXScope } from '../utils/auth/auth-config-utils.js';
 import { Request } from "express";
 import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
-import {OboTokenStore} from "../utils/auth/tokenStore/token-store.js";
+import { OboTokenStore } from "../utils/auth/tokenStore/token-store.js";
 
 interface ProxyOboMiddlewareParams {
 	authConfig: AuthConfig;
