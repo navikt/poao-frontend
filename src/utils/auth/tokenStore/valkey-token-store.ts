@@ -1,8 +1,8 @@
-import { ValkeyConfig } from "../../../config/auth-config.js";
 import { Redis, RedisOptions } from "iovalkey";
-import { OboToken } from "../auth-token-utils.js";
+import { ValkeyConfig } from "../../../config/auth-config.js";
 import { logger } from "../../logger.js";
-import { createOboTokenKey, OboTokenStore } from "./token-store.js";
+import { OboToken } from "../auth-token-utils.js";
+import { OboTokenStore, OboTokenKey } from "./token-store.js";
 
 export const configureValkey = (valkeyConfig: ValkeyConfig) => {
     const options: RedisOptions = {
@@ -20,8 +20,8 @@ export const configureValkey = (valkeyConfig: ValkeyConfig) => {
 export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => {
     const valkey = configureValkey(valkeyConfig)
     return {
-        getUserOboToken: async (userId: string, appIdentifier: string): Promise<OboToken | undefined> => {
-            return valkey.get(createOboTokenKey(userId, appIdentifier))
+        getUserOboToken: async (key: OboTokenKey): Promise<OboToken | undefined> => {
+            return valkey.get(key)
                 .then(result => {
                     try {
                         if (result) {
@@ -39,16 +39,16 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
                     return undefined
                 })
         },
-        setUserOboToken: async (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => {
+        setUserOboToken: async (key: OboTokenKey, expiresInSeconds: number, oboToken: OboToken) => {
             try {
-                await valkey.setex(createOboTokenKey(userId, appIdentifier), expiresInSeconds, oboToken.accessToken)
+                await valkey.setex(key, expiresInSeconds, oboToken.accessToken)
             } catch (e) {
                 logger.error("Error setting OboToken in Valkey", e)
             }
         },
-        deleteUserOboToken: async (userId: string, appIdentifier: string) => {
+        deleteUserOboToken: async (key: OboTokenKey) => {
             try {
-                await valkey.del(createOboTokenKey(userId, appIdentifier))
+                await valkey.del(key)
             } catch (e) {
                 logger.error("Error deleting OboToken from Valkey", e)
             }
