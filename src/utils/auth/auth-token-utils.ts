@@ -52,7 +52,3 @@ export function extractTokenPayload(jwtToken: string): JsonData {
 		throw e;
 	}
 }
-
-export function getTokenSubject(jwtToken: string): string | undefined {
-	return extractTokenPayload(jwtToken).sub;
-}

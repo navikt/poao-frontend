@@ -1,22 +1,21 @@
-import { asyncMiddleware } from '../utils/express-utils.js';
-import { logger } from '../utils/logger.js';
+import { Request } from "express";
+import { BaseClient, Client } from 'openid-client';
+import { AuthConfig, OboProviderType } from '../config/auth-config.js';
+import { Proxy } from '../config/proxy-config.js';
+import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils.js';
+import { createAzureAdScope, createTokenXScope } from '../utils/auth/auth-config-utils.js';
 import {
 	AUTHORIZATION_HEADER,
 	getAccessToken,
 	getExpiresInSecondWithClockSkew,
-	getTokenSubject,
 	WONDERWALL_ID_TOKEN_HEADER
 } from '../utils/auth/auth-token-utils.js';
-import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils.js';
-import { getSecondsUntil } from '../utils/date-utils.js';
-import { AuthConfig, OboProviderType } from '../config/auth-config.js';
-import { Proxy } from '../config/proxy-config.js';
-import { BaseClient, Client } from 'openid-client';
 import { TokenValidator } from '../utils/auth/token-validator.js';
-import { createAzureAdScope, createTokenXScope } from '../utils/auth/auth-config-utils.js';
-import { Request } from "express";
+import { createOboTokenKey, OboTokenStore } from "../utils/auth/tokenStore/token-store.js";
+import { getSecondsUntil } from '../utils/date-utils.js';
+import { asyncMiddleware } from '../utils/express-utils.js';
+import { logger } from '../utils/logger.js';
 import { CALL_ID, CONSUMER_ID } from "./tracingMiddleware.js";
-import {OboTokenStore} from "../utils/auth/tokenStore/token-store.js";
 
 interface ProxyOboMiddlewareParams {
 	authConfig: AuthConfig;
@@ -59,13 +58,9 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 		return;
 	}
 
-	const tokenSubject = getTokenSubject(accessToken);
-	if (!tokenSubject) {
-		logger.error({ message: 'Unable to get subject from token', callId: req.headers[CALL_ID], consumerId: req.headers[CONSUMER_ID] });
-		return { status: 401 }
-	}
+	const oboTokenKey = createOboTokenKey(accessToken, scope)
 
-	let oboToken = await oboTokenStore.getUserOboToken(tokenSubject, scope);
+	let oboToken = await oboTokenStore.getUserOboToken(oboTokenKey);
 	if (!oboToken) {
 		const now = new Date().getTime()
 
@@ -84,7 +79,7 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 		const expiresInSeconds = getSecondsUntil(oboToken.expiresAt * 1000);
 		const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
 
-		await oboTokenStore.setUserOboToken(tokenSubject, scope, expiresInSecondWithClockSkew, oboToken);
+		await oboTokenStore.setUserOboToken(oboTokenKey, expiresInSecondWithClockSkew, oboToken);
 	} else {
 		logger.info({
 			message: `On-behalf-of fetched from ${oboTokenStore.cacheType} cache`,
