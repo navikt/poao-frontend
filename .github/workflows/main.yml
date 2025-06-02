@@ -6,6 +6,8 @@ on:
 jobs:
   test:
     name: Run tests
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     if: github.ref_name != 'main'
     steps:
