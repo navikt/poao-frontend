@@ -29,7 +29,7 @@ const maskedJsonFormat = format.printf((logEntry) => {
 	return jsonLog.replace(/(?<!\w|-)\d{11}(?!\w|-)/g, '<fnr>')
 });
 
-export function normalizePathParams(path: string) : string {
+export function normalizePathParams(path: string): string {
 	return path
 		.replace(/((?<!\w|-)\d+(?!\w|-))/g, '<id>')  // numerid id in path
 		.replace(/[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/g, '<uuid>') // uuid in path

@@ -1,7 +1,15 @@
-import {ValkeyConfig} from "../../../config/auth-config.js";
-import {OboToken} from "../auth-token-utils.js";
-import {createValkeyCache} from "./valkey-token-store.js";
-import {createInMemoryCache} from "./in-memory-token-store.js";
+import crypto from "crypto";
+import { ValkeyConfig } from "../../../config/auth-config.js";
+import { OboToken } from "../auth-token-utils.js";
+import { createInMemoryCache } from "./in-memory-token-store.js";
+import { createValkeyCache } from "./valkey-token-store.js";
+
+export type OboTokenKey = `${string}_${string}`;
+
+export function createOboTokenKey(token: string, appIdentifier: string): OboTokenKey {
+    const tokenHash = crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+    return `${tokenHash}_${appIdentifier}`;
+}
 
 export function createTokenStore(valkeyConfig: ValkeyConfig | undefined): OboTokenStore {
     if (valkeyConfig) {
@@ -11,14 +19,10 @@ export function createTokenStore(valkeyConfig: ValkeyConfig | undefined): OboTok
     }
 }
 
-export  function createOboTokenKey(userId: string, appIdentifier: string): string {
-    return `${userId}_${appIdentifier}`;
-}
-
 export interface OboTokenStore {
-    getUserOboToken: (userId: string, appIdentifier: string) => Promise<OboToken | undefined>;
-    setUserOboToken: (userId: string, appIdentifier: string, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
-    deleteUserOboToken: (userId: string, appIdentifier: string) => Promise<void>;
+    getUserOboToken: (key: OboTokenKey) => Promise<OboToken | undefined>;
+    setUserOboToken: (key: OboTokenKey, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
+    deleteUserOboToken: (key: OboTokenKey) => Promise<void>;
     close: () => Promise<void>;
     cacheType: 'in-memory' | 'valkey';
 }

@@ -18,7 +18,7 @@ import { oboMiddleware } from './middleware/obo-middleware.js';
 import { authInfoRoute } from './route/auth-info-route.js';
 import { proxyMiddleware } from './middleware/proxy-middleware.js';
 import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
-import {createTokenStore} from "./utils/auth/tokenStore/token-store.js";
+import { createTokenStore } from "./utils/auth/tokenStore/token-store.js";
 
 const app: express.Application = express();
 
@@ -38,14 +38,14 @@ async function startServer() {
 	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
 
 	app.use(compression({
-    filter: (req: express.Request, res: express.Response) => {
-      // Don't compress server sent events.
-      if (req.headers["accept"] === "text/event-stream") {
-        return false;
-      }
-      return compression.filter(req, res);
-    },
-  }));
+		filter: (req: express.Request, res: express.Response) => {
+			// Don't compress server sent events.
+			if (req.headers["accept"] === "text/event-stream") {
+				return false;
+			}
+			return compression.filter(req, res);
+		},
+	}));
 
 	if (cors.origin) {
 		app.use(corsMiddleware({
