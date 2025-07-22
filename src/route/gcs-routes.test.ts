@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { getFnrFromPath, getPathWithoutFnr } from "../utils/modiacontextholder/modiaContextHolderUtils.js";
 
 const testFnr = "12345678901"

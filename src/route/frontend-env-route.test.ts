@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { createEnvJsContent, getPrefixedEnvVars } from './frontend-env-route.js';
 
 describe('getPrefixedEnvVars', () => {

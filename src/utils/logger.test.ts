@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { normalizePathParams } from './logger.js';
 
 describe('normalizePathParams', () => {

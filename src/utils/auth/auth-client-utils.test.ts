@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { createScope } from './auth-client-utils.js';
 
 describe('createScope', () => {
