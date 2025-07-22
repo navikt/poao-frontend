@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, removeQueryParams, stripPrefix } from './utils.js';
 
 describe('hoursToMs', () => {
