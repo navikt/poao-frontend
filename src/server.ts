@@ -35,7 +35,10 @@ async function startServer() {
 	app.get('/internal/ready', pingRoute());
 	app.get('/internal/alive', pingRoute());
 
-	const routeUrl = (path: string): string => urlJoin(base.contextPath, path)
+	const routeUrl = (path: string): string => {
+		const pathWithNamedWildcard = path.endsWith('/*') ? path.replace('/*', '/*path') : path;
+		return urlJoin(base.contextPath, pathWithNamedWildcard);
+	};
 
 	app.use(compression({
 		filter: (req: express.Request, res: express.Response) => {
