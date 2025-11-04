@@ -17,7 +17,6 @@ export function fallbackRoute(baseConfig: BaseConfig, dekorator?: DekoratorConfi
 			res.redirect(baseConfig.contextPath);
 		} else if (baseConfig.fallbackStrategy === FallbackStrategy.SERVE_INDEX_HTML) {
 			if (dekorator) {
-                logger.debug("Serving index.html with dekorator injected");
 				injectDecoratorServerSide({
 					env: dekorator.env,
 					filePath: join(baseConfig.serveFromPath, "index.html"),

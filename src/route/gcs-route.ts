@@ -132,7 +132,7 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 
 		getFileFromCacheOrBucket(bucket, bucketFilePath)
 			.then(fileContent => {
-                if (bucketFilePath.endsWith("index.html") && dekoratorConfig) {
+                if (dekoratorConfig && bucketFilePath.endsWith("index.html") ) {
                     injectDekorator(fileContent, dekoratorConfig)
                         .then(contentWithInjectedDekorator => {
                             sendContent(res, bucketFilePath, contentWithInjectedDekorator);
@@ -181,7 +181,7 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
                             } else {
                                 sendContent(res, defaultFilePath, content);
                             }
-						})
+                        })
 						.catch(() => {
 							logger.warn('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);
 							res.sendStatus(404);
@@ -195,25 +195,29 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 
 const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig | undefined): Promise<Buffer<ArrayBufferLike>> => {
     if (config) {
-        logger.debug("Serving index.html with dekorator injected");
-        const document = new JSDOM(content).window.document
-        return injectDecoratorServerSideDocument({
-            env: config.env,
-            document: document,
-            params: {
-                simple: config.simple,
-                chatbot: config.chatbot
-            }
-        })
-            .then((document) => {
-                return Buffer.from(document.documentElement.outerHTML)
+        try {
+            const document = new JSDOM(content).window.document
+            return injectDecoratorServerSideDocument({
+                env: config.env,
+                document: document,
+                params: {
+                    simple: config.simple,
+                    chatbot: config.chatbot
+                }
             })
-            .catch((e: any) => {
-                logger.error({
-                    message: e,
+                .then((document) => {
+                    return Buffer.from(document.documentElement.outerHTML)
                 })
-                return Promise.resolve(content)
-            })
+                .catch((e: any) => {
+                    logger.error({
+                        message: e,
+                    })
+                    return Promise.resolve(content)
+                })
+        } catch (e: any) {
+            logger.error({ message: `Failed to parse index.html with JSDOM: ${e.toString()}` });
+            return Promise.resolve(content)
+        }
     } else {
         return Promise.resolve(content)
     }
