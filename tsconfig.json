@@ -4,7 +4,10 @@
       "ES2023",
       "DOM"
     ],
-    "module": "node16",
+    "paths": {
+      "@navikt/nav-dekoratoren-moduler/ssr": ["./node_modules/@navikt/nav-dekoratoren-moduler/ssr/index.d.ts"]
+    },
+    "module": "NodeNext",
     "target": "ES2022",
     "outDir": "./build",
     "rootDir": "./src",

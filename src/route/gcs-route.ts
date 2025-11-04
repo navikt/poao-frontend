@@ -18,8 +18,8 @@ import { JsonConfig } from "../config/app-config-resolver.js";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import { setModiaContext } from "../utils/modiacontextholder/setModiaContext.js";
 import { CALL_ID, CONSUMER_ID } from "../middleware/tracingMiddleware.js";
-import {injectDecoratorServerSide, injectDecoratorServerSideDocument} from "@navikt/nav-dekoratoren-moduler/ssr";
-import {join} from "path";
+import { injectDecoratorServerSideDocument } from "@navikt/nav-dekoratoren-moduler/ssr";
+
 import DekoratorConfig = JsonConfig.DekoratorConfig;
 
 // Used to cache requests to static resources that NEVER change
@@ -193,10 +193,10 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 	};
 }
 
-const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig | undefined): Promise<Buffer<ArrayBufferLike> | string> => {
+const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig | undefined): Promise<Buffer<ArrayBufferLike>> => {
     if (config) {
         logger.debug("Serving index.html with dekorator injected");
-        const document = new JSDOM(content)
+        const document = new JSDOM(content).window.document
         return injectDecoratorServerSideDocument({
             env: config.env,
             document: document,
@@ -205,10 +205,10 @@ const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConf
                 chatbot: config.chatbot
             }
         })
-            .then((html: JSDOM) => {
-                return html.serialize()
+            .then((document) => {
+                return Buffer.from(document.documentElement.outerHTML)
             })
-            .catch((e) => {
+            .catch((e: any) => {
                 logger.error({
                     message: e,
                 })
