@@ -18,7 +18,7 @@ import { JsonConfig } from "../config/app-config-resolver.js";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import { setModiaContext } from "../utils/modiacontextholder/setModiaContext.js";
 import { CALL_ID, CONSUMER_ID } from "../middleware/tracingMiddleware.js";
-import { injectDecoratorServerSideDocument } from "@navikt/nav-dekoratoren-moduler/ssr";
+import { injectDecoratorServerSideDocument } from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
 
 import DekoratorConfig = JsonConfig.DekoratorConfig;
 
