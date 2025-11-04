@@ -115,7 +115,7 @@ async function startServer() {
 			fallbackStrategy: base.fallbackStrategy,
 			bucketContextPath: gcs.bucketContextPath,
 			enableModiaContextUpdater: base.enableModiaContextUpdater,
-		}));
+		}, dekorator));
 	} else {
 		// For at det skal funke å injecte-dekoratøren på / og /index.html må det inn i en handler og ikke bare
 		// via express.static, fant ikke noen god måte å fange opp hvilken fil som

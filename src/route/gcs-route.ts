@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
+import { JSDOM } from 'jsdom'
 import { logger } from '../utils/logger.js';
 import {
 	getMimeType,
@@ -17,6 +18,9 @@ import { JsonConfig } from "../config/app-config-resolver.js";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import { setModiaContext } from "../utils/modiacontextholder/setModiaContext.js";
 import { CALL_ID, CONSUMER_ID } from "../middleware/tracingMiddleware.js";
+import {injectDecoratorServerSide, injectDecoratorServerSideDocument} from "@navikt/nav-dekoratoren-moduler/ssr";
+import {join} from "path";
+import DekoratorConfig = JsonConfig.DekoratorConfig;
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -113,7 +117,7 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 }
 
 
-export function gcsRoute(config: GcsRouterConfig) {
+export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConfig | undefined) {
 	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
 
@@ -128,7 +132,14 @@ export function gcsRoute(config: GcsRouterConfig) {
 
 		getFileFromCacheOrBucket(bucket, bucketFilePath)
 			.then(fileContent => {
-				sendContent(res, bucketFilePath, fileContent);
+                if (bucketFilePath.endsWith("index.html") && dekoratorConfig) {
+                    injectDekorator(fileContent, dekoratorConfig)
+                        .then(contentWithInjectedDekorator => {
+                            sendContent(res, bucketFilePath, contentWithInjectedDekorator);
+                        })
+                } else {
+                    sendContent(res, bucketFilePath, fileContent);
+                }
 			})
 			.catch(async err => {
 				// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
@@ -162,7 +173,14 @@ export function gcsRoute(config: GcsRouterConfig) {
 
 					getFileFromCacheOrBucket(bucket, defaultFilePath)
 						.then(content => {
-							sendContent(res, defaultFilePath, content);
+                            if (dekoratorConfig) {
+                                injectDekorator(content, dekoratorConfig)
+                                    .then(contentWithInjectedDekorator => {
+                                        sendContent(res, defaultFilePath, contentWithInjectedDekorator);
+                                    })
+                            } else {
+                                sendContent(res, defaultFilePath, content);
+                            }
 						})
 						.catch(() => {
 							logger.warn('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);
@@ -173,5 +191,31 @@ export function gcsRoute(config: GcsRouterConfig) {
 				}
 			});
 	};
+}
+
+const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig | undefined): Promise<Buffer<ArrayBufferLike> | string> => {
+    if (config) {
+        logger.debug("Serving index.html with dekorator injected");
+        const document = new JSDOM(content)
+        return injectDecoratorServerSideDocument({
+            env: config.env,
+            document: document,
+            params: {
+                simple: config.simple,
+                chatbot: config.chatbot
+            }
+        })
+            .then((html: JSDOM) => {
+                return html.serialize()
+            })
+            .catch((e) => {
+                logger.error({
+                    message: e,
+                })
+                return Promise.resolve(content)
+            })
+    } else {
+        return Promise.resolve(content)
+    }
 }
 
