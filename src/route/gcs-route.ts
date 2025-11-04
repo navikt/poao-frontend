@@ -187,32 +187,28 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 	};
 }
 
-const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig | undefined): Promise<Buffer<ArrayBufferLike>> => {
-    if (config) {
-        try {
-            const document = new JSDOM(content).window.document
-            return injectDecoratorServerSideDocument({
-                env: config.env,
-                document: document,
-                params: {
-                    simple: config.simple,
-                    chatbot: config.chatbot
-                }
+const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig): Promise<Buffer<ArrayBufferLike>> => {
+    try {
+        const document = new JSDOM(content).window.document
+        return injectDecoratorServerSideDocument({
+            env: config.env,
+            document: document,
+            params: {
+                simple: config.simple,
+                chatbot: config.chatbot
+            }
+        })
+            .then((document) => {
+                return Buffer.from(document.documentElement.outerHTML)
             })
-                .then((document) => {
-                    return Buffer.from(document.documentElement.outerHTML)
+            .catch((e: any) => {
+                logger.error({
+                    message: e,
                 })
-                .catch((e: any) => {
-                    logger.error({
-                        message: e,
-                    })
-                    return Promise.resolve(content)
-                })
-        } catch (e: any) {
-            logger.error({ message: `Failed to parse index.html with JSDOM: ${e.toString()}` });
-            return Promise.resolve(content)
-        }
-    } else {
+                return Promise.resolve(content)
+            })
+    } catch (e: any) {
+        logger.error({ message: `Failed to parse index.html with JSDOM: ${e.toString()}` });
         return Promise.resolve(content)
     }
 }

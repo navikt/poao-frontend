@@ -539,6 +539,221 @@ describe('gcsRoute', () => {
                 expect(sentContent).toContain('mocked-with-dekorator');
             });
         });
+
+        describe('Different path types with decorator injection', () => {
+            describe('WITH decorator config', () => {
+                it('should inject decorator for root path (empty after context)', async () => {
+                    mockReq.path = '/app';
+                    const originalHtml = Buffer.from('<html><body>root</body></html>');
+                    mockFileSuccess(originalHtml);
+
+                    const route = gcsRoute(baseConfig, dekoratorConfig);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentContent = sendSpy.mock.calls[0][0].toString();
+                    expect(sentContent).toContain('mocked-with-dekorator');
+                });
+
+                it('should inject decorator for single slash path', async () => {
+                    mockReq.path = '/app/';
+                    const originalHtml = Buffer.from('<html><body>slash</body></html>');
+                    mockFileSuccess(originalHtml);
+
+                    const route = gcsRoute(baseConfig, dekoratorConfig);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentContent = sendSpy.mock.calls[0][0].toString();
+                    expect(sentContent).toContain('mocked-with-dekorator');
+                });
+
+                it('should inject decorator for explicit index.html path', async () => {
+                    mockReq.path = '/app/index.html';
+                    const originalHtml = Buffer.from('<html><body>explicit</body></html>');
+                    mockFileSuccess(originalHtml);
+
+                    const route = gcsRoute(baseConfig, dekoratorConfig);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentContent = sendSpy.mock.calls[0][0].toString();
+                    expect(sentContent).toContain('mocked-with-dekorator');
+                });
+
+                it('should inject decorator for unknown path with SERVE_INDEX_HTML fallback', async () => {
+                    mockReq.path = '/app/unknown/route';
+                    let callCount = 0;
+                    mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
+                        callCount++;
+                        if (callCount === 1) {
+                            // First call for unknown/route fails
+                            setImmediate(() => callback(new Error('File not found')));
+                        } else {
+                            // Second call for index.html succeeds
+                            setImmediate(() => callback(null, Buffer.from('<html><body>fallback</body></html>')));
+                        }
+                    });
+
+                    const config = {
+                        ...baseConfig,
+                        fallbackStrategy: FallbackStrategy.SERVE_INDEX_HTML
+                    };
+
+                    const route = gcsRoute(config, dekoratorConfig);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledTimes(2);
+                    expect(mockBucket.file).toHaveBeenCalledWith('unknown/route');
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentContent = sendSpy.mock.calls[0][0].toString();
+                    expect(sentContent).toContain('mocked-with-dekorator');
+                });
+
+                it('should inject decorator for deep nested unknown path with SERVE_INDEX_HTML fallback', async () => {
+                    mockReq.path = '/app/some/deep/nested/route';
+                    let callCount = 0;
+                    mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
+                        callCount++;
+                        if (callCount === 1) {
+                            setImmediate(() => callback(new Error('File not found')));
+                        } else {
+                            setImmediate(() => callback(null, Buffer.from('<html><body>deep-fallback</body></html>')));
+                        }
+                    });
+
+                    const config = {
+                        ...baseConfig,
+                        fallbackStrategy: FallbackStrategy.SERVE_INDEX_HTML
+                    };
+
+                    const route = gcsRoute(config, dekoratorConfig);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentContent = sendSpy.mock.calls[0][0].toString();
+                    expect(sentContent).toContain('mocked-with-dekorator');
+                });
+            });
+
+            describe('WITHOUT decorator config', () => {
+                it('should serve original HTML for root path without injection', async () => {
+                    mockReq.path = '/app';
+                    const originalHtml = Buffer.from('<html><body>root-no-inject</body></html>');
+                    mockFileSuccess(originalHtml);
+
+                    const route = gcsRoute(baseConfig, undefined);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalledWith(originalHtml);
+                    expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
+                });
+
+                it('should serve original HTML for single slash path without injection', async () => {
+                    mockReq.path = '/app/';
+                    const originalHtml = Buffer.from('<html><body>slash-no-inject</body></html>');
+                    mockFileSuccess(originalHtml);
+
+                    const route = gcsRoute(baseConfig, undefined);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalledWith(originalHtml);
+                    expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
+                });
+
+                it('should serve original HTML for explicit index.html path without injection', async () => {
+                    mockReq.path = '/app/index.html';
+                    const originalHtml = Buffer.from('<html><body>explicit-no-inject</body></html>');
+                    mockFileSuccess(originalHtml);
+
+                    const route = gcsRoute(baseConfig, undefined);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledWith('index.html');
+                    expect(sendSpy).toHaveBeenCalledWith(originalHtml);
+                    expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
+                });
+
+                it('should serve original HTML for unknown path with SERVE_INDEX_HTML fallback without injection', async () => {
+                    mockReq.path = '/app/unknown/route';
+                    let callCount = 0;
+                    mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
+                        callCount++;
+                        if (callCount === 1) {
+                            setImmediate(() => callback(new Error('File not found')));
+                        } else {
+                            setImmediate(() => callback(null, Buffer.from('<html><body>fallback-no-inject</body></html>')));
+                        }
+                    });
+
+                    const config = {
+                        ...baseConfig,
+                        fallbackStrategy: FallbackStrategy.SERVE_INDEX_HTML
+                    };
+
+                    const route = gcsRoute(config, undefined);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(mockBucket.file).toHaveBeenCalledTimes(2);
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentBuffer = sendSpy.mock.calls[0][0];
+                    expect(sentBuffer.toString()).toBe('<html><body>fallback-no-inject</body></html>');
+                    expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
+                });
+
+                it('should serve original HTML for deep nested unknown path with SERVE_INDEX_HTML fallback without injection', async () => {
+                    mockReq.path = '/app/some/deep/nested/route';
+                    let callCount = 0;
+                    mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
+                        callCount++;
+                        if (callCount === 1) {
+                            setImmediate(() => callback(new Error('File not found')));
+                        } else {
+                            setImmediate(() => callback(null, Buffer.from('<html><body>deep-fallback-no-inject</body></html>')));
+                        }
+                    });
+
+                    const config = {
+                        ...baseConfig,
+                        fallbackStrategy: FallbackStrategy.SERVE_INDEX_HTML
+                    };
+
+                    const route = gcsRoute(config, undefined);
+                    route(mockReq as Request, mockRes as Response);
+
+                    await waitForAsync();
+
+                    expect(sendSpy).toHaveBeenCalled();
+                    const sentBuffer = sendSpy.mock.calls[0][0];
+                    expect(sentBuffer.toString()).toBe('<html><body>deep-fallback-no-inject</body></html>');
+                    expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
+                });
+            });
+        });
     });
 
     describe('Edge Cases', () => {
