@@ -71,7 +71,7 @@ function sendContent(res: Response, bucketFilePath: string, content: Buffer) {
 	res.send(content);
 }
 
-function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string): Promise<Buffer> {
+function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string, dekoratorConfig: DekoratorConfig | undefined): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
 		const cachedContent = readFromCache(bucketFilePath);
 
@@ -86,8 +86,16 @@ function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string): Promi
 			if (err) {
 				reject(err);
 			} else {
-				updateCache(bucketFilePath, content);
-				resolve(content);
+                if (dekoratorConfig && bucketFilePath.endsWith("index.html")) {
+                    injectDekorator(content, dekoratorConfig)
+                        .then(dekoratorInjectedHtml => {
+                            updateCache(bucketFilePath, dekoratorInjectedHtml);
+                            resolve(dekoratorInjectedHtml);
+                        })
+                } else {
+                    updateCache(bucketFilePath, content);
+                    resolve(content);
+                }
 			}
 		});
 	});
@@ -130,16 +138,9 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 
 		const bucketFilePath = createBucketFilePath(req.path, config);
 
-		getFileFromCacheOrBucket(bucket, bucketFilePath)
+		getFileFromCacheOrBucket(bucket, bucketFilePath, dekoratorConfig)
 			.then(fileContent => {
-                if (dekoratorConfig && bucketFilePath.endsWith("index.html") ) {
-                    injectDekorator(fileContent, dekoratorConfig)
-                        .then(contentWithInjectedDekorator => {
-                            sendContent(res, bucketFilePath, contentWithInjectedDekorator);
-                        })
-                } else {
-                    sendContent(res, bucketFilePath, fileContent);
-                }
+                sendContent(res, bucketFilePath, fileContent);
 			})
 			.catch(async err => {
 				// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
@@ -171,16 +172,9 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 						}
 					}
 
-					getFileFromCacheOrBucket(bucket, defaultFilePath)
+					getFileFromCacheOrBucket(bucket, defaultFilePath, dekoratorConfig)
 						.then(content => {
-                            if (dekoratorConfig) {
-                                injectDekorator(content, dekoratorConfig)
-                                    .then(contentWithInjectedDekorator => {
-                                        sendContent(res, defaultFilePath, contentWithInjectedDekorator);
-                                    })
-                            } else {
-                                sendContent(res, defaultFilePath, content);
-                            }
+                            sendContent(res, defaultFilePath, content);
                         })
 						.catch(() => {
 							logger.warn('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);

@@ -481,6 +481,64 @@ describe('gcsRoute', () => {
                 expect(sendSpy).toHaveBeenCalledWith(originalHtml);
             });
         });
+
+        describe('Cache behavior with dekorator injection', () => {
+            it('should update cache with decorator-injected HTML when dekorator config is provided', async () => {
+                mockReq.path = '/app/index.html';
+                const originalHtml = Buffer.from('<html><body>original</body></html>');
+                mockFileSuccess(originalHtml);
+
+                const route = gcsRoute(baseConfig, dekoratorConfig);
+                route(mockReq as Request, mockRes as Response);
+
+                await waitForAsync();
+
+                // Verify cache was set
+                expect(mockCacheSet).toHaveBeenCalled();
+
+                // The cache should be updated with INJECTED content, not original
+                const cacheSetCalls = mockCacheSet.mock.calls;
+                expect(cacheSetCalls.length).toBeGreaterThan(0);
+
+                const cachedContent = cacheSetCalls[cacheSetCalls.length - 1][1]; // Get the content that was cached
+                const cachedContentString = cachedContent.toString();
+
+                // IMPORTANT: The cached content should be the INJECTED content
+                expect(cachedContentString).toContain('mocked-with-dekorator');
+                expect(cachedContentString).not.toContain('original'); // Should NOT be the original
+
+                // Verify that the response contains injected content
+                expect(sendSpy).toHaveBeenCalled();
+                const sentBuffer = sendSpy.mock.calls[0][0];
+                const sentContent = sentBuffer.toString();
+                expect(sentContent).toContain('mocked-with-dekorator');
+            });
+
+            it('should serve cached decorator-injected content without re-injecting on subsequent requests', async () => {
+                mockReq.path = '/app/index.html';
+                const cachedInjectedHtml = Buffer.from('<html><head></head><body>mocked-with-dekorator</body></html>');
+
+                // Set up cache to return already-injected content
+                mockCacheGet.mockReturnValue(cachedInjectedHtml);
+
+                const route = gcsRoute(baseConfig, dekoratorConfig);
+                route(mockReq as Request, mockRes as Response);
+
+                await waitForAsync();
+
+                // Bucket should not be called since content is cached
+                expect(mockBucket.file).not.toHaveBeenCalled();
+
+                // Decorator injection should NOT be called again since we're serving cached injected content
+                expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
+
+                // Verify response contains the cached injected content
+                expect(sendSpy).toHaveBeenCalled();
+                const sentBuffer = sendSpy.mock.calls[0][0];
+                const sentContent = sentBuffer.toString();
+                expect(sentContent).toContain('mocked-with-dekorator');
+            });
+        });
     });
 
     describe('Edge Cases', () => {
