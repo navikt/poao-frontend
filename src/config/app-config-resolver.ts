@@ -16,7 +16,7 @@ import {
   logHeaderConfig,
   resolveHeaderConfig,
 } from "./header-config.js";
-import { resolveDekoratorConfig } from "./dekorator-config.js";
+import { logDekoratorConfig, resolveDekoratorConfig } from "./dekorator-config.js";
 
 export interface AppConfig {
   base: BaseConfig;
@@ -58,6 +58,7 @@ export function logAppConfig(config: AppConfig): void {
   logHeaderConfig(config.header);
   logProxyConfig(config.proxy);
   logRedirectConfig(config.redirect);
+  logDekoratorConfig(config.dekorator);
 }
 
 function resolveJsonConfigStr(): string | undefined {
