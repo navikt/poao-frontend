@@ -8,7 +8,7 @@ import { JsonConfig } from '../config/app-config-resolver.js';
 const { mockCacheGet, mockCacheSet, mockCacheFlushAll, mockBucket } = vi.hoisted(() => {
     const mockFileDownload = vi.fn();
     const mockBucketObj = {
-        file: vi.fn((path: string) => ({
+        file: vi.fn((_path: string) => ({
             download: mockFileDownload
         })),
         _mockFileDownload: mockFileDownload
@@ -36,7 +36,7 @@ vi.mock('node-cache', () => {
 vi.mock('@google-cloud/storage', () => {
     return {
         Storage: class {
-            bucket(bucketName: string) {
+            bucket(_bucketName: string) {
                 return mockBucket;
             }
         }
@@ -45,7 +45,7 @@ vi.mock('@google-cloud/storage', () => {
 
 const { mockInjectDecoratorServerSideDocument } = vi.hoisted(() => {
     return {
-        mockInjectDecoratorServerSideDocument: vi.fn((config: any) => {
+        mockInjectDecoratorServerSideDocument: vi.fn((_config: any) => {
             return Promise.resolve({
                 documentElement: {
                     outerHTML: '<html><head></head><body>mocked-with-dekorator</body></html>'
@@ -59,7 +59,7 @@ vi.mock('jsdom', () => {
     return {
         JSDOM: class {
             window: any;
-            constructor(html: any) {
+            constructor(_html: any) {
                 this.window = {
                     document: {
                         documentElement: {
@@ -88,7 +88,6 @@ vi.mock('../utils/logger.js', () => ({
 }));
 
 describe('gcsRoute', () => {
-    let mockReq: Partial<Request>;
     let mockRes: Partial<Response>;
     let sendSpy: Mock;
     let sendStatusSpy: Mock;
@@ -101,6 +100,23 @@ describe('gcsRoute', () => {
         contextPath: '/app',
         fallbackStrategy: FallbackStrategy.NONE,
         enableModiaContextUpdater: undefined as any
+    };
+
+    // Factory function to create immutable mock request objects
+    const createMockRequest = (pathOrConfig: string | Partial<Request>): Request => {
+        if (typeof pathOrConfig === 'string') {
+            return {
+                method: 'GET',
+                path: pathOrConfig,
+                headers: {}
+            } as Request;
+        }
+        return {
+            method: 'GET',
+            path: '/app/index.html',
+            headers: {},
+            ...pathOrConfig
+        } as Request;
     };
 
     // Helper to wait for async operations
@@ -130,16 +146,9 @@ describe('gcsRoute', () => {
         // Reset mock file download function
         mockBucket._mockFileDownload.mockClear();
         mockBucket.file.mockClear();
-        mockBucket.file.mockImplementation((path: string) => ({
+        mockBucket.file.mockImplementation((_path: string) => ({
             download: mockBucket._mockFileDownload
         }));
-
-        // Setup mock request
-        mockReq = {
-            method: 'GET',
-            path: '/app/index.html',
-            headers: {}
-        };
 
         // Setup mock response
         sendSpy = vi.fn();
@@ -160,20 +169,21 @@ describe('gcsRoute', () => {
     describe('Existing Features - Regression Tests', () => {
         describe('HTTP Method Handling', () => {
             it('should reject non-GET requests with 405', () => {
-                mockReq.method = 'POST';
+                const mockReq = createMockRequest({ method: 'POST', path: '/app/index.html' });
                 const route = gcsRoute(baseConfig, undefined);
 
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 expect(sendStatusSpy).toHaveBeenCalledWith(405);
                 expect(mockBucket.file).not.toHaveBeenCalled();
             });
 
             it('should allow GET requests', async () => {
+                const mockReq = createMockRequest('/app/index.html');
                 mockFileSuccess(Buffer.from('test content'));
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
                 expect(mockBucket.file).toHaveBeenCalled();
@@ -182,11 +192,12 @@ describe('gcsRoute', () => {
 
         describe('File Serving', () => {
             it('should serve existing files from bucket', async () => {
+                const mockReq = createMockRequest('/app/index.html');
                 const fileContent = Buffer.from('test content');
                 mockFileSuccess(fileContent);
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -196,12 +207,12 @@ describe('gcsRoute', () => {
             });
 
             it('should serve static files with cache headers', async () => {
-                mockReq.path = '/app/static/main.js';
+                const mockReq = createMockRequest('/app/static/main.js');
                 const fileContent = Buffer.from('console.log("test")');
                 mockFileSuccess(fileContent);
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -212,11 +223,12 @@ describe('gcsRoute', () => {
             });
 
             it('should not set cache headers for non-static files', async () => {
+                const mockReq = createMockRequest('/app/index.html');
                 const fileContent = Buffer.from('test');
                 mockFileSuccess(fileContent);
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -226,10 +238,11 @@ describe('gcsRoute', () => {
 
         describe('404 Handling', () => {
             it('should return 404 for missing files when fallbackStrategy is NONE', async () => {
+                const mockReq = createMockRequest('/app/index.html');
                 mockFileError();
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -237,7 +250,7 @@ describe('gcsRoute', () => {
             });
 
             it('should return 404 for missing image files regardless of fallback strategy', async () => {
-                mockReq.path = '/app/images/logo.png';
+                const mockReq = createMockRequest('/app/images/logo.png');
                 mockFileError();
 
                 const config = {
@@ -246,7 +259,7 @@ describe('gcsRoute', () => {
                 };
 
                 const route = gcsRoute(config, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -256,7 +269,7 @@ describe('gcsRoute', () => {
 
         describe('Fallback Strategies', () => {
             it('should redirect to root when fallbackStrategy is REDIRECT_TO_ROOT', async () => {
-                mockReq.path = '/app/some/deep/path';
+                const mockReq = createMockRequest('/app/some/deep/path');
                 mockFileError();
 
                 const config = {
@@ -265,7 +278,7 @@ describe('gcsRoute', () => {
                 };
 
                 const route = gcsRoute(config, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -273,7 +286,7 @@ describe('gcsRoute', () => {
             });
 
             it('should serve index.html when fallbackStrategy is SERVE_INDEX_HTML', async () => {
-                mockReq.path = '/app/some/route';
+                const mockReq = createMockRequest('/app/some/route');
                 let callCount = 0;
                 mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
                     callCount++;
@@ -292,7 +305,7 @@ describe('gcsRoute', () => {
                 };
 
                 const route = gcsRoute(config, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -303,11 +316,11 @@ describe('gcsRoute', () => {
 
         describe('Path Handling', () => {
             it('should handle root path correctly', async () => {
-                mockReq.path = '/app';
+                const mockReq = createMockRequest('/app');
                 mockFileSuccess(Buffer.from('test'));
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -315,7 +328,7 @@ describe('gcsRoute', () => {
             });
 
             it('should handle paths with bucketContextPath', async () => {
-                mockReq.path = '/app/some/file.js';
+                const mockReq = createMockRequest('/app/some/file.js');
                 mockFileSuccess(Buffer.from('test'));
 
                 const config = {
@@ -324,7 +337,7 @@ describe('gcsRoute', () => {
                 };
 
                 const route = gcsRoute(config, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -332,11 +345,11 @@ describe('gcsRoute', () => {
             });
 
             it('should strip query parameters from paths', async () => {
-                mockReq.path = '/app/index.html?version=123';
+                const mockReq = createMockRequest('/app/index.html?version=123');
                 mockFileSuccess(Buffer.from('test'));
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -354,12 +367,12 @@ describe('gcsRoute', () => {
 
         describe('index.html with dekorator config', () => {
             it('should inject dekorator into index.html when config is provided', async () => {
-                mockReq.path = '/app/index.html';
+                const mockReq = createMockRequest('/app/index.html');
                 const originalHtml = Buffer.from('<html><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -370,12 +383,12 @@ describe('gcsRoute', () => {
             });
 
             it('should serve index.html without injection when dekorator config is not provided', async () => {
-                mockReq.path = '/app/index.html';
+                const mockReq = createMockRequest('/app/index.html');
                 const originalHtml = Buffer.from('<html><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, undefined);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -383,7 +396,7 @@ describe('gcsRoute', () => {
             });
 
             it('should inject dekorator in fallback SERVE_INDEX_HTML scenario', async () => {
-                mockReq.path = '/app/some/spa/route';
+                const mockReq = createMockRequest('/app/some/spa/route');
                 let callCount = 0;
                 mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
                     callCount++;
@@ -400,7 +413,7 @@ describe('gcsRoute', () => {
                 };
 
                 const route = gcsRoute(config, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -413,12 +426,12 @@ describe('gcsRoute', () => {
 
         describe('Non-index.html files should not be affected', () => {
             it('should not inject dekorator into JavaScript files', async () => {
-                mockReq.path = '/app/main.js';
+                const mockReq = createMockRequest('/app/main.js');
                 const jsContent = Buffer.from('console.log("test")');
                 mockFileSuccess(jsContent);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -426,12 +439,12 @@ describe('gcsRoute', () => {
             });
 
             it('should not inject dekorator into CSS files', async () => {
-                mockReq.path = '/app/styles.css';
+                const mockReq = createMockRequest('/app/styles.css');
                 const cssContent = Buffer.from('body { color: red; }');
                 mockFileSuccess(cssContent);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -439,12 +452,12 @@ describe('gcsRoute', () => {
             });
 
             it('should not inject dekorator into image files', async () => {
-                mockReq.path = '/app/logo.png';
+                const mockReq = createMockRequest('/app/logo.png');
                 const imageContent = Buffer.from([0x89, 0x50, 0x4E, 0x47]); // PNG header
                 mockFileSuccess(imageContent);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -452,12 +465,12 @@ describe('gcsRoute', () => {
             });
 
             it('should not inject dekorator into JSON files', async () => {
-                mockReq.path = '/app/manifest.json';
+                const mockReq = createMockRequest('/app/manifest.json');
                 const jsonContent = Buffer.from('{"name": "app"}');
                 mockFileSuccess(jsonContent);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -469,12 +482,12 @@ describe('gcsRoute', () => {
             it('should fall back to original content if dekorator injection fails', async () => {
                 mockInjectDecoratorServerSideDocument.mockRejectedValueOnce(new Error('Injection failed'));
 
-                mockReq.path = '/app/index.html';
+                const mockReq = createMockRequest('/app/index.html');
                 const originalHtml = Buffer.from('<html><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -484,12 +497,12 @@ describe('gcsRoute', () => {
 
         describe('Cache behavior with dekorator injection', () => {
             it('should update cache with decorator-injected HTML when dekorator config is provided', async () => {
-                mockReq.path = '/app/index.html';
+                const mockReq = createMockRequest('/app/index.html');
                 const originalHtml = Buffer.from('<html><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -515,14 +528,14 @@ describe('gcsRoute', () => {
             });
 
             it('should serve cached decorator-injected content without re-injecting on subsequent requests', async () => {
-                mockReq.path = '/app/index.html';
+                const mockReq = createMockRequest('/app/index.html');
                 const cachedInjectedHtml = Buffer.from('<html><head></head><body>mocked-with-dekorator</body></html>');
 
                 // Set up cache to return already-injected content
                 mockCacheGet.mockReturnValue(cachedInjectedHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
-                route(mockReq as Request, mockRes as Response);
+                route(mockReq, mockRes as Response);
 
                 await waitForAsync();
 
@@ -543,12 +556,12 @@ describe('gcsRoute', () => {
         describe('Different path types with decorator injection', () => {
             describe('WITH decorator config', () => {
                 it('should inject decorator for root path (empty after context)', async () => {
-                    mockReq.path = '/app';
+                    const mockReq = createMockRequest('/app');
                     const originalHtml = Buffer.from('<html><body>root</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, dekoratorConfig);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -559,12 +572,12 @@ describe('gcsRoute', () => {
                 });
 
                 it('should inject decorator for single slash path', async () => {
-                    mockReq.path = '/app/';
+                    const mockReq = createMockRequest('/app/');
                     const originalHtml = Buffer.from('<html><body>slash</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, dekoratorConfig);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -575,12 +588,12 @@ describe('gcsRoute', () => {
                 });
 
                 it('should inject decorator for explicit index.html path', async () => {
-                    mockReq.path = '/app/index.html';
+                    const mockReq = createMockRequest('/app/index.html');
                     const originalHtml = Buffer.from('<html><body>explicit</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, dekoratorConfig);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -591,7 +604,7 @@ describe('gcsRoute', () => {
                 });
 
                 it('should inject decorator for unknown path with SERVE_INDEX_HTML fallback', async () => {
-                    mockReq.path = '/app/unknown/route';
+                    const mockReq = createMockRequest('/app/unknown/route');
                     let callCount = 0;
                     mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
                         callCount++;
@@ -610,7 +623,7 @@ describe('gcsRoute', () => {
                     };
 
                     const route = gcsRoute(config, dekoratorConfig);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -623,7 +636,7 @@ describe('gcsRoute', () => {
                 });
 
                 it('should inject decorator for deep nested unknown path with SERVE_INDEX_HTML fallback', async () => {
-                    mockReq.path = '/app/some/deep/nested/route';
+                    const mockReq = createMockRequest('/app/some/deep/nested/route');
                     let callCount = 0;
                     mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
                         callCount++;
@@ -640,7 +653,7 @@ describe('gcsRoute', () => {
                     };
 
                     const route = gcsRoute(config, dekoratorConfig);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -652,12 +665,12 @@ describe('gcsRoute', () => {
 
             describe('WITHOUT decorator config', () => {
                 it('should serve original HTML for root path without injection', async () => {
-                    mockReq.path = '/app';
+                    const mockReq = createMockRequest('/app');
                     const originalHtml = Buffer.from('<html><body>root-no-inject</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, undefined);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -667,12 +680,12 @@ describe('gcsRoute', () => {
                 });
 
                 it('should serve original HTML for single slash path without injection', async () => {
-                    mockReq.path = '/app/';
+                    const mockReq = createMockRequest('/app/');
                     const originalHtml = Buffer.from('<html><body>slash-no-inject</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, undefined);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -682,12 +695,12 @@ describe('gcsRoute', () => {
                 });
 
                 it('should serve original HTML for explicit index.html path without injection', async () => {
-                    mockReq.path = '/app/index.html';
+                    const mockReq = createMockRequest('/app/index.html');
                     const originalHtml = Buffer.from('<html><body>explicit-no-inject</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, undefined);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -697,7 +710,7 @@ describe('gcsRoute', () => {
                 });
 
                 it('should serve original HTML for unknown path with SERVE_INDEX_HTML fallback without injection', async () => {
-                    mockReq.path = '/app/unknown/route';
+                    const mockReq = createMockRequest('/app/unknown/route');
                     let callCount = 0;
                     mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
                         callCount++;
@@ -714,7 +727,7 @@ describe('gcsRoute', () => {
                     };
 
                     const route = gcsRoute(config, undefined);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -726,7 +739,7 @@ describe('gcsRoute', () => {
                 });
 
                 it('should serve original HTML for deep nested unknown path with SERVE_INDEX_HTML fallback without injection', async () => {
-                    mockReq.path = '/app/some/deep/nested/route';
+                    const mockReq = createMockRequest('/app/some/deep/nested/route');
                     let callCount = 0;
                     mockBucket._mockFileDownload.mockImplementation((callback: Function) => {
                         callCount++;
@@ -743,7 +756,7 @@ describe('gcsRoute', () => {
                     };
 
                     const route = gcsRoute(config, undefined);
-                    route(mockReq as Request, mockRes as Response);
+                    route(mockReq, mockRes as Response);
 
                     await waitForAsync();
 
@@ -758,11 +771,11 @@ describe('gcsRoute', () => {
 
     describe('Edge Cases', () => {
         it('should handle paths without context path prefix', async () => {
-            mockReq.path = '/other/path';
+            const mockReq = createMockRequest('/other/path');
             mockFileError();
 
             const route = gcsRoute(baseConfig, undefined);
-            route(mockReq as Request, mockRes as Response);
+            route(mockReq, mockRes as Response);
 
             await waitForAsync();
 
@@ -770,11 +783,11 @@ describe('gcsRoute', () => {
         });
 
         it('should handle empty path correctly', async () => {
-            mockReq.path = '/app/';
+            const mockReq = createMockRequest('/app/');
             mockFileSuccess(Buffer.from('test'));
 
             const route = gcsRoute(baseConfig, undefined);
-            route(mockReq as Request, mockRes as Response);
+            route(mockReq, mockRes as Response);
 
             await waitForAsync();
 
