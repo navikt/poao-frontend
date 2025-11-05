@@ -1,7 +1,6 @@
 import NodeCache from 'node-cache';
 import { logger } from "../../logger.js";
 import { minutesToSeconds } from '../../utils.js';
-import { OboToken } from '../auth-token-utils.js';
 import { OboTokenStore, OboTokenKey } from "./token-store.js";
 
 export const createInMemoryCache = (): OboTokenStore => {
@@ -10,7 +9,7 @@ export const createInMemoryCache = (): OboTokenStore => {
 	});
 
 	return {
-		getUserOboToken: async (key: OboTokenKey): Promise<OboToken | undefined> => {
+		getUserOboToken: async (key: OboTokenKey): Promise<string | undefined> => {
 			try {
 				return cache.get(key)
 			} catch (e) {
@@ -18,7 +17,7 @@ export const createInMemoryCache = (): OboTokenStore => {
 				return undefined
 			}
 		},
-		setUserOboToken: async (key: OboTokenKey, expiresInSeconds: number, oboToken: OboToken) => {
+		setUserOboToken: async (key: OboTokenKey, expiresInSeconds: number, oboToken: string) => {
 			try {
 				cache.set(key, oboToken, expiresInSeconds)
 			} catch (e) {

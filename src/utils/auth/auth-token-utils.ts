@@ -1,5 +1,3 @@
-import { TokenSet } from 'openid-client';
-import { assert } from '../assert.js';
 import { Request } from 'express';
 import { JsonData } from '../config-utils.js';
 import { fromBase64 } from '../utils.js';
@@ -22,19 +20,6 @@ export interface OboToken {
 
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {
 	return expiresInSeconds - EXPIRE_BEFORE_SECONDS;
-};
-
-export const createNbf = (): number => {
-	return Math.floor(Date.now() / 1000);
-};
-
-export const tokenSetToOboToken = (tokenSet: TokenSet): OboToken => {
-	return {
-		tokenType: assert(tokenSet.token_type, 'Missing token_type'),
-		scope: assert(tokenSet.scope, 'Missing scope'),
-		expiresAt: assert(tokenSet.expires_at, 'Missing expires_at'),
-		accessToken: assert(tokenSet.access_token, 'Missing access_token'),
-	};
 };
 
 // The header should contain a value in the following format: "Bearer <token>"

@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import { ValkeyConfig } from "../../../config/auth-config.js";
-import { OboToken } from "../auth-token-utils.js";
 import { createInMemoryCache } from "./in-memory-token-store.js";
 import { createValkeyCache } from "./valkey-token-store.js";
 
@@ -20,8 +19,8 @@ export function createTokenStore(valkeyConfig: ValkeyConfig | undefined): OboTok
 }
 
 export interface OboTokenStore {
-    getUserOboToken: (key: OboTokenKey) => Promise<OboToken | undefined>;
-    setUserOboToken: (key: OboTokenKey, expiresInSeconds: number, oboToken: OboToken) => Promise<void>;
+    getUserOboToken: (key: OboTokenKey) => Promise<string | undefined>;
+    setUserOboToken: (key: OboTokenKey, expiresInSeconds: number, oboToken: string) => Promise<void>;
     deleteUserOboToken: (key: OboTokenKey) => Promise<void>;
     close: () => Promise<void>;
     cacheType: 'in-memory' | 'valkey';
