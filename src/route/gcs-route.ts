@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
 import urlJoin from 'url-join';
+import { JSDOM } from 'jsdom'
 import { logger } from '../utils/logger.js';
 import {
 	getMimeType,
@@ -17,6 +18,9 @@ import { JsonConfig } from "../config/app-config-resolver.js";
 import ModiaContextHolderConfig = JsonConfig.ModiaContextHolderConfig;
 import { setModiaContext } from "../utils/modiacontextholder/setModiaContext.js";
 import { CALL_ID, CONSUMER_ID } from "../middleware/tracingMiddleware.js";
+import { injectDecoratorServerSideDocument } from "@navikt/nav-dekoratoren-moduler/ssr/index.js";
+
+import DekoratorConfig = JsonConfig.DekoratorConfig;
 
 // Used to cache requests to static resources that NEVER change
 const staticCache = new NodeCache({
@@ -67,7 +71,7 @@ function sendContent(res: Response, bucketFilePath: string, content: Buffer) {
 	res.send(content);
 }
 
-function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string): Promise<Buffer> {
+function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string, dekoratorConfig: DekoratorConfig | undefined): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
 		const cachedContent = readFromCache(bucketFilePath);
 
@@ -82,8 +86,16 @@ function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string): Promi
 			if (err) {
 				reject(err);
 			} else {
-				updateCache(bucketFilePath, content);
-				resolve(content);
+                if (dekoratorConfig && bucketFilePath.endsWith("index.html")) {
+                    injectDekorator(content, dekoratorConfig)
+                        .then(dekoratorInjectedHtml => {
+                            updateCache(bucketFilePath, dekoratorInjectedHtml);
+                            resolve(dekoratorInjectedHtml);
+                        })
+                } else {
+                    updateCache(bucketFilePath, content);
+                    resolve(content);
+                }
 			}
 		});
 	});
@@ -113,7 +125,7 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 }
 
 
-export function gcsRoute(config: GcsRouterConfig) {
+export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConfig | undefined) {
 	const storage = new Storage();
 	const bucket = storage.bucket(config.bucketName);
 
@@ -126,9 +138,9 @@ export function gcsRoute(config: GcsRouterConfig) {
 
 		const bucketFilePath = createBucketFilePath(req.path, config);
 
-		getFileFromCacheOrBucket(bucket, bucketFilePath)
+		getFileFromCacheOrBucket(bucket, bucketFilePath, dekoratorConfig)
 			.then(fileContent => {
-				sendContent(res, bucketFilePath, fileContent);
+                sendContent(res, bucketFilePath, fileContent);
 			})
 			.catch(async err => {
 				// If the user is requesting a file such as /path/to/img.png then we should always return 404 if the file does not exist
@@ -160,10 +172,10 @@ export function gcsRoute(config: GcsRouterConfig) {
 						}
 					}
 
-					getFileFromCacheOrBucket(bucket, defaultFilePath)
+					getFileFromCacheOrBucket(bucket, defaultFilePath, dekoratorConfig)
 						.then(content => {
-							sendContent(res, defaultFilePath, content);
-						})
+                            sendContent(res, defaultFilePath, content);
+                        })
 						.catch(() => {
 							logger.warn('Fant ikke default fil for FallbackStrategy.SERVE: ' + defaultFilePath);
 							res.sendStatus(404);
@@ -173,5 +185,31 @@ export function gcsRoute(config: GcsRouterConfig) {
 				}
 			});
 	};
+}
+
+const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConfig): Promise<Buffer<ArrayBufferLike>> => {
+    try {
+        const document = new JSDOM(content).window.document
+        return injectDecoratorServerSideDocument({
+            env: config.env,
+            document: document,
+            params: {
+                simple: config.simple,
+                chatbot: config.chatbot
+            }
+        })
+            .then((document) => {
+                return Buffer.from(document.documentElement.outerHTML)
+            })
+            .catch((e: any) => {
+                logger.error({
+                    message: e,
+                })
+                return Promise.resolve(content)
+            })
+    } catch (e: any) {
+        logger.error({ message: `Failed to parse index.html with JSDOM: ${e.toString()}` });
+        return Promise.resolve(content)
+    }
 }
 
