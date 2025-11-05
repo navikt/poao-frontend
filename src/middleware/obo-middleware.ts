@@ -80,12 +80,6 @@ export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenVa
 		const expiresInSecondWithClockSkew = getExpiresInSecondWithClockSkew(expiresInSeconds);
 
 		await oboTokenStore.setUserOboToken(oboTokenKey, expiresInSecondWithClockSkew, oboToken);
-	} else {
-		logger.info({
-			message: `On-behalf-of fetched from ${oboTokenStore.cacheType} cache`,
-			callId: req.headers[CALL_ID],
-			consumerId: req.headers[CONSUMER_ID]
-		});
 	}
 
 	req.headers[AUTHORIZATION_HEADER] = `Bearer ${oboToken.accessToken}`;
@@ -99,11 +93,6 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
 	const scope = createAppScope(isUsingTokenX, proxy)
 
 	return asyncMiddleware(async (req, res, next) => {
-		logger.info({
-			message: `Proxyer request ${req.path} til applikasjon ${proxy.toApp?.name || proxy.toUrl}`,
-			callId: req.headers[CALL_ID],
-			consumerId: req.headers[CONSUMER_ID]
-		});
 		const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenClient, oboTokenStore, authConfig, scope)
 		if (!error) {
 			next();
