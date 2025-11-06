@@ -66,7 +66,6 @@ function createMockRequest(config: RequestConfig = {}): Partial<Request> {
 // Test context for managing mocks and dependencies
 interface TestDependencies {
 	oboTokenStore: OboTokenStore;
-	authConfig: AuthConfig;
 	proxy: Proxy;
 }
 
@@ -78,11 +77,6 @@ function createTestDependencies(overrides: Partial<TestDependencies> = {}): Test
 			deleteUserOboToken: vi.fn(),
 			close: vi.fn(),
 			cacheType: 'in-memory'
-		},
-		authConfig: overrides.authConfig || {
-            loginProviderType: LoginProviderType.AZURE_AD,
-			oboProviderType: OboProviderType.AZURE_AD,
-            valkeyConfig: undefined
 		},
 		proxy: overrides.proxy || {
 			toApp: { name: 'default-app', cluster: 'dev-gcp', namespace: 'default' },
@@ -127,6 +121,15 @@ function mockOasisValidateAzureToken(isValid: boolean) {
 }
 function mockOasisValidateIdportenToken(isValid: boolean) {
     (validateIdportenToken as Mock).mockResolvedValueOnce({ ok: isValid });
+}
+
+const AzureAuthConfig: Omit<AuthConfig, 'valkeyConfig'> = {
+    loginProviderType: LoginProviderType.AZURE_AD as const,
+    oboProviderType: OboProviderType.AZURE_AD as const,
+}
+const IdPortenAuthConfig: Omit<AuthConfig, 'valkeyConfig'> = {
+    loginProviderType: LoginProviderType.ID_PORTEN as const,
+    oboProviderType: OboProviderType.TOKEN_X as const,
 }
 
 describe('obo-middleware', () => {
@@ -360,11 +363,11 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const { oboTokenStore, authConfig, proxy } = createTestDependencies();
+				const { oboTokenStore, proxy } = createTestDependencies();
 				mockCachedOboToken(oboTokenStore, 'cached-token');
 
 				const middleware = oboMiddleware({
-					authConfig: authConfig,
+					authConfig: AzureAuthConfig,
 					oboTokenStore: oboTokenStore,
 					proxy: proxy
 				});
@@ -384,10 +387,10 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({});
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const { proxy, authConfig, oboTokenStore } = createTestDependencies();
+                const { proxy, oboTokenStore } = createTestDependencies();
 
 				const middleware = oboMiddleware({
-					authConfig,
+					authConfig: AzureAuthConfig,
 					oboTokenStore,
 					proxy
 				});
@@ -406,11 +409,11 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const { oboTokenStore, authConfig, proxy } = createTestDependencies();
+				const { oboTokenStore, proxy } = createTestDependencies();
                 mockOasisValidateAzureToken(false)
 
 				const middleware = oboMiddleware({
-					authConfig,
+					authConfig: AzureAuthConfig,
 					oboTokenStore,
 					proxy
 				});
@@ -429,13 +432,11 @@ describe('obo-middleware', () => {
                 const request = createMockRequest({ token: accessToken });
                 const { response, sendStatusMock } = createMockResponse();
                 const nextMock = vi.fn();
-                const { oboTokenStore, authConfig, proxy } = createTestDependencies({
-                    authConfig: { loginProviderType: LoginProviderType.ID_PORTEN, oboProviderType: OboProviderType.TOKEN_X, valkeyConfig: undefined }
-                });
+                const { oboTokenStore, proxy } = createTestDependencies();
                 mockOasisValidateIdportenToken(false)
 
                 const middleware = oboMiddleware({
-                    authConfig,
+                    authConfig: IdPortenAuthConfig,
                     oboTokenStore,
                     proxy
                 });
@@ -458,8 +459,7 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const { proxy, authConfig, oboTokenStore } = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.AZURE_AD, loginProviderType: LoginProviderType.AZURE_AD, valkeyConfig: undefined },
+				const { proxy, oboTokenStore } = createTestDependencies({
 					proxy: {
 						toApp: { name: 'my-app', cluster: 'prod-gcp', namespace: 'obo' },
 						fromPath: "/my-app",
@@ -471,7 +471,7 @@ describe('obo-middleware', () => {
 				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, 3600);
 
 				const middleware = oboMiddleware({
-					authConfig,
+					authConfig: AzureAuthConfig,
 					oboTokenStore,
 					proxy
 				});
@@ -498,8 +498,7 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const { oboTokenStore, authConfig, proxy } = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.TOKEN_X, loginProviderType: LoginProviderType.ID_PORTEN, valkeyConfig: undefined },
+                const { oboTokenStore, proxy } = createTestDependencies({
 					proxy: {
 						toApp,
 						fromPath: "/from-path",
@@ -510,7 +509,7 @@ describe('obo-middleware', () => {
 				mockOasisOboTokenExchange(OboProviderType.TOKEN_X, newToken, 3600);
 
 				const middleware = oboMiddleware({
-					authConfig,
+					authConfig: IdPortenAuthConfig,
 					oboTokenStore,
 					proxy
 				});

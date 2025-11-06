@@ -20,7 +20,9 @@ export function mapLoginProviderTypeToValidatorType(loginProviderType: LoginProv
 
 export function createTokenValidator(loginProviderType: LoginProviderType): TokenValidator {
     const type: TokenValidatorType = mapLoginProviderTypeToValidatorType(loginProviderType);
-    const validationFunction = type === TokenValidatorType.AZURE_AD ? validateAzureToken : validateIdportenToken;
+    const validationFunction = type === TokenValidatorType.AZURE_AD
+        ? validateAzureToken
+        : validateIdportenToken;
     return {
 		isValid: async (token: string | undefined): Promise<boolean> => {
             if (!token) return false;

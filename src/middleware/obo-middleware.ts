@@ -17,7 +17,7 @@ import {CALL_ID, CONSUMER_ID} from "./tracingMiddleware.js";
 import {expiresIn} from "@navikt/oasis";
 
 interface ProxyOboMiddlewareParams {
-	authConfig: AuthConfig;
+	authConfig: Omit<AuthConfig, 'valkeyConfig'>;
 	oboTokenStore: OboTokenStore;
 	proxy: Proxy;
 }
@@ -34,14 +34,18 @@ async function getOrCreateOboToken(
 	oboTokenStore: OboTokenStore,
 	oboProviderType: OboProviderType,
 ): Promise<string> {
-	const oboTokenKey = createOboTokenKey(accessToken, scope);
 
-	const cachedToken = await oboTokenStore.getUserOboToken(oboTokenKey);
+    const oboTokenKey = createOboTokenKey(accessToken, scope);
+
+    const cachedToken = await oboTokenStore.getUserOboToken(oboTokenKey);
 	if (cachedToken) {
+
 		return cachedToken;
 	}
 
-	const now = new Date().getTime();
+
+
+    const now = new Date().getTime();
 
 	const newOboToken = oboProviderType === OboProviderType.TOKEN_X
 		? await createTokenXOnBehalfOfToken(scope, accessToken)
@@ -71,7 +75,7 @@ export const setOBOTokenOnRequest = async (
 ): Promise<Error | undefined> => {
 	const accessToken = getAccessToken(req);
 
-	if (!accessToken) {
+    if (!accessToken) {
 		logger.warn({ message: 'Access token is missing from proxy request', callId: req.headers[CALL_ID], consumerId: req.headers[CONSUMER_ID] });
 		return { status: 401 }
 	}
@@ -100,9 +104,10 @@ export function oboMiddleware(params: ProxyOboMiddlewareParams) {
     const tokenValidator = createTokenValidator(authConfig.loginProviderType);
 
     return asyncMiddleware(async (req, res, next) => {
-		const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenStore, authConfig.oboProviderType, scope)
+
+        const error = await setOBOTokenOnRequest(req, tokenValidator, oboTokenStore, authConfig.oboProviderType, scope)
 		if (!error) {
-			next();
+            next();
 		} else {
 			res.sendStatus(error?.status)
 		}
