@@ -18,7 +18,7 @@ const createModiacontextHolderConfig = async () => {
         oboProvider: azureAdProvider
     }
     const tokenValidatorType = mapLoginProviderTypeToValidatorType(authConfig.loginProviderType);
-    const tokenValidator = await createTokenValidator(tokenValidatorType, authConfig.loginProvider.discoveryUrl, authConfig.loginProvider.clientId);
+    const tokenValidator = await createTokenValidator(tokenValidatorType);
     return {
         tokenStore: createTokenStore(undefined),
         authConfig,

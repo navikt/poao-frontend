@@ -75,7 +75,7 @@ async function startServer() {
 
 	if (auth) {
 		const tokenValidatorType = mapLoginProviderTypeToValidatorType(auth.loginProviderType);
-		const tokenValidator = await createTokenValidator(tokenValidatorType, auth.loginProvider.discoveryUrl, auth.loginProvider.clientId);
+		const tokenValidator = await createTokenValidator(tokenValidatorType);
 		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
 
 		if (proxy.proxies.length > 0) {

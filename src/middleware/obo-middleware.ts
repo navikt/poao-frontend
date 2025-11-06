@@ -28,6 +28,7 @@ function createAppScope(isUsingTokenX: boolean, proxy: Proxy): string | null {
 		return null
 	}
 
+    console.log("Creating scope for proxy", proxy)
 	return isUsingTokenX ? createTokenXScope(proxy.toApp) : createAzureAdScope(proxy.toApp);
 }
 
@@ -69,8 +70,12 @@ async function getOrCreateOboToken(
 }
 
 interface Error { status: number, message?: string | undefined }
-export const setOBOTokenOnRequest = async (req: Request, tokenValidator: TokenValidator,
-	oboTokenStore: OboTokenStore, authConfig: AuthConfig, scope: string | null
+export const setOBOTokenOnRequest = async (
+    req: Request,
+    tokenValidator: TokenValidator,
+	oboTokenStore: OboTokenStore,
+    authConfig: AuthConfig,
+    scope: string | null
 ): Promise<Error | undefined> => {
 	const isUsingTokenX = authConfig.oboProviderType === OboProviderType.TOKEN_X;
 

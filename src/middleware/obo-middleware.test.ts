@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, Mock } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { oboMiddleware, setOBOTokenOnRequest } from './obo-middleware.js';
 import { AuthConfig, OboProviderType } from '../config/auth-config.js';
 import { Proxy } from '../config/proxy-config.js';
@@ -8,18 +8,10 @@ import { OboTokenStore } from '../utils/auth/tokenStore/token-store.js';
 import { AUTHORIZATION_HEADER, WONDERWALL_ID_TOKEN_HEADER } from '../utils/auth/auth-token-utils.js';
 
 // Mock the dependencies
-vi.mock('../utils/auth/auth-client-utils.js', () => ({
-	createAzureAdOnBehalfOfToken: vi.fn(),
-	createTokenXOnBehalfOfToken: vi.fn()
-}));
-
 vi.mock('@navikt/oasis', () => ({
-	expiresIn: vi.fn()
-}));
-
-vi.mock('../utils/auth/auth-config-utils.js', () => ({
-	createTokenXScope: vi.fn((app) => `dev-gcp:namespace:${app}`),
-	createAzureAdScope: vi.fn((app) => `api://cluster.namespace.${app}/.default`)
+	expiresIn: vi.fn(),
+    requestTokenxOboToken: vi.fn(),
+    requestAzureOboToken: vi.fn(),
 }));
 
 vi.mock('../utils/auth/tokenStore/token-store.js', async (importOriginal) => {
@@ -38,232 +30,86 @@ vi.mock('../utils/logger.js', () => ({
 	}
 }));
 
-import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils.js';
-import { expiresIn } from '@navikt/oasis';
+// import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils.js';
+import {expiresIn, requestAzureOboToken, requestTokenxOboToken, TokenResult} from '@navikt/oasis';
 
-// Test utilities
-interface TestConfig {
-	authConfig?: Partial<AuthConfig>;
-	proxy?: Partial<Proxy>;
-	request?: {
-		accessToken?: string;
-		headers?: Record<string, string>;
-	};
-	tokenValidator?: {
-		isValid?: boolean;
-	};
-	tokenStore?: {
-		cachedToken?: string;
-	};
-	oboExchange?: {
-		newToken?: string;
-		expiresIn?: number;
+// Request builder utilities
+interface RequestConfig {
+	authorizationHeader?: string;
+	token?: string;
+	headers?: Record<string, string>;
+}
+
+function createMockRequest(config: RequestConfig = {}): Partial<Request> {
+	const headers: Record<string, string> = { ...config.headers };
+
+	if (config.token) {
+		headers[AUTHORIZATION_HEADER] = `Bearer ${config.token}`;
+	} else if (config.authorizationHeader !== undefined) {
+		headers[AUTHORIZATION_HEADER] = config.authorizationHeader;
+	}
+
+	return {
+		headers,
+		header: vi.fn((name: string) => headers[name])
 	};
 }
 
-class TestContext {
-	mockAccessToken = 'mock-access-token';
-	mockOboToken = 'mock-obo-token';
-	mockScope = 'api://cluster.namespace.my-app/.default';
-
-	tokenValidator: TokenValidator;
+// Test context for managing mocks and dependencies
+interface TestDependencies {
+	// tokenValidator: TokenValidator;
 	oboTokenStore: OboTokenStore;
 	authConfig: AuthConfig;
 	proxy: Proxy;
-	request: Partial<Request>;
-	response: Partial<Response>;
-	next: NextFunction;
+}
 
-	constructor() {
-		this.tokenValidator = {
-			isValid: vi.fn()
-		};
-
-		this.oboTokenStore = {
+function createTestDependencies(overrides: Partial<TestDependencies> = {}): TestDependencies {
+	return {
+		oboTokenStore: overrides.oboTokenStore || {
 			getUserOboToken: vi.fn(),
 			setUserOboToken: vi.fn(),
 			deleteUserOboToken: vi.fn(),
 			close: vi.fn(),
 			cacheType: 'in-memory'
-		};
-
-		this.authConfig = {
+		},
+		authConfig: overrides.authConfig || {
 			oboProviderType: OboProviderType.AZURE_AD
-		} as AuthConfig;
-
-		this.proxy = {
-			toApp: { name: 'my-app', cluster: 'dev-gcp', namespace: 'obo' },
-            fromPath: "/from-path",
-            preserveFromPath: true,
-            toUrl: '/to-app'
-		};
-
-		this.request = {
-			headers: {},
-			header: vi.fn((name: string) => {
-				if (name === AUTHORIZATION_HEADER) {
-					return this.request.headers![AUTHORIZATION_HEADER];
-				}
-				return undefined;
-			})
-		};
-
-		this.response = {
-			sendStatus: vi.fn()
-		};
-
-		this.next = vi.fn();
-	}
-
-	givenAzureAdConfig(): this {
-		this.authConfig.oboProviderType = OboProviderType.AZURE_AD;
-		return this;
-	}
-
-	givenTokenXConfig(): this {
-		this.authConfig.oboProviderType = OboProviderType.TOKEN_X;
-		return this;
-	}
-
-	givenProxyWithApp(appName: string): this {
-		this.proxy.toApp = appName;
-		return this;
-	}
-
-	givenProxyWithoutApp(): this {
-		this.proxy.toApp = undefined;
-		return this;
-	}
-
-	givenRequestWithValidToken(token?: string): this {
-		this.request.headers![AUTHORIZATION_HEADER] = `Bearer ${token || this.mockAccessToken}`;
-		(this.tokenValidator.isValid as Mock).mockResolvedValue(true);
-		return this;
-	}
-
-	givenRequestWithInvalidToken(token?: string): this {
-		this.request.headers![AUTHORIZATION_HEADER] = `Bearer ${token || this.mockAccessToken}`;
-		(this.tokenValidator.isValid as Mock).mockResolvedValue(false);
-		return this;
-	}
-
-	givenRequestWithMalformedAuthHeader(value: string): this {
-		this.request.headers![AUTHORIZATION_HEADER] = value;
-		return this;
-	}
-
-	givenRequestWithoutToken(): this {
-		// Don't set authorization header
-		return this;
-	}
-
-	givenCachedOboToken(token: string): this {
-		(this.oboTokenStore.getUserOboToken as Mock).mockResolvedValue(token);
-		return this;
-	}
-
-	givenNoCachedOboToken(): this {
-		(this.oboTokenStore.getUserOboToken as Mock).mockResolvedValue(undefined);
-		return this;
-	}
-
-	givenOboTokenExchange(newToken: string, expiresInSeconds: number): this {
-		(expiresIn as Mock).mockReturnValue(expiresInSeconds);
-
-		if (this.authConfig.oboProviderType === OboProviderType.TOKEN_X) {
-			(createTokenXOnBehalfOfToken as Mock).mockResolvedValue(newToken);
-		} else {
-			(createAzureAdOnBehalfOfToken as Mock).mockResolvedValue(newToken);
+		} as AuthConfig,
+		proxy: overrides.proxy || {
+			toApp: { name: 'default-app', cluster: 'dev-gcp', namespace: 'default' },
+			fromPath: "/from-path",
+			preserveFromPath: true,
+			toUrl: '/to-app'
 		}
-		return this;
-	}
+	};
+}
 
-	async whenCallingSetOBOTokenOnRequest(scope: string | null) {
-		return await setOBOTokenOnRequest(
-			this.request as Request,
-			this.tokenValidator,
-			this.oboTokenStore,
-			this.authConfig,
-			scope
-		);
-	}
+function createMockResponse(): { response: Partial<Response>; sendStatusMock: Mock } {
+	const sendStatusMock = vi.fn();
+	return {
+		response: {
+			sendStatus: sendStatusMock
+		},
+		sendStatusMock
+	};
+}
 
-	async whenCallingMiddleware() {
-		const middleware = oboMiddleware({
-			authConfig: this.authConfig,
-			oboTokenStore: this.oboTokenStore,
-			tokenValidator: this.tokenValidator,
-			proxy: this.proxy
-		});
+// Mock setup utilities
+function mockTokenValidator(isValid: boolean): TokenValidator {
+    return { isValid:  vi.fn((_token: string) => Promise.resolve(isValid)) }
+}
 
-		await middleware(this.request as Request, this.response as Response, this.next);
-	}
+function mockCachedOboToken(oboTokenStore: OboTokenStore, token: string | undefined): void {
+	(oboTokenStore.getUserOboToken as Mock).mockResolvedValue(token);
+}
 
-	thenShouldReturn401() {
-		return { status: 401 };
-	}
+function mockOasisOboTokenExchange(oboProviderType: OboProviderType, newToken: string, expiresInSeconds: number): void {
+	(expiresIn as Mock).mockReturnValue(expiresInSeconds);
 
-	thenShouldReturnUndefined() {
-		return undefined;
-	}
-
-	expectTokenValidatorCalledWith(token: string) {
-		expect(this.tokenValidator.isValid).toHaveBeenCalledWith(token);
-	}
-
-	expectTokenValidatorNotCalled() {
-		expect(this.tokenValidator.isValid).not.toHaveBeenCalled();
-	}
-
-	expectAuthHeadersCleared() {
-		expect(this.request.headers![AUTHORIZATION_HEADER]).toBe('');
-		expect(this.request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
-	}
-
-	expectAuthHeaderSetTo(token: string) {
-		expect(this.request.headers![AUTHORIZATION_HEADER]).toBe(`Bearer ${token}`);
-		expect(this.request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
-	}
-
-	expectAzureAdTokenExchangeCalledWith(scope: string, accessToken: string) {
-		expect(createAzureAdOnBehalfOfToken).toHaveBeenCalledWith(scope, accessToken);
-		expect(createAzureAdOnBehalfOfToken).toHaveBeenCalledTimes(1);
-		expect(createTokenXOnBehalfOfToken).not.toHaveBeenCalled();
-	}
-
-	expectTokenXTokenExchangeCalledWith(scope: string, accessToken: string) {
-		expect(createTokenXOnBehalfOfToken).toHaveBeenCalledWith(scope, accessToken);
-		expect(createTokenXOnBehalfOfToken).toHaveBeenCalledTimes(1);
-		expect(createAzureAdOnBehalfOfToken).not.toHaveBeenCalled();
-	}
-
-	expectNoTokenExchangeCalled() {
-		expect(createAzureAdOnBehalfOfToken).not.toHaveBeenCalled();
-		expect(createTokenXOnBehalfOfToken).not.toHaveBeenCalled();
-	}
-
-	expectTokenStoredWith(expiresInSeconds: number, token: string) {
-		expect(this.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
-			expect.any(String),
-			expiresInSeconds,
-			token
-		);
-	}
-
-	expectNextCalled() {
-		expect(this.next).toHaveBeenCalledTimes(1);
-	}
-
-	expectNextNotCalled() {
-		expect(this.next).not.toHaveBeenCalled();
-	}
-
-	expectResponseStatus(status: number) {
-		expect(this.response.sendStatus).toHaveBeenCalledWith(status);
-	}
-
-	expectNoResponseStatus() {
-		expect(this.response.sendStatus).not.toHaveBeenCalled();
+	if (oboProviderType === OboProviderType.TOKEN_X) {
+		(requestTokenxOboToken as Mock).mockResolvedValue({ ok: true, token: newToken } as TokenResult);
+	} else {
+		(requestAzureOboToken as Mock).mockResolvedValue({ ok: true, token: newToken } as TokenResult);
 	}
 }
 
@@ -275,154 +121,249 @@ describe('obo-middleware', () => {
 	describe('setOBOTokenOnRequest', () => {
 		describe('token validation', () => {
 			it('should return 401 when access token is missing', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithoutToken();
+				// Arrange
+				const request = createMockRequest({});
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(true);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest('some-scope');
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					'some-scope'
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturn401());
-				ctx.expectTokenValidatorNotCalled();
+				// Assert
+				expect(result).toEqual({ status: 401 });
+				expect(tokenValidator.isValid).not.toHaveBeenCalled();
 			});
 
 			it('should return 401 when Authorization header has invalid format', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithMalformedAuthHeader('invalid-token-without-bearer');
+				// Arrange
+				const request = createMockRequest({ authorizationHeader: 'invalid-token-without-bearer' });
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(true);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest('some-scope');
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					'some-scope'
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturn401());
-				ctx.expectTokenValidatorNotCalled();
+				// Assert
+				expect(result).toEqual({ status: 401 });
+				expect(tokenValidator.isValid).not.toHaveBeenCalled();
 			});
 
 			it('should extract token correctly from Bearer format and validate it', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithValidToken()
-					.givenCachedOboToken('cached-token');
+				// Arrange
+				const accessToken = 'mock-access-token';
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies();
+				const tokenValidator = mockTokenValidator(true);
+				mockCachedOboToken(deps.oboTokenStore, 'cached-token');
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest('some-scope');
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					'some-scope'
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturnUndefined());
-				ctx.expectTokenValidatorCalledWith(ctx.mockAccessToken);
+				// Assert
+				expect(result).toBeUndefined();
+				expect(tokenValidator.isValid).toHaveBeenCalledWith(accessToken);
 			});
 
 			it('should return 401 when access token is invalid', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithInvalidToken();
+				// Arrange
+				const accessToken = 'invalid-token';
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(false);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest('some-scope');
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					'some-scope'
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturn401());
-				ctx.expectTokenValidatorCalledWith(ctx.mockAccessToken);
+				// Assert
+				expect(result).toEqual({ status: 401 });
+				expect(tokenValidator.isValid).toHaveBeenCalledWith(accessToken);
 			});
 		});
 
 		describe('scope handling', () => {
 			it('should clear auth headers when scope is null', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithValidToken();
+				// Arrange
+				const accessToken = 'mock-access-token';
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(true);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest(null);
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					null
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturnUndefined());
-				ctx.expectAuthHeadersCleared();
-				ctx.expectNoTokenExchangeCalled();
+				// Assert
+				expect(result).toBeUndefined();
+				expect(request.headers![AUTHORIZATION_HEADER]).toBe('');
+				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
+				expect(requestAzureOboToken).not.toHaveBeenCalled();
+				expect(requestTokenxOboToken).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('token caching', () => {
 			it('should use cached OBO token when available', async () => {
-				// given
+				// Arrange
+				const accessToken = 'mock-access-token';
 				const cachedToken = 'cached-obo-token';
-				const ctx = new TestContext()
-					.givenRequestWithValidToken()
-					.givenCachedOboToken(cachedToken);
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(true);
+				mockCachedOboToken(deps.oboTokenStore, cachedToken);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest('some-scope');
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					'some-scope'
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturnUndefined());
-				ctx.expectAuthHeaderSetTo(cachedToken);
-				ctx.expectNoTokenExchangeCalled();
+				// Assert
+				expect(result).toBeUndefined();
+				expect(request.headers![AUTHORIZATION_HEADER]).toBe(`Bearer ${cachedToken}`);
+				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
+				expect(requestAzureOboToken).not.toHaveBeenCalled();
+				expect(requestTokenxOboToken).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('Azure AD token exchange', () => {
 			it('should create new Azure AD OBO token when not cached', async () => {
-				// given
+				// Arrange
+				const accessToken = 'mock-access-token';
 				const newToken = 'new-azure-obo-token';
 				const expiresInSeconds = 3600;
 				const scope = 'api://cluster.namespace.my-app/.default';
-				const ctx = new TestContext()
-					.givenAzureAdConfig()
-					.givenRequestWithValidToken()
-					.givenNoCachedOboToken()
-					.givenOboTokenExchange(newToken, expiresInSeconds);
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.AZURE_AD } as AuthConfig
+				});
+                const tokenValidator = mockTokenValidator(true);
+				mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, expiresInSeconds);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest(scope);
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					scope
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturnUndefined());
-				ctx.expectAzureAdTokenExchangeCalledWith(scope, ctx.mockAccessToken);
-				ctx.expectTokenStoredWith(expiresInSeconds - 30, newToken);
-				ctx.expectAuthHeaderSetTo(newToken);
+				// Assert
+				expect(result).toBeUndefined();
+				expect(requestAzureOboToken).toHaveBeenCalledWith(accessToken, scope);
+				expect(requestAzureOboToken).toHaveBeenCalledTimes(1);
+				expect(requestTokenxOboToken).not.toHaveBeenCalled();
+				expect(deps.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
+					expect.any(String),
+					3570, // 3600 - 30 (clock skew)
+					newToken
+				);
+				expect(request.headers![AUTHORIZATION_HEADER]).toBe(`Bearer ${newToken}`);
+				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
 			});
 
 			it('should apply correct clock skew (30 seconds) to token expiration', async () => {
-				// given
+				// Arrange
+				const accessToken = 'mock-access-token';
 				const newToken = 'new-obo-token';
 				const expiresInSeconds = 3600;
 				const expectedExpiryWithSkew = 3570; // 3600 - 30
-				const ctx = new TestContext()
-					.givenAzureAdConfig()
-					.givenRequestWithValidToken()
-					.givenNoCachedOboToken()
-					.givenOboTokenExchange(newToken, expiresInSeconds);
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.AZURE_AD } as AuthConfig
+				});
+                const tokenValidator = mockTokenValidator(true);
+				mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, expiresInSeconds);
 
-				// when
-				await ctx.whenCallingSetOBOTokenOnRequest('some-scope');
+				// Act
+				await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					'some-scope'
+				);
 
-				// then
-				ctx.expectTokenStoredWith(expectedExpiryWithSkew, newToken);
+				// Assert
+				expect(deps.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
+					expect.any(String),
+					expectedExpiryWithSkew,
+					newToken
+				);
 			});
 		});
 
 		describe('TokenX token exchange', () => {
 			it('should create new TokenX OBO token when not cached', async () => {
-				// given
+				// Arrange
+				const accessToken = 'mock-access-token';
 				const newToken = 'new-tokenx-obo-token';
 				const expiresInSeconds = 3600;
 				const scope = 'dev-gcp:namespace:my-app';
-				const ctx = new TestContext()
-					.givenTokenXConfig()
-					.givenRequestWithValidToken()
-					.givenNoCachedOboToken()
-					.givenOboTokenExchange(newToken, expiresInSeconds);
+				const request = createMockRequest({ token: accessToken });
+				const deps = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.TOKEN_X } as AuthConfig
+				});
+                const tokenValidator = mockTokenValidator(true);
+				mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockOasisOboTokenExchange(OboProviderType.TOKEN_X, newToken, expiresInSeconds);
 
-				// when
-				const result = await ctx.whenCallingSetOBOTokenOnRequest(scope);
+				// Act
+				const result = await setOBOTokenOnRequest(
+					request as Request,
+					tokenValidator,
+					deps.oboTokenStore,
+					deps.authConfig,
+					scope
+				);
 
-				// then
-				expect(result).toEqual(ctx.thenShouldReturnUndefined());
-				ctx.expectTokenXTokenExchangeCalledWith(scope, ctx.mockAccessToken);
-				ctx.expectTokenStoredWith(expiresInSeconds - 30, newToken);
-				ctx.expectAuthHeaderSetTo(newToken);
+				// Assert
+				expect(result).toBeUndefined();
+				expect(requestTokenxOboToken).toHaveBeenCalledWith(accessToken, scope);
+				expect(requestTokenxOboToken).toHaveBeenCalledTimes(1);
+				expect(requestAzureOboToken).not.toHaveBeenCalled();
+				expect(deps.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
+					expect.any(String),
+					3570, // 3600 - 30 (clock skew)
+					newToken
+				);
+				expect(request.headers![AUTHORIZATION_HEADER]).toBe(`Bearer ${newToken}`);
+				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
 			});
 		});
 	});
@@ -430,108 +371,196 @@ describe('obo-middleware', () => {
 	describe('oboMiddleware', () => {
 		describe('successful token exchange', () => {
 			it('should call next() when token exchange succeeds', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithValidToken()
-					.givenCachedOboToken('cached-token');
+				// Arrange
+				const accessToken = 'mock-access-token';
+				const request = createMockRequest({ token: accessToken });
+				const { response, sendStatusMock } = createMockResponse();
+				const nextMock = vi.fn();
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(true);
+				mockCachedOboToken(deps.oboTokenStore, 'cached-token');
 
-				// when
-				await ctx.whenCallingMiddleware();
+				const middleware = oboMiddleware({
+					authConfig: deps.authConfig,
+					oboTokenStore: deps.oboTokenStore,
+					tokenValidator: tokenValidator,
+					proxy: deps.proxy
+				});
 
-				// then
-				ctx.expectNextCalled();
-				ctx.expectNoResponseStatus();
+				// Act
+				await middleware(request as Request, response as Response, nextMock);
+
+				// Assert
+				expect(nextMock).toHaveBeenCalledTimes(1);
+				expect(sendStatusMock).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('error handling', () => {
 			it('should send 401 status when token is missing', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithoutToken();
+				// Arrange
+				const request = createMockRequest({});
+				const { response, sendStatusMock } = createMockResponse();
+				const nextMock = vi.fn();
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(true);
 
-				// when
-				await ctx.whenCallingMiddleware();
+				const middleware = oboMiddleware({
+					authConfig: deps.authConfig,
+					oboTokenStore: deps.oboTokenStore,
+					tokenValidator: tokenValidator,
+					proxy: deps.proxy
+				});
 
-				// then
-				ctx.expectResponseStatus(401);
-				ctx.expectNextNotCalled();
+				// Act
+				await middleware(request as Request, response as Response, nextMock);
+
+				// Assert
+				expect(sendStatusMock).toHaveBeenCalledWith(401);
+				expect(nextMock).not.toHaveBeenCalled();
 			});
 
 			it('should send 401 status when token is invalid', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenRequestWithInvalidToken();
+				// Arrange
+				const accessToken = 'invalid-token';
+				const request = createMockRequest({ token: accessToken });
+				const { response, sendStatusMock } = createMockResponse();
+				const nextMock = vi.fn();
+				const deps = createTestDependencies();
+                const tokenValidator = mockTokenValidator(false);
 
-				// when
-				await ctx.whenCallingMiddleware();
+				const middleware = oboMiddleware({
+					authConfig: deps.authConfig,
+					oboTokenStore: deps.oboTokenStore,
+					tokenValidator: tokenValidator,
+					proxy: deps.proxy
+				});
 
-				// then
-				ctx.expectResponseStatus(401);
-				ctx.expectNextNotCalled();
+				// Act
+				await middleware(request as Request, response as Response, nextMock);
+
+				// Assert
+				expect(sendStatusMock).toHaveBeenCalledWith(401);
+				expect(nextMock).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('Azure AD integration', () => {
 			it('should create Azure AD scope and exchange token', async () => {
-				// given
+				// Arrange
+				const accessToken = 'mock-access-token';
 				const newToken = 'new-azure-token';
-				const ctx = new TestContext()
-					.givenAzureAdConfig()
-					.givenProxyWithApp('my-app')
-					.givenRequestWithValidToken()
-					.givenNoCachedOboToken()
-					.givenOboTokenExchange(newToken, 3600);
+				const expectedScope = 'api://prod-gcp.obo.my-app/.default';
+				const request = createMockRequest({ token: accessToken });
+				const { response, sendStatusMock } = createMockResponse();
+				const nextMock = vi.fn();
+				const deps = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.AZURE_AD } as AuthConfig,
+					proxy: {
+						toApp: { name: 'my-app', cluster: 'prod-gcp', namespace: 'obo' },
+						fromPath: "/my-app",
+						preserveFromPath: true,
+						toUrl: '/my-app-url'
+					}
+				});
+                const tokenValidator = mockTokenValidator(true);
+                mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, 3600);
 
-				// when
-				await ctx.whenCallingMiddleware();
+				const middleware = oboMiddleware({
+					authConfig: deps.authConfig,
+					oboTokenStore: deps.oboTokenStore,
+					tokenValidator: tokenValidator,
+					proxy: deps.proxy
+				});
 
-				// then
-				ctx.expectAzureAdTokenExchangeCalledWith(
-					'api://cluster.namespace.my-app/.default',
-					ctx.mockAccessToken
-				);
-				ctx.expectNextCalled();
+				// Act
+				await middleware(request as Request, response as Response, nextMock);
+
+				// Assert
+				expect(requestAzureOboToken).toHaveBeenCalledWith(accessToken, expectedScope);
+				expect(requestAzureOboToken).toHaveBeenCalledTimes(1);
+				expect(requestTokenxOboToken).not.toHaveBeenCalled();
+				expect(nextMock).toHaveBeenCalledTimes(1);
+				expect(sendStatusMock).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('TokenX integration', () => {
 			it('should create TokenX scope and exchange token', async () => {
-				// given
+				// Arrange
+				const accessToken = 'mock-access-token';
 				const newToken = 'new-tokenx-token';
-				const ctx = new TestContext()
-					.givenTokenXConfig()
-					.givenProxyWithApp('my-app')
-					.givenRequestWithValidToken()
-					.givenNoCachedOboToken()
-					.givenOboTokenExchange(newToken, 3600);
+				const expectedScope = 'dev-gcp:lol:my-app';
+				const request = createMockRequest({ token: accessToken });
+				const { response, sendStatusMock } = createMockResponse();
+				const nextMock = vi.fn();
+				const deps = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.TOKEN_X } as AuthConfig,
+					proxy: {
+						toApp: { name: 'my-app', cluster: 'dev-gcp', namespace: 'lol' },
+						fromPath: "/from-path",
+						preserveFromPath: true,
+						toUrl: '/to-app'
+					}
+				});
+                const tokenValidator = mockTokenValidator(true);
+                mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockOasisOboTokenExchange(OboProviderType.TOKEN_X, newToken, 3600);
 
-				// when
-				await ctx.whenCallingMiddleware();
+				const middleware = oboMiddleware({
+					authConfig: deps.authConfig,
+					oboTokenStore: deps.oboTokenStore,
+					tokenValidator: tokenValidator,
+					proxy: deps.proxy
+				});
 
-				// then
-				ctx.expectTokenXTokenExchangeCalledWith(
-					'dev-gcp:namespace:my-app',
-					ctx.mockAccessToken
-				);
-				ctx.expectNextCalled();
+				// Act
+				await middleware(request as Request, response as Response, nextMock);
+
+				// Assert
+				expect(requestTokenxOboToken).toHaveBeenCalledWith(accessToken, expectedScope);
+				expect(requestTokenxOboToken).toHaveBeenCalledTimes(1);
+				expect(requestAzureOboToken).not.toHaveBeenCalled();
+				expect(nextMock).toHaveBeenCalledTimes(1);
+				expect(sendStatusMock).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('proxy configuration', () => {
 			it('should clear auth headers when proxy has no toApp configured', async () => {
-				// given
-				const ctx = new TestContext()
-					.givenProxyWithoutApp()
-					.givenRequestWithValidToken();
+				// Arrange
+				const accessToken = 'mock-access-token';
+				const request = createMockRequest({ token: accessToken });
+				const { response, sendStatusMock } = createMockResponse();
+				const nextMock = vi.fn();
+				const deps = createTestDependencies({
+					proxy: {
+						toApp: undefined,
+						fromPath: "/from-path",
+						preserveFromPath: true,
+						toUrl: '/to-app'
+					}
+				});
+                const tokenValidator = mockTokenValidator(true);
 
-				// when
-				await ctx.whenCallingMiddleware();
+				const middleware = oboMiddleware({
+					authConfig: deps.authConfig,
+					oboTokenStore: deps.oboTokenStore,
+					tokenValidator: tokenValidator,
+					proxy: deps.proxy
+				});
 
-				// then
-				ctx.expectAuthHeadersCleared();
-				ctx.expectNoTokenExchangeCalled();
-				ctx.expectNextCalled();
+				// Act
+				await middleware(request as Request, response as Response, nextMock);
+
+				// Assert
+				expect(request.headers![AUTHORIZATION_HEADER]).toBe('');
+				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
+				expect(requestAzureOboToken).not.toHaveBeenCalled();
+				expect(requestTokenxOboToken).not.toHaveBeenCalled();
+				expect(nextMock).toHaveBeenCalledTimes(1);
+				expect(sendStatusMock).not.toHaveBeenCalled();
 			});
 		});
 	});
