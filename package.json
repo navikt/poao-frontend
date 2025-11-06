@@ -7,6 +7,7 @@
   "scripts": {
     "start": "dotenv -e env/basic.env ts-node src/server.ts",
     "test": "vitest",
+    "test-coverage": "vitest --coverage",
     "build": "tsc"
   },
   "repository": {
@@ -42,6 +43,7 @@
     "@types/jsdom": "27.0.0",
     "@types/mime-types": "3.0.1",
     "@types/node": "24.10.0",
+    "@vitest/coverage-v8": "^4.0.6",
     "dotenv-cli": "10.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",

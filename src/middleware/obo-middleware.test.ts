@@ -1,17 +1,27 @@
-import { describe, expect, it, vi, beforeEach, Mock } from 'vitest';
-import { Request, Response } from 'express';
-import { oboMiddleware, setOBOTokenOnRequest } from './obo-middleware.js';
-import { AuthConfig, OboProviderType } from '../config/auth-config.js';
-import { Proxy } from '../config/proxy-config.js';
-import { TokenValidator } from '../utils/auth/token-validator.js';
-import { OboTokenStore } from '../utils/auth/tokenStore/token-store.js';
-import { AUTHORIZATION_HEADER, WONDERWALL_ID_TOKEN_HEADER } from '../utils/auth/auth-token-utils.js';
+import {beforeEach, describe, expect, it, Mock, vi} from 'vitest';
+import {Request, Response} from 'express';
+import {oboMiddleware, setOBOTokenOnRequest} from './obo-middleware.js';
+import {AuthConfig, LoginProviderType, OboProviderType} from '../config/auth-config.js';
+import {Proxy} from '../config/proxy-config.js';
+import {TokenValidator} from '../utils/auth/token-validator.js';
+import {OboTokenStore} from '../utils/auth/tokenStore/token-store.js';
+import {AUTHORIZATION_HEADER, WONDERWALL_ID_TOKEN_HEADER} from '../utils/auth/auth-token-utils.js';
+import {
+    expiresIn,
+    requestAzureOboToken,
+    requestTokenxOboToken,
+    TokenResult,
+    validateAzureToken,
+    validateIdportenToken
+} from '@navikt/oasis';
 
 // Mock the dependencies
 vi.mock('@navikt/oasis', () => ({
 	expiresIn: vi.fn(),
     requestTokenxOboToken: vi.fn(),
     requestAzureOboToken: vi.fn(),
+    validateAzureToken: vi.fn(() => ({ ok: true })),
+    validateIdportenToken: vi.fn(() => ({ ok: true })),
 }));
 
 vi.mock('../utils/auth/tokenStore/token-store.js', async (importOriginal) => {
@@ -27,11 +37,13 @@ vi.mock('../utils/logger.js', () => ({
 		info: vi.fn(),
 		warn: vi.fn(),
 		error: vi.fn()
-	}
+	},
+    secureLog: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+    }
 }));
-
-// import { createAzureAdOnBehalfOfToken, createTokenXOnBehalfOfToken } from '../utils/auth/auth-client-utils.js';
-import {expiresIn, requestAzureOboToken, requestTokenxOboToken, TokenResult} from '@navikt/oasis';
 
 // Request builder utilities
 interface RequestConfig {
@@ -57,7 +69,6 @@ function createMockRequest(config: RequestConfig = {}): Partial<Request> {
 
 // Test context for managing mocks and dependencies
 interface TestDependencies {
-	// tokenValidator: TokenValidator;
 	oboTokenStore: OboTokenStore;
 	authConfig: AuthConfig;
 	proxy: Proxy;
@@ -73,8 +84,10 @@ function createTestDependencies(overrides: Partial<TestDependencies> = {}): Test
 			cacheType: 'in-memory'
 		},
 		authConfig: overrides.authConfig || {
-			oboProviderType: OboProviderType.AZURE_AD
-		} as AuthConfig,
+            loginProviderType: LoginProviderType.AZURE_AD,
+			oboProviderType: OboProviderType.AZURE_AD,
+            valkeyConfig: undefined
+		},
 		proxy: overrides.proxy || {
 			toApp: { name: 'default-app', cluster: 'dev-gcp', namespace: 'default' },
 			fromPath: "/from-path",
@@ -113,6 +126,13 @@ function mockOasisOboTokenExchange(oboProviderType: OboProviderType, newToken: s
 	}
 }
 
+function mockValidateAzureToken(isValid: boolean) {
+    (validateAzureToken as Mock).mockResolvedValueOnce({ ok: isValid });
+}
+function mockValidateIdportenToken(isValid: boolean) {
+    (validateIdportenToken as Mock).mockResolvedValueOnce({ ok: isValid });
+}
+
 describe('obo-middleware', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -123,15 +143,15 @@ describe('obo-middleware', () => {
 			it('should return 401 when access token is missing', async () => {
 				// Arrange
 				const request = createMockRequest({});
-				const deps = createTestDependencies();
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(true);
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.AZURE_AD,
 					'some-scope'
 				);
 
@@ -143,15 +163,15 @@ describe('obo-middleware', () => {
 			it('should return 401 when Authorization header has invalid format', async () => {
 				// Arrange
 				const request = createMockRequest({ authorizationHeader: 'invalid-token-without-bearer' });
-				const deps = createTestDependencies();
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(true);
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.AZURE_AD,
 					'some-scope'
 				);
 
@@ -164,16 +184,16 @@ describe('obo-middleware', () => {
 				// Arrange
 				const accessToken = 'mock-access-token';
 				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies();
+				const { oboTokenStore } = createTestDependencies();
 				const tokenValidator = mockTokenValidator(true);
-				mockCachedOboToken(deps.oboTokenStore, 'cached-token');
+				mockCachedOboToken(oboTokenStore, 'cached-token');
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.AZURE_AD,
 					'some-scope'
 				);
 
@@ -194,7 +214,7 @@ describe('obo-middleware', () => {
 					request as Request,
 					tokenValidator,
 					deps.oboTokenStore,
-					deps.authConfig,
+                    OboProviderType.AZURE_AD,
 					'some-scope'
 				);
 
@@ -204,48 +224,22 @@ describe('obo-middleware', () => {
 			});
 		});
 
-		describe('scope handling', () => {
-			it('should clear auth headers when scope is null', async () => {
-				// Arrange
-				const accessToken = 'mock-access-token';
-				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies();
-                const tokenValidator = mockTokenValidator(true);
-
-				// Act
-				const result = await setOBOTokenOnRequest(
-					request as Request,
-					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
-					null
-				);
-
-				// Assert
-				expect(result).toBeUndefined();
-				expect(request.headers![AUTHORIZATION_HEADER]).toBe('');
-				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
-				expect(requestAzureOboToken).not.toHaveBeenCalled();
-				expect(requestTokenxOboToken).not.toHaveBeenCalled();
-			});
-		});
-
 		describe('token caching', () => {
 			it('should use cached OBO token when available', async () => {
 				// Arrange
 				const accessToken = 'mock-access-token';
 				const cachedToken = 'cached-obo-token';
 				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies();
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(true);
-				mockCachedOboToken(deps.oboTokenStore, cachedToken);
+				mockCachedOboToken(oboTokenStore, cachedToken);
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.AZURE_AD,
 					'some-scope'
 				);
 
@@ -266,19 +260,17 @@ describe('obo-middleware', () => {
 				const expiresInSeconds = 3600;
 				const scope = 'api://cluster.namespace.my-app/.default';
 				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.AZURE_AD } as AuthConfig
-				});
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(true);
-				mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockCachedOboToken(oboTokenStore, undefined);
 				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, expiresInSeconds);
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.AZURE_AD,
 					scope
 				);
 
@@ -287,7 +279,7 @@ describe('obo-middleware', () => {
 				expect(requestAzureOboToken).toHaveBeenCalledWith(accessToken, scope);
 				expect(requestAzureOboToken).toHaveBeenCalledTimes(1);
 				expect(requestTokenxOboToken).not.toHaveBeenCalled();
-				expect(deps.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
+				expect(oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
 					expect.any(String),
 					3570, // 3600 - 30 (clock skew)
 					newToken
@@ -303,24 +295,22 @@ describe('obo-middleware', () => {
 				const expiresInSeconds = 3600;
 				const expectedExpiryWithSkew = 3570; // 3600 - 30
 				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.AZURE_AD } as AuthConfig
-				});
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(true);
-				mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockCachedOboToken(oboTokenStore, undefined);
 				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, expiresInSeconds);
 
 				// Act
 				await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.AZURE_AD,
 					'some-scope'
 				);
 
 				// Assert
-				expect(deps.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
+				expect(oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
 					expect.any(String),
 					expectedExpiryWithSkew,
 					newToken
@@ -336,19 +326,17 @@ describe('obo-middleware', () => {
 				const expiresInSeconds = 3600;
 				const scope = 'dev-gcp:namespace:my-app';
 				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.TOKEN_X } as AuthConfig
-				});
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(true);
-				mockCachedOboToken(deps.oboTokenStore, undefined);
+				mockCachedOboToken(oboTokenStore, undefined);
 				mockOasisOboTokenExchange(OboProviderType.TOKEN_X, newToken, expiresInSeconds);
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
-					deps.authConfig,
+					oboTokenStore,
+                    OboProviderType.TOKEN_X,
 					scope
 				);
 
@@ -357,7 +345,7 @@ describe('obo-middleware', () => {
 				expect(requestTokenxOboToken).toHaveBeenCalledWith(accessToken, scope);
 				expect(requestTokenxOboToken).toHaveBeenCalledTimes(1);
 				expect(requestAzureOboToken).not.toHaveBeenCalled();
-				expect(deps.oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
+				expect(oboTokenStore.setUserOboToken).toHaveBeenCalledWith(
 					expect.any(String),
 					3570, // 3600 - 30 (clock skew)
 					newToken
@@ -376,23 +364,21 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const deps = createTestDependencies();
-                const tokenValidator = mockTokenValidator(true);
-				mockCachedOboToken(deps.oboTokenStore, 'cached-token');
+				const { oboTokenStore, authConfig, proxy } = createTestDependencies();
+				mockCachedOboToken(oboTokenStore, 'cached-token');
 
 				const middleware = oboMiddleware({
-					authConfig: deps.authConfig,
-					oboTokenStore: deps.oboTokenStore,
-					tokenValidator: tokenValidator,
-					proxy: deps.proxy
+					authConfig: authConfig,
+					oboTokenStore: oboTokenStore,
+					proxy: proxy
 				});
 
 				// Act
 				await middleware(request as Request, response as Response, nextMock);
 
 				// Assert
+                expect(sendStatusMock).not.toHaveBeenCalled();
 				expect(nextMock).toHaveBeenCalledTimes(1);
-				expect(sendStatusMock).not.toHaveBeenCalled();
 			});
 		});
 
@@ -402,14 +388,12 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({});
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const deps = createTestDependencies();
-                const tokenValidator = mockTokenValidator(true);
+				const { proxy, authConfig, oboTokenStore } = createTestDependencies();
 
 				const middleware = oboMiddleware({
-					authConfig: deps.authConfig,
-					oboTokenStore: deps.oboTokenStore,
-					tokenValidator: tokenValidator,
-					proxy: deps.proxy
+					authConfig,
+					oboTokenStore,
+					proxy
 				});
 
 				// Act
@@ -426,14 +410,13 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const deps = createTestDependencies();
-                const tokenValidator = mockTokenValidator(false);
+				const { oboTokenStore, authConfig, proxy } = createTestDependencies();
+                mockValidateAzureToken(false)
 
 				const middleware = oboMiddleware({
-					authConfig: deps.authConfig,
-					oboTokenStore: deps.oboTokenStore,
-					tokenValidator: tokenValidator,
-					proxy: deps.proxy
+					authConfig,
+					oboTokenStore,
+					proxy
 				});
 
 				// Act
@@ -454,8 +437,8 @@ describe('obo-middleware', () => {
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const deps = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.AZURE_AD } as AuthConfig,
+				const { proxy, authConfig, oboTokenStore } = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.AZURE_AD, loginProviderType: LoginProviderType.AZURE_AD, valkeyConfig: undefined },
 					proxy: {
 						toApp: { name: 'my-app', cluster: 'prod-gcp', namespace: 'obo' },
 						fromPath: "/my-app",
@@ -463,15 +446,13 @@ describe('obo-middleware', () => {
 						toUrl: '/my-app-url'
 					}
 				});
-                const tokenValidator = mockTokenValidator(true);
-                mockCachedOboToken(deps.oboTokenStore, undefined);
+                mockCachedOboToken(oboTokenStore, undefined);
 				mockOasisOboTokenExchange(OboProviderType.AZURE_AD, newToken, 3600);
 
 				const middleware = oboMiddleware({
-					authConfig: deps.authConfig,
-					oboTokenStore: deps.oboTokenStore,
-					tokenValidator: tokenValidator,
-					proxy: deps.proxy
+					authConfig,
+					oboTokenStore,
+					proxy
 				});
 
 				// Act
@@ -491,28 +472,26 @@ describe('obo-middleware', () => {
 				// Arrange
 				const accessToken = 'mock-access-token';
 				const newToken = 'new-tokenx-token';
-				const expectedScope = 'dev-gcp:lol:my-app';
+                const toApp = { name: 'my-app', cluster: 'dev-gcp', namespace: 'lol' }
+				const expectedScope = `${toApp.cluster}:${toApp.namespace}:${toApp.name}`;
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
-				const deps = createTestDependencies({
-					authConfig: { oboProviderType: OboProviderType.TOKEN_X } as AuthConfig,
+				const { oboTokenStore, authConfig, proxy } = createTestDependencies({
+					authConfig: { oboProviderType: OboProviderType.TOKEN_X, loginProviderType: LoginProviderType.ID_PORTEN, valkeyConfig: undefined },
 					proxy: {
-						toApp: { name: 'my-app', cluster: 'dev-gcp', namespace: 'lol' },
+						toApp,
 						fromPath: "/from-path",
 						preserveFromPath: true,
 						toUrl: '/to-app'
 					}
 				});
-                const tokenValidator = mockTokenValidator(true);
-                mockCachedOboToken(deps.oboTokenStore, undefined);
 				mockOasisOboTokenExchange(OboProviderType.TOKEN_X, newToken, 3600);
 
 				const middleware = oboMiddleware({
-					authConfig: deps.authConfig,
-					oboTokenStore: deps.oboTokenStore,
-					tokenValidator: tokenValidator,
-					proxy: deps.proxy
+					authConfig,
+					oboTokenStore,
+					proxy
 				});
 
 				// Act
@@ -522,43 +501,6 @@ describe('obo-middleware', () => {
 				expect(requestTokenxOboToken).toHaveBeenCalledWith(accessToken, expectedScope);
 				expect(requestTokenxOboToken).toHaveBeenCalledTimes(1);
 				expect(requestAzureOboToken).not.toHaveBeenCalled();
-				expect(nextMock).toHaveBeenCalledTimes(1);
-				expect(sendStatusMock).not.toHaveBeenCalled();
-			});
-		});
-
-		describe('proxy configuration', () => {
-			it('should clear auth headers when proxy has no toApp configured', async () => {
-				// Arrange
-				const accessToken = 'mock-access-token';
-				const request = createMockRequest({ token: accessToken });
-				const { response, sendStatusMock } = createMockResponse();
-				const nextMock = vi.fn();
-				const deps = createTestDependencies({
-					proxy: {
-						toApp: undefined,
-						fromPath: "/from-path",
-						preserveFromPath: true,
-						toUrl: '/to-app'
-					}
-				});
-                const tokenValidator = mockTokenValidator(true);
-
-				const middleware = oboMiddleware({
-					authConfig: deps.authConfig,
-					oboTokenStore: deps.oboTokenStore,
-					tokenValidator: tokenValidator,
-					proxy: deps.proxy
-				});
-
-				// Act
-				await middleware(request as Request, response as Response, nextMock);
-
-				// Assert
-				expect(request.headers![AUTHORIZATION_HEADER]).toBe('');
-				expect(request.headers![WONDERWALL_ID_TOKEN_HEADER]).toBe('');
-				expect(requestAzureOboToken).not.toHaveBeenCalled();
-				expect(requestTokenxOboToken).not.toHaveBeenCalled();
 				expect(nextMock).toHaveBeenCalledTimes(1);
 				expect(sendStatusMock).not.toHaveBeenCalled();
 			});

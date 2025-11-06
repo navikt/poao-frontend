@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
-import { TokenValidator } from '../utils/auth/token-validator.js';
-import { extractTokenPayload, getAccessToken } from '../utils/auth/auth-token-utils.js';
+import {
+    createTokenValidator,
+} from '../utils/auth/token-validator.js';
+import { extractTokenPayload } from '../utils/auth/auth-token-utils.js';
+import { getToken } from '@navikt/oasis';
+import {LoginProviderType} from "../config/auth-config.js";
 
 interface AuthInfoResponse {
 	loggedIn: boolean,
@@ -16,9 +20,10 @@ const authInfoNotAuthenticated: AuthInfoResponse = {
 	securityLevel: null
 };
 
-export function authInfoRoute(validator: TokenValidator) {
-	return (req: Request, res: Response) => {
-		const token = getAccessToken(req);
+export function authInfoRoute(loginProviderType: LoginProviderType) {
+    const validator = createTokenValidator(loginProviderType);
+    return (req: Request, res: Response) => {
+		const token = getToken(req);
 
 		if (!token) {
 			res.send(authInfoNotAuthenticated);

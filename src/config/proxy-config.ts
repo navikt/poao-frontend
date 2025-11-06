@@ -8,7 +8,7 @@ export interface ProxyConfig {
 export interface Proxy {
 	fromPath: string; // Must be a relative path
 	toUrl: string;
-	toApp?: ProxyApp;
+	toApp: ProxyApp;
 	preserveFromPath: boolean; // If true, 'fromPath' will be prepended to the request path before sending to 'toUrl'
 }
 

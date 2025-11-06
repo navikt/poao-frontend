@@ -1,5 +1,5 @@
-import { LoginProviderType, OboProviderType, resolveAzureAdProvider } from "../../config/auth-config.js";
-import { createTokenValidator, mapLoginProviderTypeToValidatorType } from "../auth/token-validator.js";
+import { AuthConfig, LoginProviderType, OboProviderType } from "../../config/auth-config.js";
+import { createTokenValidator } from "../auth/token-validator.js";
 import { Request } from "express";
 import { setOBOTokenOnRequest } from "../../middleware/obo-middleware.js";
 import { logger } from "../logger.js";
@@ -9,18 +9,15 @@ import { CALL_ID, CONSUMER_ID } from "../../middleware/tracingMiddleware.js";
 import { APP_NAME } from "../../config/base-config.js";
 import { createTokenStore } from "../auth/tokenStore/token-store.js";
 
-const createModiacontextHolderConfig = async () => {
-    const azureAdProvider = resolveAzureAdProvider()
-    const authConfig = {
+const createModiacontextHolderConfig = () => {
+    const authConfig: AuthConfig = {
         loginProviderType: LoginProviderType.AZURE_AD,
-        loginProvider: azureAdProvider,
         oboProviderType: OboProviderType.AZURE_AD,
-        oboProvider: azureAdProvider
+        valkeyConfig: undefined,
     }
-    const tokenValidatorType = mapLoginProviderTypeToValidatorType(authConfig.loginProviderType);
-    const tokenValidator = await createTokenValidator(tokenValidatorType);
+    const tokenValidator = createTokenValidator(authConfig.loginProviderType);
     return {
-        tokenStore: createTokenStore(undefined),
+        tokenStore: createTokenStore(authConfig.valkeyConfig),
         authConfig,
         tokenValidator,
     }
@@ -28,9 +25,9 @@ const createModiacontextHolderConfig = async () => {
 type ModiaContextConfig = Awaited<ReturnType<typeof createModiacontextHolderConfig>>
 
 let _config: ModiaContextConfig | undefined = undefined
-const modiacontextHolderConfig = async () => {
+const modiacontextHolderConfig = () => {
     if (_config === undefined) {
-        _config = await createModiacontextHolderConfig()
+        _config = createModiacontextHolderConfig()
     }
     return _config
 }
@@ -38,8 +35,8 @@ const modiacontextHolderConfig = async () => {
 
 export const setModiaContext = async (req: Request, fnr: string, config: JsonConfig.ModiaContextHolderConfig) => {
     try {
-        const { authConfig, tokenValidator, tokenStore } = await modiacontextHolderConfig()
-        const error = await setOBOTokenOnRequest(req, tokenValidator, tokenStore, authConfig, config.scope)
+        const { authConfig, tokenValidator, tokenStore } = modiacontextHolderConfig()
+        const error = await setOBOTokenOnRequest(req, tokenValidator, tokenStore, authConfig.oboProviderType, config.scope)
         if (error) return error
         logger.info({
             message: 'Setting modia context before redirecting',

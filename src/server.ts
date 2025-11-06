@@ -10,7 +10,6 @@ import { createAppConfig, logAppConfig } from './config/app-config-resolver.js';
 import { fallbackRoute } from './route/fallback-route.js';
 import { pingRoute } from './route/ping-route.js';
 import { errorHandlerMiddleware } from './middleware/error-handler-middleware.js';
-import { createTokenValidator, mapLoginProviderTypeToValidatorType } from './utils/auth/token-validator.js';
 import { frontendEnvRoute } from './route/frontend-env-route.js';
 import { oboMiddleware } from './middleware/obo-middleware.js';
 import { authInfoRoute } from './route/auth-info-route.js';
@@ -74,9 +73,7 @@ async function startServer() {
 	});
 
 	if (auth) {
-		const tokenValidatorType = mapLoginProviderTypeToValidatorType(auth.loginProviderType);
-		const tokenValidator = await createTokenValidator(tokenValidatorType);
-		app.get(routeUrl('/auth/info'), authInfoRoute(tokenValidator));
+		app.get(routeUrl('/auth/info'), authInfoRoute(auth.loginProviderType));
 
 		if (proxy.proxies.length > 0) {
 			const oboTokenStore = createTokenStore(auth.valkeyConfig);
@@ -84,7 +81,7 @@ async function startServer() {
 				const proxyFrom = routeUrl(proxy.fromPath);
 				app.use(
 					proxyFrom,
-					oboMiddleware({ authConfig: auth, proxy, oboTokenStore, tokenValidator }),
+					oboMiddleware({ authConfig: auth, proxy, oboTokenStore }),
 					proxyMiddleware(proxyFrom, proxy)
 				);
 			});

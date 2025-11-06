@@ -11,13 +11,6 @@ export const WONDERWALL_ID_TOKEN_HEADER = 'x-wonderwall-id-token';
 // This is to prevent problems with clock skew and that the token might expire in-flight.
 export const EXPIRE_BEFORE_SECONDS = 30;
 
-export interface OboToken {
-	tokenType: string; // Always "Bearer"
-	scope: string; // Scopes (permissions) that the OBO token has
-	expiresAt: number; // Epoch seconds timestamp for expiration
-	accessToken: string; // The OBO token
-}
-
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {
 	return expiresInSeconds - EXPIRE_BEFORE_SECONDS;
 };

@@ -13,15 +13,18 @@ export function mapLoginProviderTypeToValidatorType(loginProviderType: LoginProv
 		case LoginProviderType.ID_PORTEN:
 			return TokenValidatorType.ID_PORTEN;
 		default:
+            console.log('Unknown loginProviderType ' + loginProviderType)
 			throw new Error('Unknown loginProviderType ' + loginProviderType);
 	}
 }
 
-export async function createTokenValidator(type: TokenValidatorType): Promise<TokenValidator> {
-	return {
+export function createTokenValidator(loginProviderType: LoginProviderType): TokenValidator {
+    const type: TokenValidatorType = mapLoginProviderTypeToValidatorType(loginProviderType);
+    const validationFunction = type === TokenValidatorType.AZURE_AD ? validateAzureToken : validateIdportenToken;
+    return {
 		isValid: async (token: string | undefined): Promise<boolean> => {
-			if (!token) return false;
-            const validationResult = type === TokenValidatorType.AZURE_AD ? await validateAzureToken(token) : await validateIdportenToken(token);
+            if (!token) return false;
+            const validationResult = await validationFunction(token);
             if (validationResult.ok) {
                 return true;
             } else {
