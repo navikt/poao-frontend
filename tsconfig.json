@@ -9,7 +9,7 @@
     },
     "module": "NodeNext",
     "target": "ES2022",
-    "outDir": "./build",
+    "outDir": "./dist",
     "rootDir": "./src",
     "skipLibCheck": true,
     "esModuleInterop": true,
