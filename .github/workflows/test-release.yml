@@ -43,7 +43,6 @@ jobs:
           team: poao
           tag: ${{ env.IMAGE_TAG }}
       - name: Create test release
-        if: github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           name: Test release poao-frontend ${{ github.ref_name }}
