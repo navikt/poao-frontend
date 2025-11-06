@@ -24,14 +24,6 @@ vi.mock('@navikt/oasis', () => ({
     validateIdportenToken: vi.fn(() => ({ ok: true })),
 }));
 
-vi.mock('../utils/auth/tokenStore/token-store.js', async (importOriginal) => {
-	const actual = await importOriginal() as any;
-	return {
-		...actual,
-		createOboTokenKey: actual.createOboTokenKey
-	};
-});
-
 vi.mock('../utils/logger.js', () => ({
 	logger: {
 		info: vi.fn(),
@@ -45,7 +37,6 @@ vi.mock('../utils/logger.js', () => ({
     }
 }));
 
-// Request builder utilities
 interface RequestConfig {
 	authorizationHeader?: string;
 	token?: string;
@@ -131,10 +122,10 @@ function mockOasisOboTokenExchange(oboProviderType: OboProviderType, newToken: s
 	}
 }
 
-function mockValidateAzureToken(isValid: boolean) {
+function mockOasisValidateAzureToken(isValid: boolean) {
     (validateAzureToken as Mock).mockResolvedValueOnce({ ok: isValid });
 }
-function mockValidateIdportenToken(isValid: boolean) {
+function mockOasisValidateIdportenToken(isValid: boolean) {
     (validateIdportenToken as Mock).mockResolvedValueOnce({ ok: isValid });
 }
 
@@ -211,14 +202,14 @@ describe('obo-middleware', () => {
 				// Arrange
 				const accessToken = 'invalid-token';
 				const request = createMockRequest({ token: accessToken });
-				const deps = createTestDependencies();
+				const { oboTokenStore } = createTestDependencies();
                 const tokenValidator = mockTokenValidator(false);
 
 				// Act
 				const result = await setOBOTokenOnRequest(
 					request as Request,
 					tokenValidator,
-					deps.oboTokenStore,
+					oboTokenStore,
                     OboProviderType.AZURE_AD,
 					'some-scope'
 				);
@@ -409,14 +400,14 @@ describe('obo-middleware', () => {
 				expect(nextMock).not.toHaveBeenCalled();
 			});
 
-			it('should send 401 status when token is invalid', async () => {
+			it('should send 401 status when azure token is invalid', async () => {
 				// Arrange
 				const accessToken = 'invalid-token';
 				const request = createMockRequest({ token: accessToken });
 				const { response, sendStatusMock } = createMockResponse();
 				const nextMock = vi.fn();
 				const { oboTokenStore, authConfig, proxy } = createTestDependencies();
-                mockValidateAzureToken(false)
+                mockOasisValidateAzureToken(false)
 
 				const middleware = oboMiddleware({
 					authConfig,
@@ -431,6 +422,31 @@ describe('obo-middleware', () => {
 				expect(sendStatusMock).toHaveBeenCalledWith(401);
 				expect(nextMock).not.toHaveBeenCalled();
 			});
+
+            it('should send 401 status when id-porten token is invalid', async () => {
+                // Arrange
+                const accessToken = 'invalid-token';
+                const request = createMockRequest({ token: accessToken });
+                const { response, sendStatusMock } = createMockResponse();
+                const nextMock = vi.fn();
+                const { oboTokenStore, authConfig, proxy } = createTestDependencies({
+                    authConfig: { loginProviderType: LoginProviderType.ID_PORTEN, oboProviderType: OboProviderType.TOKEN_X, valkeyConfig: undefined }
+                });
+                mockOasisValidateIdportenToken(false)
+
+                const middleware = oboMiddleware({
+                    authConfig,
+                    oboTokenStore,
+                    proxy
+                });
+
+                // Act
+                await middleware(request as Request, response as Response, nextMock);
+
+                // Assert
+                expect(sendStatusMock).toHaveBeenCalledWith(401);
+                expect(nextMock).not.toHaveBeenCalled();
+            });
 		});
 
 		describe('Azure AD integration', () => {
