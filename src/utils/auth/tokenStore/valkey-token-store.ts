@@ -1,7 +1,6 @@
 import { Redis, RedisOptions } from "iovalkey";
 import { ValkeyConfig } from "../../../config/auth-config.js";
 import { logger } from "../../logger.js";
-import { OboToken } from "../auth-token-utils.js";
 import { OboTokenStore, OboTokenKey } from "./token-store.js";
 
 export const configureValkey = (valkeyConfig: ValkeyConfig) => {
@@ -20,12 +19,12 @@ export const configureValkey = (valkeyConfig: ValkeyConfig) => {
 export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => {
     const valkey = configureValkey(valkeyConfig)
     return {
-        getUserOboToken: async (key: OboTokenKey): Promise<OboToken | undefined> => {
+        getUserOboToken: async (key: OboTokenKey): Promise<string | undefined> => {
             return valkey.get(key)
                 .then(result => {
                     try {
                         if (result) {
-                            return { accessToken: result } as OboToken
+                            return result
                         } else {
                             return undefined
                         }
@@ -39,9 +38,9 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
                     return undefined
                 })
         },
-        setUserOboToken: async (key: OboTokenKey, expiresInSeconds: number, oboToken: OboToken) => {
+        setUserOboToken: async (key: OboTokenKey, expiresInSeconds: number, accessToken: string) => {
             try {
-                await valkey.setex(key, expiresInSeconds, oboToken.accessToken)
+                await valkey.setex(key, expiresInSeconds, accessToken)
             } catch (e) {
                 logger.error("Error setting OboToken in Valkey", e)
             }

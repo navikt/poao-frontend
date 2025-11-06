@@ -13,14 +13,14 @@ export enum OboProviderType {
 	AZURE_AD = 'AZURE_AD',
 }
 
-export interface AuthConfig {
-	loginProviderType: LoginProviderType;
-	loginProvider: OAuthProvider;
-
-	oboProviderType: OboProviderType;
-	oboProvider: OAuthProvider;
-
+export type AuthConfig = {
+	loginProviderType: LoginProviderType.ID_PORTEN;
+	oboProviderType: OboProviderType.TOKEN_X;
 	valkeyConfig?: ValkeyConfig
+} | {
+    loginProviderType: LoginProviderType.AZURE_AD;
+    oboProviderType: OboProviderType.AZURE_AD;
+    valkeyConfig?: ValkeyConfig
 }
 
 export interface ValkeyConfig {
@@ -31,19 +31,13 @@ export interface ValkeyConfig {
 	port: string
 }
 
-export interface OAuthProvider {
-	discoveryUrl: string;
-	clientId: string;
-	privateJwk: string;
-}
-
 export const logAuthConfig = (config: AuthConfig | undefined): void => {
 	if (!config) return;
 
-	const { loginProvider, loginProviderType, oboProviderType, oboProvider } = config;
+	const { loginProviderType, oboProviderType} = config;
 
-	logger.info(`Auth config login: loginProviderType=${loginProviderType} discoverUrl=${loginProvider.discoveryUrl} clientId=${loginProvider.clientId}`);
-	logger.info(`Auth config obo: oboProviderType=${oboProviderType} discoverUrl=${oboProvider.discoveryUrl} clientId=${oboProvider.clientId}`);
+	logger.info(`Auth config login: loginProviderType=${loginProviderType}`);
+	logger.info(`Auth config obo: oboProviderType=${oboProviderType}`);
 };
 
 export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefined): AuthConfig | undefined => {
@@ -53,56 +47,23 @@ export const resolveAuthConfig = (authJsonConfig: JsonConfig.AuthConfig | undefi
 		return undefined;
 	}
 
-	if (loginProvider === LoginProviderType.AZURE_AD) {
-		const azureAdProvider = resolveAzureAdProvider();
-		const valkeyConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
+    const valkeyConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
 
+    if (loginProvider === LoginProviderType.AZURE_AD) {
 		return {
 			loginProviderType: LoginProviderType.AZURE_AD,
-			loginProvider: azureAdProvider,
 			oboProviderType: OboProviderType.AZURE_AD,
-			oboProvider: azureAdProvider,
 			valkeyConfig,
 		}
 	} else if (loginProvider === LoginProviderType.ID_PORTEN) {
-		const idPortenProvider = resolveIdPortenProvider();
-		const tokenXProvider = resolveTokenXProvider();
-		const valkeyConfig = resolveValkeyConfig(authJsonConfig?.tokenCacheConfig)
-
 		return {
 			loginProviderType: LoginProviderType.ID_PORTEN,
-			loginProvider: idPortenProvider,
 			oboProviderType: OboProviderType.TOKEN_X,
-			oboProvider: tokenXProvider,
 			valkeyConfig
 		}
 	}
 
 	throw new Error('Unable to resolve auth config, login provider is missing');
-};
-
-export const resolveAzureAdProvider = (): OAuthProvider => {
-	const clientId = assert(process.env.AZURE_APP_CLIENT_ID, 'AZURE_APP_CLIENT_ID is missing');
-	const discoveryUrl = assert(process.env.AZURE_APP_WELL_KNOWN_URL, 'AZURE_APP_WELL_KNOWN_URL is missing');
-	const privateJwk = assert(process.env.AZURE_APP_JWK, 'AZURE_APP_JWK is missing');
-
-	return { clientId, discoveryUrl, privateJwk };
-};
-
-const resolveIdPortenProvider = (): OAuthProvider => {
-	const clientId = assert(process.env.IDPORTEN_CLIENT_ID, 'IDPORTEN_CLIENT_ID is missing');
-	const discoveryUrl = assert(process.env.IDPORTEN_WELL_KNOWN_URL, 'IDPORTEN_WELL_KNOWN_URL is missing');
-	const privateJwk = "dummyvalue"; // not used for idporten
-
-	return { clientId, discoveryUrl, privateJwk };
-};
-
-const resolveTokenXProvider = (): OAuthProvider => {
-	const clientId = assert(process.env.TOKEN_X_CLIENT_ID, 'TOKEN_X_CLIENT_ID is missing');
-	const discoveryUrl = assert(process.env.TOKEN_X_WELL_KNOWN_URL, 'TOKEN_X_WELL_KNOWN_URL is missing');
-	const privateJwk = assert(process.env.TOKEN_X_PRIVATE_JWK, 'TOKEN_X_PRIVATE_JWK is missing');
-
-	return { clientId, discoveryUrl, privateJwk };
 };
 
 const resolveValkeyConfig = (valkeyConfig: JsonConfig.AuthConfig['tokenCacheConfig'] | undefined) => {
