@@ -71,17 +71,12 @@ export const setOBOTokenOnRequest = async (
 ): Promise<Error | undefined> => {
 	const accessToken = getAccessToken(req);
 
-    console.log("setOBOTokenOnRequest", accessToken);
-
 	if (!accessToken) {
 		logger.warn({ message: 'Access token is missing from proxy request', callId: req.headers[CALL_ID], consumerId: req.headers[CONSUMER_ID] });
 		return { status: 401 }
 	}
 
-    console.log("beofre isValid", accessToken);
     const isValid = await tokenValidator.isValid(accessToken);
-    console.log(`after result ${isValid}`)
-
     if (!isValid) {
 		logger.error({ message: 'Access token is not valid', callId: req.headers[CALL_ID], consumerId: req.headers[CONSUMER_ID] });
 		return { status: 401 }

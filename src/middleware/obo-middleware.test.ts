@@ -63,7 +63,12 @@ function createMockRequest(config: RequestConfig = {}): Partial<Request> {
 
 	return {
 		headers,
-		header: vi.fn((name: string) => headers[name])
+        header: vi.fn((name: string) => (name === 'set-cookie' ? [headers[name]] : headers[name])) as (
+            {
+                (name: "set-cookie"): string[] | undefined;
+                (name: string): string | undefined;
+            } | undefined
+        )
 	};
 }
 
