@@ -1,4 +1,4 @@
-FROM node:22-alpine3.21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:24-slim
 
 LABEL org.opencontainers.image.source="https://github.com/navikt/poao-frontend"
 
