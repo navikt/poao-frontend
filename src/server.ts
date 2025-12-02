@@ -2,7 +2,7 @@ import express from 'express';
 import corsMiddleware from 'cors';
 import urlJoin from 'url-join';
 import compression from 'compression';
-import { initSecureLog, logger } from './utils/logger.js';
+import {  logger } from './utils/logger.js';
 import { gcsRoute } from './route/gcs-route.js';
 import { helmetMiddleware } from './middleware/helmet-middleware.js';
 import { redirectRoute } from './route/redirect-route.js';
@@ -24,11 +24,11 @@ async function startServer() {
 	const appConfig = createAppConfig();
 	const { base, cors, gcs, auth, proxy, redirect, dekorator } = appConfig;
 	logAppConfig(appConfig);
-
+/*
 	if (appConfig.base.enableSecureLogs) {
 		initSecureLog()
 	}
-
+*/
 	app.get('/internal/ready', pingRoute());
 	app.get('/internal/alive', pingRoute());
 
