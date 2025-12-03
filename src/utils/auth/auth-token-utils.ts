@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { JsonData } from '../config-utils.js';
 import { fromBase64 } from '../utils.js';
-import { secureLog } from '../logger.js';
+import { logger } from "../logger.js";
 
 export const AUTHORIZATION_HEADER = 'authorization';
 
@@ -26,7 +26,7 @@ export function extractTokenPayload(jwtToken: string): JsonData {
 		const payload = fromBase64(jwtToken.split('.')[1]);
 		return JSON.parse(payload);
 	} catch (e) {
-		secureLog.error(`Unable to extract token payload from token: ${jwtToken}, error: ${e}`);
+		logger.error(`Unable to extract token payload from token, error: ${e}`);
 		throw e;
 	}
 }
