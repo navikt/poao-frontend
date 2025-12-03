@@ -86,7 +86,6 @@ export namespace JsonConfig {
     enableFrontendEnv?: boolean;
     contextPath?: string;
     serveFromPath?: string;
-    enableSecureLogs?: boolean;
     dekorator?: DekoratorConfig;
     enableModiaContextUpdater: ModiaContextHolderConfig;
     auth?: AuthConfig;
