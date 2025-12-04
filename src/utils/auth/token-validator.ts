@@ -1,5 +1,5 @@
 import { LoginProviderType } from '../../config/auth-config.js';
-import { logger, secureLog } from '../logger.js';
+import { logger } from '../logger.js';
 import {validateAzureToken, validateIdportenToken} from "@navikt/oasis";
 
 export enum TokenValidatorType {
@@ -31,7 +31,6 @@ export function createTokenValidator(loginProviderType: LoginProviderType): Toke
                 return true;
             } else {
                 logger.error(`Failed to verify token: ${validationResult.errorType}`, validationResult.error);
-                secureLog.error('Failed to verify token: ' + token)
                 return false;
             }
 		}
