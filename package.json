@@ -20,33 +20,33 @@
   },
   "homepage": "https://github.com/navikt/poao-frontend#readme",
   "dependencies": {
-    "@google-cloud/storage": "7.17.2",
-    "@navikt/nav-dekoratoren-moduler": "3.5.0",
-    "@navikt/oasis": "^4.1.0",
+    "@google-cloud/storage": "7.18.0",
+    "@navikt/nav-dekoratoren-moduler": "3.6.1",
+    "@navikt/oasis": "^4.1.1",
     "compression": "1.8.1",
     "cors": "2.8.5",
-    "express": "5.1.0",
+    "express": "5.2.1",
     "helmet": "8.1.0",
     "http-proxy-middleware": "3.0.5",
     "iovalkey": "^0.3.3",
-    "jsdom": "27.1.0",
-    "mime-types": "3.0.1",
+    "jsdom": "27.2.0",
+    "mime-types": "3.0.2",
     "node-cache": "5.1.2",
     "url-join": "5.0.0",
     "uuid": "13.0.0",
-    "winston": "3.18.3"
+    "winston": "3.19.0"
   },
   "devDependencies": {
     "@types/compression": "1.8.1",
     "@types/cors": "2.8.19",
-    "@types/express": "5.0.5",
+    "@types/express": "5.0.6",
     "@types/jsdom": "27.0.0",
     "@types/mime-types": "3.0.1",
-    "@types/node": "24.10.0",
-    "@vitest/coverage-v8": "^4.0.6",
+    "@types/node": "24.10.1",
+    "@vitest/coverage-v8": "^4.0.15",
     "dotenv-cli": "10.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "vitest": "4.0.6"
+    "vitest": "4.0.15"
   }
 }
