@@ -1,13 +1,13 @@
-FROM node:22-alpine3.21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:24-slim
 
 LABEL org.opencontainers.image.source="https://github.com/navikt/poao-frontend"
+
+ENV NODE_ENV=production
 
 WORKDIR /app
 
 COPY node_modules ./node_modules
 COPY package.json ./
-COPY build ./
+COPY dist ./dist
 
-USER node
-
-CMD ["node", "/app/server.js"]
+CMD ["dist/server.js"]

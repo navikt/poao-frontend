@@ -16,7 +16,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
@@ -43,7 +43,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
@@ -68,6 +68,7 @@ jobs:
           team: poao
           tag: ${{ env.IMAGE_TAG }}
       - name: Create release
+        if: github.ref_name == 'main'
         uses: softprops/action-gh-release@v2
         with:
           name: Release poao-frontend
