@@ -22,7 +22,7 @@
   "dependencies": {
     "@google-cloud/storage": "7.18.0",
     "@navikt/nav-dekoratoren-moduler": "3.6.1",
-    "@navikt/oasis": "^4.1.1",
+    "@navikt/oasis": "^4.1.2",
     "compression": "1.8.1",
     "cors": "2.8.5",
     "express": "5.2.1",
