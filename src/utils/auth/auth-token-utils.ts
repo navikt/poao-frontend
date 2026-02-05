@@ -12,7 +12,7 @@ export const WONDERWALL_ID_TOKEN_HEADER = 'x-wonderwall-id-token';
 export const EXPIRE_BEFORE_SECONDS = 30;
 
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {
-	return expiresInSeconds - EXPIRE_BEFORE_SECONDS;
+	return Math.max(1, expiresInSeconds - EXPIRE_BEFORE_SECONDS);
 };
 
 // The header should contain a value in the following format: "Bearer <token>"
