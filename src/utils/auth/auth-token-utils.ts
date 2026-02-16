@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { JsonData } from '../config-utils.js';
 import { fromBase64 } from '../utils.js';
-import { secureLog } from '../logger.js';
+import { logger } from "../logger.js";
 
 export const AUTHORIZATION_HEADER = 'authorization';
 
@@ -12,7 +12,7 @@ export const WONDERWALL_ID_TOKEN_HEADER = 'x-wonderwall-id-token';
 export const EXPIRE_BEFORE_SECONDS = 30;
 
 export const getExpiresInSecondWithClockSkew = (expiresInSeconds: number): number => {
-	return expiresInSeconds - EXPIRE_BEFORE_SECONDS;
+	return Math.max(1, expiresInSeconds - EXPIRE_BEFORE_SECONDS);
 };
 
 // The header should contain a value in the following format: "Bearer <token>"
@@ -26,7 +26,7 @@ export function extractTokenPayload(jwtToken: string): JsonData {
 		const payload = fromBase64(jwtToken.split('.')[1]);
 		return JSON.parse(payload);
 	} catch (e) {
-		secureLog.error(`Unable to extract token payload from token: ${jwtToken}, error: ${e}`);
+		logger.error(`Unable to extract token payload from token, error: ${e}`);
 		throw e;
 	}
 }

@@ -14,7 +14,6 @@ export interface BaseConfig {
 	enableFrontendEnv: boolean;
 	contextPath: string;
 	serveFromPath: string;
-	enableSecureLogs: boolean;
 	enableModiaContextUpdater: JsonConfig.ModiaContextHolderConfig;
 }
 
@@ -30,7 +29,6 @@ const DEFAULT_FALLBACK_STRATEGY = FallbackStrategy.SERVE_INDEX_HTML;
 
 const DEFAULT_ENABLE_FRONTEND_ENV = false;
 
-const DEFAULT_ENABLE_SECURE_LOGS = false;
 
 export function logBaseConfig(config: BaseConfig) {
 	logger.info(
@@ -39,7 +37,6 @@ export function logBaseConfig(config: BaseConfig) {
 		serveFromPath=${config.serveFromPath} 
 		fallbackStrategy=${config.fallbackStrategy} 
 		enableFrontendEnv=${config.enableFrontendEnv} 
-		enableSecureLogs=${config.enableSecureLogs} 
 		enableModiaContextUpdater=${config.enableModiaContextUpdater}`
 	);
 }
@@ -51,7 +48,6 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 		enableFrontendEnv: jsonConfig?.enableFrontendEnv,
 		contextPath: jsonConfig?.contextPath,
 		serveFromPath: jsonConfig?.serveFromPath,
-		enableSecureLogs: jsonConfig?.enableSecureLogs,
 		enableModiaContextUpdater: jsonConfig?.enableModiaContextUpdater,
 	}
 
@@ -73,10 +69,6 @@ export function resolveBaseConfig(jsonConfig: JsonConfig.Config | undefined): Ba
 
 	if (config.enableFrontendEnv == null) {
 		config.enableFrontendEnv = DEFAULT_ENABLE_FRONTEND_ENV;
-	}
-
-	if (config.enableSecureLogs == null) {
-		config.enableSecureLogs = DEFAULT_ENABLE_SECURE_LOGS;
 	}
 
 	return validateConfig(config)

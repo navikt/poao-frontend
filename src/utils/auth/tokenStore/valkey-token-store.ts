@@ -42,6 +42,11 @@ export const createValkeyCache = (valkeyConfig: ValkeyConfig): OboTokenStore => 
             try {
                 await valkey.setex(key, expiresInSeconds, accessToken)
             } catch (e) {
+                try {
+                    (e as any).command.args[2] = '<token>'
+                } catch (e) {
+                    logger.warn("Failed to erase sensitive field in error message")
+                }
                 logger.error("Error setting OboToken in Valkey", e)
             }
         },
