@@ -21,7 +21,7 @@
   "homepage": "https://github.com/navikt/poao-frontend#readme",
   "dependencies": {
     "@google-cloud/storage": "7.19.0",
-    "@navikt/nav-dekoratoren-moduler": "3.6.2",
+    "@navikt/nav-dekoratoren-moduler": "3.7.1",
     "@navikt/oasis": "^4.1.4",
     "compression": "1.8.1",
     "cors": "2.8.6",
@@ -40,13 +40,13 @@
     "@types/compression": "1.8.1",
     "@types/cors": "2.8.19",
     "@types/express": "5.0.6",
-    "@types/jsdom": "28.0.0",
+    "@types/jsdom": "28.0.1",
     "@types/mime-types": "3.0.1",
-    "@types/node": "25.5.0",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@types/node": "25.5.2",
+    "@vitest/coverage-v8": "^4.1.2",
     "dotenv-cli": "11.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "vitest": "4.1.0"
+    "vitest": "4.1.2"
   }
 }
