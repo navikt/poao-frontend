@@ -57,7 +57,7 @@ jobs:
       - name: Run tests
         run: pnpm test
       - name: Build application
-        run: pnpm run build
+        run: pnpm build
       - name: Prune dev dependencies
         run: pnpm prune --prod
       - name: Create image tag
