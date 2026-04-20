@@ -6,8 +6,8 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-COPY package.json .npmrc ./
 COPY node_modules ./node_modules
+COPY package.json ./
 COPY dist ./dist
 
 CMD ["dist/server.js"]
