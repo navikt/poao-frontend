@@ -163,7 +163,7 @@ Eksempel:
 ```
 
 ### Enable secure logs
-Hvis satt til *true* så vil det logges sensitiv informasjon til secure logs. Kan brukes til f.eks debugging. 
+Hvis satt til *true* så vil det logges sensitiv informasjon til secure logs. Kan brukes til f.eks debugging.
 Husk å sette opp secure logs i NAIS-yamlen i tillegg. Default er *false*.
 
 Eksempel:
@@ -238,11 +238,11 @@ Eksempel:
 ### Header config
 Konfigurering av HTTP headers. Man kan endre csp og corp (Cross-Origin Resource Policy).
 
-Hvis hele eller deler av konfigurasjonen ikke er satt så vil det bli brukt 
+Hvis hele eller deler av konfigurasjonen ikke er satt så vil det bli brukt
 sane defaults (se header-config.ts) tilpasset "vanlige" applikasjoner på NAV.
 
-De delene av CSP konfigen som blir satt vil overskrive defaultsene, 
-så hvis man ønsker å legge til en ny **src** på f.eks `scriptSrc` men fortsatt beholde defaults 
+De delene av CSP konfigen som blir satt vil overskrive defaultsene,
+så hvis man ønsker å legge til en ny **src** på f.eks `scriptSrc` men fortsatt beholde defaults
 så blir man nødt til å kopiere over defaultsene og legge til **src** på slutten.
 
 Eksempel:
@@ -274,7 +274,7 @@ Kan f.eks brukes for å ha lenker til forskjellige tjenester som er forskjellig 
 
 `fromPath`: hvilken path det skal redirectes fra. Påkrevd felt
 `toUrl`: hvilken URL det skal redirectes til. Påkrevd felt
-`preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`. 
+`preserveFromPath`: hvis satt til **true** så vil `fromPath` bli lagt til `toUrl`.
     Hvis wildcard matching (`/*`) brukes i `fromPath` så vil wildcard delen av pathen alltid bli lagt til på `toUrl`. Default er **false**
 
 Eksempel:
@@ -328,7 +328,7 @@ Eksempel:
 
 ### Dekorator config
 POAO kan serverside injecte html i index.html-files som beskrevet i [doc-en deres](https://github.com/navikt/nav-dekoratoren#eksempel-1).
-Dette støttes kun hvis index.html-filen ligger i podden. Tanken er at dette skal brukes sammen med statiske filer i en bucket (NAV-CDN) ved at alle lenker i index.html går til CDN istedetfor til samme domene. 
+Dette støttes kun hvis index.html-filen ligger i podden. Tanken er at dette skal brukes sammen med statiske filer i en bucket (NAV-CDN) ved at alle lenker i index.html går til CDN istedetfor til samme domene.
 Config er hentet fra dekoratoren
 
 
@@ -535,32 +535,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
       - name: Setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v6
         with:
-          node-version: "16"
-          cache: "npm"
+          node-version: "24"
+          cache: "pnpm"
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Run tests
-        run: npm run test
+        run: pnpm test
       - name: Build application
-        run: npm run build
+        run: pnpm build
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCS_SA_KEY_DEV }}
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v0
       - name: Upload files to GCS
         run: gsutil -m rsync -r build gs://my-application-dev
       - name: Create release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: release/dev@${{ github.sha }}
-          release_name: Release to dev
+          name: Release to dev
           prerelease: true
 ```
