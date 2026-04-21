@@ -13,18 +13,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
       - name: Run tests
-        run: npm run test
+        run: pnpm test
 
   test-build-and-push:
     name: Build and push
@@ -40,24 +42,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
           registry-url: 'https://npm.pkg.github.com'
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
       - name: Run tests
-        run: npm test
-      - name: npm prune
-        run: npm prune
+        run: pnpm test
       - name: Build application
-        run: npm run build
-      - name: npm prune
-        run: npm prune --omit-dev
+        run: pnpm build
+      - name: Prune dev dependencies
+        run: pnpm prune --prod
       - name: Create image tag
         run: echo "IMAGE_TAG=$(TZ=\"Europe/Oslo\" date +%Y.%m.%d_%H.%M)-$(git rev-parse --short=12 HEAD)" >> $GITHUB_ENV
       - name: Push docker image to GAR

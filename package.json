@@ -19,6 +19,7 @@
     "url": "https://github.com/navikt/poao-frontend/issues"
   },
   "homepage": "https://github.com/navikt/poao-frontend#readme",
+  "packageManager": "pnpm@10.33.0",
   "dependencies": {
     "@google-cloud/storage": "7.19.0",
     "@navikt/nav-dekoratoren-moduler": "3.7.1",
