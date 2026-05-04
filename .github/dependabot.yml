@@ -9,6 +9,9 @@ registries:
     type: npm-registry
     url: https://npm.pkg.github.com
     token: ${{secrets.READER_TOKEN}}
+  npm-public:
+    type: npm-registry
+    url: https://registry.npmjs.org
 updates:
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
@@ -20,6 +23,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     registries:
       - npm-github
+      - npm-public
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
