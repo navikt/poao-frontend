@@ -4,6 +4,11 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+registries:
+  npm-github:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{secrets.READER_TOKEN}}
 updates:
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
@@ -13,6 +18,8 @@ updates:
       default-days: 7
 
   - package-ecosystem: "npm" # See documentation for possible values
+    registries:
+      - npm-github
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
