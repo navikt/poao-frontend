@@ -34,7 +34,7 @@
     "mime-types": "3.0.2",
     "node-cache": "5.1.2",
     "url-join": "5.0.0",
-    "uuid": "13.0.0",
+    "uuid": "14.0.0",
     "winston": "3.19.0"
   },
   "devDependencies": {
