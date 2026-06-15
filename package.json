@@ -22,12 +22,12 @@
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
     "@google-cloud/storage": "7.19.0",
-    "@navikt/nav-dekoratoren-moduler": "4.1.1",
+    "@navikt/nav-dekoratoren-moduler": "4.2.1",
     "@navikt/oasis": "^4.1.4",
     "compression": "1.8.1",
     "cors": "2.8.6",
     "express": "5.2.1",
-    "helmet": "8.1.0",
+    "helmet": "8.2.0",
     "http-proxy-middleware": "4.1.0",
     "iovalkey": "^0.3.3",
     "jsdom": "29.1.1",
@@ -43,11 +43,11 @@
     "@types/express": "5.0.6",
     "@types/jsdom": "28.0.3",
     "@types/mime-types": "3.0.1",
-    "@types/node": "25.8.0",
-    "@vitest/coverage-v8": "^4.1.6",
+    "@types/node": "25.9.2",
+    "@vitest/coverage-v8": "^4.1.8",
     "dotenv-cli": "11.0.0",
     "ts-node": "10.9.2",
     "typescript": "6.0.3",
-    "vitest": "4.1.6"
+    "vitest": "4.1.8"
   }
 }
