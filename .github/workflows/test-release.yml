@@ -43,7 +43,7 @@ jobs:
           team: poao
           tag: ${{ env.IMAGE_TAG }}
       - name: Create test release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # ratchet:softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # ratchet:softprops/action-gh-release@v3
         with:
           name: Test release poao-frontend ${{ github.ref_name }}
           tag_name: ${{ env.IMAGE_TAG }},
