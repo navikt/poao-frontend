@@ -7,6 +7,7 @@ import { LoginProviderType, OboProviderType } from "./config/auth-config.js";
 import type { OboTokenStore } from "./utils/auth/tokenStore/token-store.js";
 import { routeUrl } from "./utils/utils.js";
 import type { Proxy } from "./config/proxy-config.js";
+import { CONSUMER_ID } from "./middleware/tracingMiddleware.js";
 
 vi.mock("./utils/logger.js", () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -99,7 +100,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: false });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/" });
             app.use(proxyFrom, proxyMiddleware(proxyFrom, proxy));
             ({ server: proxyServer, port: proxyPort } = await startServer(app));
         });
@@ -140,7 +141,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: true });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/" });
             app.use(proxyFrom, proxyMiddleware(proxyFrom, proxy));
             ({ server: proxyServer, port: proxyPort } = await startServer(app));
         });
@@ -169,7 +170,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: false });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/my-app");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/my-app" });
             app.use(proxyFrom, proxyMiddleware(proxyFrom, proxy));
             ({ server: proxyServer, port: proxyPort } = await startServer(app));
         });
@@ -198,7 +199,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: true });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/my-app");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/my-app" });
             app.use(proxyFrom, proxyMiddleware(proxyFrom, proxy));
             ({ server: proxyServer, port: proxyPort } = await startServer(app));
         });
@@ -231,7 +232,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: false });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/" });
             app.use(
                 proxyFrom,
                 oboMiddleware({
@@ -285,7 +286,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: true });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/" });
             app.use(
                 proxyFrom,
                 oboMiddleware({
@@ -332,7 +333,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: false });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/my-app");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/my-app" });
             app.use(
                 proxyFrom,
                 oboMiddleware({
@@ -379,7 +380,7 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
         beforeAll(async () => {
             const proxy = buildProxy(targetPort, { preserveFromPath: true });
             const app = express();
-            const proxyFrom = routeUrl(proxy.fromPath, "/my-app");
+            const proxyFrom = routeUrl({ path: proxy.fromPath, contextPath: "/my-app" });
             app.use(
                 proxyFrom,
                 oboMiddleware({
@@ -403,6 +404,15 @@ describe("proxy forwarding (server.ts proxy setup)", () => {
             });
             expect(res.status).toBe(200);
             expect(capturedRequests).toHaveLength(1);
+        });
+
+        it("forwards the request when a valid Bearer token is provided", async () => {
+            const res = await fetch(`http://127.0.0.1:${proxyPort}/my-app/api/data`, {
+                headers: { Authorization: "Bearer valid-access-token", [CONSUMER_ID]: 'source-app' },
+            });
+            expect(res.status).toBe(200);
+            expect(capturedRequests).toHaveLength(1);
+            expect(capturedRequests[0].headers[CONSUMER_ID]).toBe('source-app');
         });
 
         it("target receives full path including contextPath and fromPath prefix", async () => {

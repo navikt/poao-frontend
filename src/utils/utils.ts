@@ -46,7 +46,7 @@ export function fromBase64(base64Str: string): string {
 	return Buffer.from(base64Str, 'base64').toString('utf8');
 }
 
-export const routeUrl = (path: string, contextPath: string): string => {
+export const routeUrl = ({ path, contextPath }:{ path: string, contextPath: string}): string => {
 	const pathWithNamedWildcard = path.endsWith('/*') ? path.replace('/*', '/*path') : path;
 	return urlJoin(contextPath, pathWithNamedWildcard);
 };

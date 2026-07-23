@@ -15,7 +15,7 @@ import { authInfoRoute } from './route/auth-info-route.js';
 import { proxyMiddleware } from './middleware/proxy-middleware.js';
 import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
 import { createTokenStore } from "./utils/auth/tokenStore/token-store.js";
-import {routeUrl} from "./utils/utils.js";
+import {routeUrl as joinWithContextPath } from "./utils/utils.js";
 
 const app: express.Application = express();
 
@@ -24,6 +24,10 @@ async function startServer() {
 	const appConfig = createAppConfig();
 	const { base, cors, gcs, auth, proxy, redirect, dekorator } = appConfig;
 	logAppConfig(appConfig);
+
+	const routeUrl = (path: string): string => {
+		return joinWithContextPath({ path, contextPath: base.contextPath });
+	};
 
 	app.get('/internal/ready', pingRoute());
 	app.get('/internal/alive', pingRoute());
@@ -52,11 +56,11 @@ async function startServer() {
 	app.use(errorHandlerMiddleware());
 
 	if (base.enableFrontendEnv) {
-		app.get(routeUrl('/env.js', base.contextPath), frontendEnvRoute());
+		app.get(routeUrl('/env.js'), frontendEnvRoute());
 	}
 
 	redirect.redirects.forEach(redirect => {
-		app.get(routeUrl(redirect.fromPath, base.contextPath), redirectRoute({
+		app.get(routeUrl(redirect.fromPath), redirectRoute({
 			fromPath: redirect.fromPath,
 			to: redirect.toUrl,
 			preserveContextPath: redirect.preserveFromPath
@@ -64,12 +68,12 @@ async function startServer() {
 	});
 
 	if (auth) {
-		app.get(routeUrl('/auth/info', base.contextPath), authInfoRoute(auth.loginProviderType));
+		app.get(routeUrl('/auth/info'), authInfoRoute(auth.loginProviderType));
 
 		if (proxy.proxies.length > 0) {
 			const oboTokenStore = createTokenStore(auth.valkeyConfig);
 			proxy.proxies.forEach(proxy => {
-				const proxyFrom = routeUrl(proxy.fromPath, base.contextPath);
+				const proxyFrom = routeUrl(proxy.fromPath);
 				app.use(
 					proxyFrom,
 					oboMiddleware({ authConfig: auth, proxy, oboTokenStore }),
@@ -84,7 +88,7 @@ async function startServer() {
 		}
 	} else {
 		proxy.proxies.forEach(proxy => {
-			const proxyFrom = routeUrl(proxy.fromPath, base.contextPath);
+			const proxyFrom = routeUrl(proxy.fromPath);
 			app.use(
 				proxyFrom,
 				proxyMiddleware(proxyFrom, proxy)
@@ -104,11 +108,11 @@ async function startServer() {
 		// For at det skal funke å injecte-dekoratøren på / og /index.html må det inn i en handler og ikke bare
 		// via express.static, fant ikke noen god måte å fange opp hvilken fil som
 		if (dekorator) {
-			app.use(routeUrl("/", base.contextPath), fallbackRoute(base, dekorator))
-			app.use(routeUrl("/index.html", base.contextPath), fallbackRoute(base, dekorator))
+			app.use(routeUrl("/"), fallbackRoute(base, dekorator))
+			app.use(routeUrl("/index.html"), fallbackRoute(base, dekorator))
 		}
 		app.use(base.contextPath, express.static(base.serveFromPath, { cacheControl: false }));
-		app.get(routeUrl('/*', base.contextPath), fallbackRoute(base, dekorator));
+		app.get(routeUrl('/*'), fallbackRoute(base, dekorator));
 	}
 
 	const server = app.listen(base.port, () => logger.info('Server started successfully'));
