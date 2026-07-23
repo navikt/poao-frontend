@@ -44,6 +44,7 @@ export interface HeaderConfig {
     imgSrc: string[];
     frameSrc: string[];
     fontSrc: string[];
+    reportUri?: string;
   };
   corp: {
     policy: "same-origin" | "same-site" | "cross-origin";
@@ -71,6 +72,7 @@ export const resolveHeaderConfig = (
     styleSrc: headerJsonConfig?.csp?.styleSrc || defaultCspValues.styleSrc,
     frameSrc: headerJsonConfig?.csp?.frameSrc || defaultCspValues.frameSrc,
     fontSrc: headerJsonConfig?.csp?.fontSrc || defaultCspValues.fontSrc,
+    reportUri: headerJsonConfig?.csp?.reportUri,
   };
 
   config.corp = {

@@ -26,6 +26,7 @@ export function helmetMiddleware(headerConfig: HeaderConfig) {
         styleSrc: headerConfig.csp.styleSrc,
         imgSrc: headerConfig.csp.imgSrc,
         upgradeInsecureRequests: [],
+        ...(headerConfig.csp.reportUri && { reportUri: [headerConfig.csp.reportUri] }),
       },
     },
     crossOriginResourcePolicy: {
