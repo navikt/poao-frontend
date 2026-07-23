@@ -1,5 +1,6 @@
 import mime from 'mime-types';
 import { extname } from "path";
+import urlJoin from "url-join";
 
 export function hoursToMs(hours: number): number {
 	return hours * 60 * 60 * 1000;
@@ -44,3 +45,8 @@ export function stripPrefix(sourceStr: string, prefixToStrip: string): string {
 export function fromBase64(base64Str: string): string {
 	return Buffer.from(base64Str, 'base64').toString('utf8');
 }
+
+export const routeUrl = (path: string, contextPath: string): string => {
+	const pathWithNamedWildcard = path.endsWith('/*') ? path.replace('/*', '/*path') : path;
+	return urlJoin(contextPath, pathWithNamedWildcard);
+};
