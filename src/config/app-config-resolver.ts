@@ -135,6 +135,7 @@ export namespace JsonConfig {
       styleSrc?: string[];
       frameSrc?: string[];
       fontSrc?: string[];
+      reportUri?: string;
     };
     corp?: {
       policy?: "same-origin" | "same-site" | "cross-origin";

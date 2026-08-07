@@ -1,6 +1,5 @@
 import express from 'express';
 import corsMiddleware from 'cors';
-import urlJoin from 'url-join';
 import compression from 'compression';
 import { logger } from './utils/logger.js';
 import { gcsRoute } from './route/gcs-route.js';
@@ -16,6 +15,7 @@ import { authInfoRoute } from './route/auth-info-route.js';
 import { proxyMiddleware } from './middleware/proxy-middleware.js';
 import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
 import { createTokenStore } from "./utils/auth/tokenStore/token-store.js";
+import {routeUrl as joinWithContextPath } from "./utils/utils.js";
 
 const app: express.Application = express();
 
@@ -25,13 +25,12 @@ async function startServer() {
 	const { base, cors, gcs, auth, proxy, redirect, dekorator } = appConfig;
 	logAppConfig(appConfig);
 
+	const routeUrl = (path: string): string => {
+		return joinWithContextPath({ path, contextPath: base.contextPath });
+	};
+
 	app.get('/internal/ready', pingRoute());
 	app.get('/internal/alive', pingRoute());
-
-	const routeUrl = (path: string): string => {
-		const pathWithNamedWildcard = path.endsWith('/*') ? path.replace('/*', '/*path') : path;
-		return urlJoin(base.contextPath, pathWithNamedWildcard);
-	};
 
 	app.use(compression({
 		filter: (req: express.Request, res: express.Response) => {
