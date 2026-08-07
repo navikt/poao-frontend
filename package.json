@@ -28,9 +28,9 @@
     "compression": "1.8.1",
     "cors": "2.8.6",
     "express": "5.2.1",
-    "helmet": "8.2.0",
-    "http-proxy-middleware": "4.1.1",
-    "iovalkey": "^0.3.3",
+    "helmet": "8.3.0",
+    "http-proxy-middleware": "4.2.0",
+    "iovalkey": "^0.4.0",
     "mime-types": "3.0.2",
     "node-cache": "5.1.2",
     "url-join": "5.0.0",
@@ -44,12 +44,12 @@
     "@types/express": "5.0.6",
     "@types/jsdom": "28.0.3",
     "@types/mime-types": "3.0.1",
-    "@types/node": "26.1.0",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@types/node": "26.1.2",
+    "@vitest/coverage-v8": "^4.1.10",
     "dotenv-cli": "11.0.0",
-    "oxfmt": "^0.59.0",
+    "oxfmt": "^0.61.0",
     "ts-node": "10.9.2",
     "typescript": "6.0.3",
-    "vitest": "4.1.9"
+    "vitest": "4.1.10"
   }
 }
