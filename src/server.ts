@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import express from 'express';
 import corsMiddleware from 'cors';
 import compression from 'compression';
@@ -17,6 +18,7 @@ import { tracingMiddleware } from "./middleware/tracingMiddleware.js";
 import { createTokenStore } from "./utils/auth/tokenStore/token-store.js";
 import {routeUrl as joinWithContextPath } from "./utils/utils.js";
 
+EventEmitter.defaultMaxListeners = 30;
 const app: express.Application = express();
 registerProcessLogging();
 
