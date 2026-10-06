@@ -46,5 +46,6 @@ jobs:
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # ratchet:softprops/action-gh-release@v3
         with:
           name: Test release poao-frontend ${{ github.ref_name }}
-          tag_name: ${{ env.IMAGE_TAG }},
+          tag_name: ${{ env.IMAGE_TAG }}
+          target_commitish: ${{ github.sha }}
           prerelease: true
