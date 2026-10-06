@@ -47,4 +47,5 @@ jobs:
         with:
           name: Test release poao-frontend ${{ github.ref_name }}
           tag_name: ${{ env.IMAGE_TAG }}
+          target_commitish: ${{ github.sha }}
           prerelease: true
