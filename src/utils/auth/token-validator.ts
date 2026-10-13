@@ -13,7 +13,7 @@ export function mapLoginProviderTypeToValidatorType(loginProviderType: LoginProv
 		case LoginProviderType.ID_PORTEN:
 			return TokenValidatorType.ID_PORTEN;
 		default:
-            console.log('Unknown loginProviderType ' + loginProviderType)
+			logger.error('Unknown loginProviderType ' + loginProviderType)
 			throw new Error('Unknown loginProviderType ' + loginProviderType);
 	}
 }
@@ -40,4 +40,3 @@ export function createTokenValidator(loginProviderType: LoginProviderType): Toke
 export interface TokenValidator {
 	isValid(token: string | undefined): Promise<boolean>;
 }
-

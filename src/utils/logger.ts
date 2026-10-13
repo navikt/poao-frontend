@@ -39,3 +39,20 @@ export const logger = createLogger({
 	),
 	transports: [new transports.Console()]
 });
+
+export function registerProcessLogging() {
+	process.on('warning', warning => {
+		logger.warn(
+			`Node warning: ${warning.name}: ${warning.message}`,
+			{ warningName: warning.name, stack: warning.stack }
+		);
+	});
+
+	process.on('uncaughtExceptionMonitor', error => {
+		logger.error('Uncaught exception', { err: error });
+	});
+
+	process.on('unhandledRejection', reason => {
+		logger.error('Unhandled promise rejection', { reason });
+	});
+}

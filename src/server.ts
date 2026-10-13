@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import express from 'express';
 import corsMiddleware from 'cors';
 import compression from 'compression';
-import { logger } from './utils/logger.js';
+import { logger, registerProcessLogging } from './utils/logger.js';
 import { gcsRoute } from './route/gcs-route.js';
 import { helmetMiddleware } from './middleware/helmet-middleware.js';
 import { redirectRoute } from './route/redirect-route.js';
@@ -20,6 +20,7 @@ import {routeUrl as joinWithContextPath } from "./utils/utils.js";
 
 EventEmitter.defaultMaxListeners = 30;
 const app: express.Application = express();
+registerProcessLogging();
 
 async function startServer() {
 	logger.info('Starting poao-frontend');
