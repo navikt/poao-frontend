@@ -45,8 +45,8 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
       url-join:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 5.0.0
+        version: 5.0.0
       uuid:
         specifier: 14.0.3
         version: 14.0.3
@@ -228,6 +228,9 @@ packages:
     peerDependencies:
       html-react-parser: '>=5.x'
       react: '>=17.x'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@navikt/oasis@4.2.2':
     resolution: {integrity: sha512-EVMsF8uKbLPNRWuPfH1IKVJhqtibFzSTSyNkzj5mTCVMZV2QPS5W3uYMD4r0rXsmLx7nv0HnLovDphb3AFEjvw==, tarball: https://npm.pkg.github.com/download/@navikt/oasis/4.2.2/3c43e1e89bb2d46646a9a2aaf27972a024377a6f}
@@ -1692,8 +1695,8 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
-  url-join@5.1.1:
-    resolution: {integrity: sha512-5+M4YX5pEFeXSdMyt3J5iXr949UC+j6yHRkZUEv6ljTusAfdCdS4pSTudnYGzYEbKkdK5xIE0E3i5xzIzoiFrQ==}
+  url-join@5.0.0:
+    resolution: {integrity: sha512-n2huDr9h9yzd6exQVnH/jU5mr+Pfx08LRXXZhkLLetAMESRj+anQsTAh940iMrIetKAmry9coFuZQ2jY8/p3WA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   util-deprecate@1.0.2:
@@ -1981,6 +1984,7 @@ snapshots:
       csp-header: 6.4.0
       html-react-parser: 6.1.8(react@19.3.0)
       js-cookie: 3.0.8
+    optionalDependencies:
       react: 19.3.0
 
   '@navikt/oasis@4.2.2':
@@ -3330,7 +3334,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  url-join@5.1.1: {}
+  url-join@5.0.0: {}
 
   util-deprecate@1.0.2: {}
 
