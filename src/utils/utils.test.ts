@@ -6,6 +6,7 @@ import {
 	joinUrlPath,
 	minutesToSeconds,
 	removeQueryParams,
+	routeUrl,
 	stripPrefix
 } from './utils.js';
 
@@ -71,6 +72,11 @@ describe('joinUrlPath', () => {
 		expect(joinUrlPath('https://example.com/base', '/next')).toBe('https://example.com/base/next');
 	});
 
+	it('should preserve an absolute path when the base is empty', () => {
+		expect(joinUrlPath('', '/auth/info')).toBe('/auth/info');
+		expect(joinUrlPath('', 'index.html')).toBe('index.html');
+	});
+
 	it('should preserve parent path segments without resolving them', () => {
 		expect(joinUrlPath('build', '/../secret.json')).toBe('build/../secret.json');
 		expect(joinUrlPath('https://example.com/base', '/../next')).toBe('https://example.com/base/../next');
@@ -78,5 +84,16 @@ describe('joinUrlPath', () => {
 
 	it('should not add a trailing slash when the path is empty', () => {
 		expect(joinUrlPath('/my-app/', '')).toBe('/my-app');
+	});
+
+	it('should preserve one trailing slash for a slash-only path', () => {
+		expect(joinUrlPath('https://example.com/new', '/')).toBe('https://example.com/new/');
+		expect(joinUrlPath('/my-app/', '///')).toBe('/my-app/');
+	});
+});
+
+describe('routeUrl', () => {
+	it('should preserve a leading slash when contextPath is empty', () => {
+		expect(routeUrl({ path: '/auth/info', contextPath: '' })).toBe('/auth/info');
 	});
 });

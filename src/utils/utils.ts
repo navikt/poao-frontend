@@ -56,14 +56,14 @@ export function joinUrlPath(base: string, path: string): string {
 
     // Behold én innledende skråstrek når basen bare består av skråstreker.
     if (baseWithoutTrailingSlashes === '') {
-        return base.startsWith('/')
+        return base.startsWith('/') || path.startsWith('/')
             ? `/${pathWithoutLeadingSlashes}`
             : pathWithoutLeadingSlashes;
     }
 
     // Ikke legg til en avsluttende skråstrek når stien er tom.
     if (pathWithoutLeadingSlashes === '') {
-        return baseWithoutTrailingSlashes;
+        return path === '' ? baseWithoutTrailingSlashes : `${baseWithoutTrailingSlashes}/`;
     }
 
     // Sett inn nøyaktig én skråstrek mellom basen og stien.
