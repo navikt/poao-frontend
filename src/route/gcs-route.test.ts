@@ -5,7 +5,7 @@ import { FallbackStrategy } from '../config/base-config.js';
 import { JsonConfig } from '../config/app-config-resolver.js';
 
 // Use vi.hoisted to properly hoist mock variables
-const { mockCacheGet, mockCacheSet, mockCacheFlushAll, mockBucket } = vi.hoisted(() => {
+const { mockCacheGet, mockCacheSet, mockBucket } = vi.hoisted(() => {
     const mockFileDownload = vi.fn();
     const mockBucketObj = {
         file: vi.fn((_path: string) => ({
@@ -17,7 +17,6 @@ const { mockCacheGet, mockCacheSet, mockCacheFlushAll, mockBucket } = vi.hoisted
     return {
         mockCacheGet: vi.fn(),
         mockCacheSet: vi.fn(),
-        mockCacheFlushAll: vi.fn(),
         mockBucket: mockBucketObj
     };
 });
@@ -27,7 +26,6 @@ vi.mock('node-cache', () => {
         default: class {
             get = mockCacheGet;
             set = mockCacheSet;
-            flushAll = mockCacheFlushAll;
         }
     };
 });
@@ -36,6 +34,7 @@ vi.mock('node-cache', () => {
 vi.mock('@google-cloud/storage', () => {
     return {
         Storage: class {
+            // noinspection JSUnusedGlobalSymbols
             bucket(_bucketName: string) {
                 return mockBucket;
             }
@@ -48,7 +47,7 @@ const { mockInjectDecoratorServerSideDocument } = vi.hoisted(() => {
         mockInjectDecoratorServerSideDocument: vi.fn((_config: any) => {
             return Promise.resolve({
                 documentElement: {
-                    outerHTML: '<html><head></head><body>mocked-with-dekorator</body></html>'
+                    outerHTML: '<html lang="nb"><head></head><body>mocked-with-dekorator</body></html>'
                 }
             });
         })
@@ -63,7 +62,7 @@ vi.mock('jsdom', () => {
                 this.window = {
                     document: {
                         documentElement: {
-                            outerHTML: '<html><head></head><body>mocked-with-dekorator</body></html>'
+                            outerHTML: '<html lang="nb"><head></head><body>mocked-with-dekorator</body></html>'
                         }
                     }
                 };
@@ -295,7 +294,7 @@ describe('gcsRoute', () => {
                         setImmediate(() => callback(new Error('File not found')));
                     } else {
                         // Second call succeeds with index.html
-                        setImmediate(() => callback(null, Buffer.from('<html>index</html>')));
+                        setImmediate(() => callback(null, Buffer.from('<html lang="nb">index</html>')));
                     }
                 });
 
@@ -344,6 +343,22 @@ describe('gcsRoute', () => {
                 expect(mockBucket.file).toHaveBeenCalledWith('build/some/file.js');
             });
 
+            it.each([
+                '/app/../secret.json',
+                '/app/%2e%2e/secret.json',
+                '/app/%ZZ/secret.json'
+            ])('should reject invalid path %s', requestPath => {
+                const route = gcsRoute({
+                    ...baseConfig,
+                    bucketContextPath: 'build'
+                }, undefined);
+
+                route(createMockRequest(requestPath), mockRes as Response);
+
+                expect(sendStatusSpy).toHaveBeenCalledWith(400);
+                expect(mockBucket.file).not.toHaveBeenCalled();
+            });
+
             it('should strip query parameters from paths', async () => {
                 const mockReq = createMockRequest('/app/index.html?version=123');
                 mockFileSuccess(Buffer.from('test'));
@@ -368,7 +383,7 @@ describe('gcsRoute', () => {
         describe('index.html with dekorator config', () => {
             it('should inject dekorator into index.html when config is provided', async () => {
                 const mockReq = createMockRequest('/app/index.html');
-                const originalHtml = Buffer.from('<html><body>original</body></html>');
+                const originalHtml = Buffer.from('<html lang="nb"><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
@@ -384,7 +399,7 @@ describe('gcsRoute', () => {
 
             it('should serve index.html without injection when dekorator config is not provided', async () => {
                 const mockReq = createMockRequest('/app/index.html');
-                const originalHtml = Buffer.from('<html><body>original</body></html>');
+                const originalHtml = Buffer.from('<html lang="nb"><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, undefined);
@@ -403,7 +418,7 @@ describe('gcsRoute', () => {
                     if (callCount === 1) {
                         setImmediate(() => callback(new Error('File not found')));
                     } else {
-                        setImmediate(() => callback(null, Buffer.from('<html><body>index</body></html>')));
+                        setImmediate(() => callback(null, Buffer.from('<html lang="nb"><body>index</body></html>')));
                     }
                 });
 
@@ -483,7 +498,7 @@ describe('gcsRoute', () => {
                 mockInjectDecoratorServerSideDocument.mockRejectedValueOnce(new Error('Injection failed'));
 
                 const mockReq = createMockRequest('/app/index.html');
-                const originalHtml = Buffer.from('<html><body>original</body></html>');
+                const originalHtml = Buffer.from('<html lang="nb"><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
@@ -498,7 +513,7 @@ describe('gcsRoute', () => {
         describe('Cache behavior with dekorator injection', () => {
             it('should update cache with decorator-injected HTML when dekorator config is provided', async () => {
                 const mockReq = createMockRequest('/app/index.html');
-                const originalHtml = Buffer.from('<html><body>original</body></html>');
+                const originalHtml = Buffer.from('<html lang="nb"><body>original</body></html>');
                 mockFileSuccess(originalHtml);
 
                 const route = gcsRoute(baseConfig, dekoratorConfig);
@@ -529,7 +544,7 @@ describe('gcsRoute', () => {
 
             it('should serve cached decorator-injected content without re-injecting on subsequent requests', async () => {
                 const mockReq = createMockRequest('/app/index.html');
-                const cachedInjectedHtml = Buffer.from('<html><head></head><body>mocked-with-dekorator</body></html>');
+                const cachedInjectedHtml = Buffer.from('<html lang="nb"><head></head><body>mocked-with-dekorator</body></html>');
 
                 // Set up cache to return already-injected content
                 mockCacheGet.mockReturnValue(cachedInjectedHtml);
@@ -557,7 +572,7 @@ describe('gcsRoute', () => {
             describe('WITH decorator config', () => {
                 it('should inject decorator for root path (empty after context)', async () => {
                     const mockReq = createMockRequest('/app');
-                    const originalHtml = Buffer.from('<html><body>root</body></html>');
+                    const originalHtml = Buffer.from('<html lang="nb"><body>root</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, dekoratorConfig);
@@ -573,7 +588,7 @@ describe('gcsRoute', () => {
 
                 it('should inject decorator for single slash path', async () => {
                     const mockReq = createMockRequest('/app/');
-                    const originalHtml = Buffer.from('<html><body>slash</body></html>');
+                    const originalHtml = Buffer.from('<html lang="nb"><body>slash</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, dekoratorConfig);
@@ -589,7 +604,7 @@ describe('gcsRoute', () => {
 
                 it('should inject decorator for explicit index.html path', async () => {
                     const mockReq = createMockRequest('/app/index.html');
-                    const originalHtml = Buffer.from('<html><body>explicit</body></html>');
+                    const originalHtml = Buffer.from('<html lang="nb"><body>explicit</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, dekoratorConfig);
@@ -613,7 +628,7 @@ describe('gcsRoute', () => {
                             setImmediate(() => callback(new Error('File not found')));
                         } else {
                             // Second call for index.html succeeds
-                            setImmediate(() => callback(null, Buffer.from('<html><body>fallback</body></html>')));
+                            setImmediate(() => callback(null, Buffer.from('<html lang="nb"><body>fallback</body></html>')));
                         }
                     });
 
@@ -643,7 +658,7 @@ describe('gcsRoute', () => {
                         if (callCount === 1) {
                             setImmediate(() => callback(new Error('File not found')));
                         } else {
-                            setImmediate(() => callback(null, Buffer.from('<html><body>deep-fallback</body></html>')));
+                            setImmediate(() => callback(null, Buffer.from('<html lang="nb"><body>deep-fallback</body></html>')));
                         }
                     });
 
@@ -666,7 +681,7 @@ describe('gcsRoute', () => {
             describe('WITHOUT decorator config', () => {
                 it('should serve original HTML for root path without injection', async () => {
                     const mockReq = createMockRequest('/app');
-                    const originalHtml = Buffer.from('<html><body>root-no-inject</body></html>');
+                    const originalHtml = Buffer.from('<html lang="nb"><body>root-no-inject</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, undefined);
@@ -681,7 +696,7 @@ describe('gcsRoute', () => {
 
                 it('should serve original HTML for single slash path without injection', async () => {
                     const mockReq = createMockRequest('/app/');
-                    const originalHtml = Buffer.from('<html><body>slash-no-inject</body></html>');
+                    const originalHtml = Buffer.from('<html lang="nb"><body>slash-no-inject</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, undefined);
@@ -696,7 +711,7 @@ describe('gcsRoute', () => {
 
                 it('should serve original HTML for explicit index.html path without injection', async () => {
                     const mockReq = createMockRequest('/app/index.html');
-                    const originalHtml = Buffer.from('<html><body>explicit-no-inject</body></html>');
+                    const originalHtml = Buffer.from('<html lang="nb"><body>explicit-no-inject</body></html>');
                     mockFileSuccess(originalHtml);
 
                     const route = gcsRoute(baseConfig, undefined);
@@ -717,7 +732,7 @@ describe('gcsRoute', () => {
                         if (callCount === 1) {
                             setImmediate(() => callback(new Error('File not found')));
                         } else {
-                            setImmediate(() => callback(null, Buffer.from('<html><body>fallback-no-inject</body></html>')));
+                            setImmediate(() => callback(null, Buffer.from('<html lang="nb"><body>fallback-no-inject</body></html>')));
                         }
                     });
 
@@ -734,7 +749,7 @@ describe('gcsRoute', () => {
                     expect(mockBucket.file).toHaveBeenCalledTimes(2);
                     expect(sendSpy).toHaveBeenCalled();
                     const sentBuffer = sendSpy.mock.calls[0][0];
-                    expect(sentBuffer.toString()).toBe('<html><body>fallback-no-inject</body></html>');
+                    expect(sentBuffer.toString()).toBe('<html lang="nb"><body>fallback-no-inject</body></html>');
                     expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
                 });
 
@@ -746,7 +761,7 @@ describe('gcsRoute', () => {
                         if (callCount === 1) {
                             setImmediate(() => callback(new Error('File not found')));
                         } else {
-                            setImmediate(() => callback(null, Buffer.from('<html><body>deep-fallback-no-inject</body></html>')));
+                            setImmediate(() => callback(null, Buffer.from('<html lang="nb"><body>deep-fallback-no-inject</body></html>')));
                         }
                     });
 
@@ -762,7 +777,7 @@ describe('gcsRoute', () => {
 
                     expect(sendSpy).toHaveBeenCalled();
                     const sentBuffer = sendSpy.mock.calls[0][0];
-                    expect(sentBuffer.toString()).toBe('<html><body>deep-fallback-no-inject</body></html>');
+                    expect(sentBuffer.toString()).toBe('<html lang="nb"><body>deep-fallback-no-inject</body></html>');
                     expect(mockInjectDecoratorServerSideDocument).not.toHaveBeenCalled();
                 });
             });
