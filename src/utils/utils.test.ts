@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { hoursToMs, hoursToSeconds, isRequestingFile, minutesToSeconds, removeQueryParams, stripPrefix } from './utils.js';
+import {
+	hoursToMs,
+	hoursToSeconds,
+	isRequestingFile,
+	joinUrlPath,
+	minutesToSeconds,
+	removeQueryParams,
+	stripPrefix
+} from './utils.js';
 
 describe('hoursToMs', () => {
 	it('should convert hours to milliseconds', () => {
@@ -49,4 +57,26 @@ describe('stripPrefix', () => {
 		expect(stripPrefix('/test/path', '/test')).toBe('/path');
 		expect(stripPrefix('/test/path', '/test1')).toBe('/test/path');
 	})
+});
+
+describe('joinUrlPath', () => {
+	it('should join relative paths', () => {
+		expect(joinUrlPath('/my-app/', '/api/*path')).toBe('/my-app/api/*path');
+		expect(joinUrlPath('build', '/some/file.js')).toBe('build/some/file.js');
+		expect(joinUrlPath('', 'index.html')).toBe('index.html');
+		expect(joinUrlPath('localhost:3000', '/next')).toBe('localhost:3000/next');
+	});
+
+	it('should preserve the origin for absolute URLs', () => {
+		expect(joinUrlPath('https://example.com/base', '/next')).toBe('https://example.com/base/next');
+	});
+
+	it('should preserve parent path segments without resolving them', () => {
+		expect(joinUrlPath('build', '/../secret.json')).toBe('build/../secret.json');
+		expect(joinUrlPath('https://example.com/base', '/../next')).toBe('https://example.com/base/../next');
+	});
+
+	it('should not add a trailing slash when the path is empty', () => {
+		expect(joinUrlPath('/my-app/', '')).toBe('/my-app');
+	});
 });

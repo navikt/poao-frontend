@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import { Bucket, Storage } from '@google-cloud/storage';
-import urlJoin from 'url-join';
 import { JSDOM } from 'jsdom'
 import { logger } from '../utils/logger.js';
 import {
 	getMimeType,
 	hoursToSeconds,
 	isRequestingFile,
+	joinUrlPath,
 	minutesToSeconds,
 	removeQueryParams,
 	stripPrefix
@@ -102,7 +102,7 @@ function getFileFromCacheOrBucket(bucket: Bucket, bucketFilePath: string, dekora
 }
 
 function defaultBucketFilePath(config: GcsRouterConfig): string {
-	return stripPrefix(urlJoin(config.bucketContextPath || '', 'index.html'), '/');
+	return stripPrefix(joinUrlPath(config.bucketContextPath || '', 'index.html'), '/');
 }
 
 function createBucketFilePath(requestPath: string, config: GcsRouterConfig): string {
@@ -117,13 +117,26 @@ function createBucketFilePath(requestPath: string, config: GcsRouterConfig): str
 	}
 
 	let bucketFilePath = config.bucketContextPath
-		? urlJoin(config.bucketContextPath, strippedPath)
+		? joinUrlPath(config.bucketContextPath, strippedPath)
 		: strippedPath;
 
 	// Bucket file paths cannot not start with /
 	return stripPrefix(bucketFilePath, '/');
 }
 
+/**
+ * Returnerer `true` når stien inneholder et rått eller prosentkodet `..`-segment.
+ * Ugyldig prosentkoding gjør også stien ugyldig.
+ */
+function isInvalidRequestPath(requestPath: string): boolean {
+	return requestPath.split('/').some(segment => {
+		try {
+			return decodeURIComponent(segment) === '..';
+		} catch {
+			return true;
+		}
+	});
+}
 
 export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConfig | undefined) {
 	const storage = new Storage();
@@ -133,6 +146,12 @@ export function gcsRoute(config: GcsRouterConfig, dekoratorConfig: DekoratorConf
 		if (req.method !== 'GET') {
 			// We only serve resources so only GET is allowed
 			res.sendStatus(405); // Method not allowed
+			return;
+		}
+
+		if (isInvalidRequestPath(req.path)) {
+			logger.warn('Rejected GCS request containing an invalid path segment');
+			res.sendStatus(400);
 			return;
 		}
 
@@ -212,4 +231,3 @@ const injectDekorator = (content: Buffer<ArrayBufferLike>, config: DekoratorConf
         return Promise.resolve(content)
     }
 }
-
