@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import urljoin from "url-join";
 import { stringify, unescape } from "querystring";
+import { joinUrlPath } from "../utils/utils.js";
 
 export interface RedirectRouterConfig {
 	fromPath: string
@@ -13,7 +13,7 @@ export function redirectRoute(config: RedirectRouterConfig) {
 		const queryStr = getQueryString(req)
 
 		if (config.preserveContextPath) {
-			const url = urljoin(config.to, req.path);
+			const url = joinUrlPath(config.to, req.path);
 			res.redirect(url + queryStr);
 		} else {
 			const hasWildcard = config.fromPath.endsWith('/*')
@@ -24,7 +24,7 @@ export function redirectRoute(config: RedirectRouterConfig) {
 				const contextPath = config.fromPath.replace('/*', '')
 				const pathWithoutContext = req.path.replace(contextPath, '')
 
-				url = urljoin(config.to, pathWithoutContext)
+				url = joinUrlPath(config.to, pathWithoutContext)
 			} else {
 				url = config.to
 			}
